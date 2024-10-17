@@ -3,14 +3,14 @@ package BrokerClient
 import (
 	"errors"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/Message"
 	"github.com/neutralusername/systemge/connectionTcp"
 )
 
-func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, isSyncTopic bool) []*Config.TcpClient {
-	tcpClientConfigs := []*Config.TcpClient{}
+func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, isSyncTopic bool) []*configs.TcpClient {
+	tcpClientConfigs := []*configs.TcpClient{}
 	for _, resolverTcpClientConfig := range messageBrokerclient.config.ResolverTcpClientConfigs {
 		resolverConnection, err := connectionTcp.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverTcpClientConfig, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
@@ -39,7 +39,7 @@ func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, i
 			}
 			continue
 		}
-		tcpClientConfig := Config.UnmarshalTcpClient(response.GetPayload())
+		tcpClientConfig := configs.UnmarshalTcpClient(response.GetPayload())
 		if tcpClientConfig == nil {
 			if messageBrokerclient.warningLogger != nil {
 				messageBrokerclient.warningLogger.Log(Event.New("Failed to unmarshal tcpClientConfig", nil).Error())

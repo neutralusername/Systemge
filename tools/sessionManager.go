@@ -5,13 +5,13 @@ import (
 	"math"
 	"sync"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/status"
 )
 
 type SessionManager struct {
-	config *Config.SessionManager
+	config *configs.SessionManager
 
 	instanceId string
 	sessionId  string
@@ -46,9 +46,9 @@ type Identity struct {
 	sessions map[string]*Session
 }
 
-func NewSessionManager(config *Config.SessionManager, onCreateSession func(*Session) error, onRemoveSession func(*Session)) *SessionManager {
+func NewSessionManager(config *configs.SessionManager, onCreateSession func(*Session) error, onRemoveSession func(*Session)) *SessionManager {
 	if config == nil {
-		config = &Config.SessionManager{}
+		config = &configs.SessionManager{}
 	}
 	if config.SessionIdLength == 0 {
 		config.SessionIdLength = 32

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/SystemgeConnection"
 	"github.com/neutralusername/systemge/SystemgeServer"
@@ -14,7 +14,7 @@ import (
 
 type Server struct {
 	name           string
-	config         *Config.SingleRequestServer
+	config         *configs.SingleRequestServer
 	messageHandler SystemgeConnection.MessageHandler
 	systemgeServer *SystemgeServer.Server
 
@@ -29,7 +29,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
+func NewSingleRequestServer(name string, config *configs.SingleRequestServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is required")
 	}

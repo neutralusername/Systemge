@@ -1,4 +1,4 @@
-package Config
+package configs
 
 /* type SingleRequestClient struct {
 	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*

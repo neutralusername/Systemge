@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/DashboardHelpers"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/SystemgeConnection"
@@ -14,7 +14,7 @@ import (
 
 type Client struct {
 	name                              string
-	config                            *Config.DashboardClient
+	config                            *configs.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
 	messageHandler                    *SystemgeConnection.SequentialMessageHandler
 	asyncMessageHandlerFuncs          SystemgeConnection.AsyncMessageHandlers
@@ -27,7 +27,7 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs SystemgeConnection.AsyncMessageHandlers, syncMessageHandlerFuncs SystemgeConnection.SyncMessageHandlers, introductionHandler func() (string, error), eventHandler Event.Handler) (*Client, error) {
+func New(name string, config *configs.DashboardClient, asyncMessageHandlerFuncs SystemgeConnection.AsyncMessageHandlers, syncMessageHandlerFuncs SystemgeConnection.SyncMessageHandlers, introductionHandler func() (string, error), eventHandler Event.Handler) (*Client, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

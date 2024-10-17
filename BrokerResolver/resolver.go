@@ -4,7 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Message"
 	"github.com/neutralusername/systemge/Server"
 	"github.com/neutralusername/systemge/SystemgeConnection"
@@ -15,12 +15,12 @@ import (
 type Resolver struct {
 	name string
 
-	config *Config.MessageBrokerResolver
+	config *configs.MessageBrokerResolver
 
 	systemgeServer *Server.Server
 
-	asyncTopicTcpClientConfigs map[string]*Config.TcpClient
-	syncTopicTcpClientConfigs  map[string]*Config.TcpClient
+	asyncTopicTcpClientConfigs map[string]*configs.TcpClient
+	syncTopicTcpClientConfigs  map[string]*configs.TcpClient
 	mutex                      sync.Mutex
 
 	messageHandler SystemgeConnection.MessageHandler
@@ -39,7 +39,7 @@ type Resolver struct {
 	failedResolutions         atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerResolver, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Resolver {
+func New(name string, config *configs.MessageBrokerResolver, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Resolver {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -56,8 +56,8 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *tools.Acc
 	resolver := &Resolver{
 		name:                       name,
 		config:                     config,
-		asyncTopicTcpClientConfigs: make(map[string]*Config.TcpClient),
-		syncTopicTcpClientConfigs:  make(map[string]*Config.TcpClient),
+		asyncTopicTcpClientConfigs: make(map[string]*configs.TcpClient),
+		syncTopicTcpClientConfigs:  make(map[string]*configs.TcpClient),
 	}
 
 	if config.InfoLoggerPath != "" {

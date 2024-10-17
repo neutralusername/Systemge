@@ -4,17 +4,17 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type SimpleQueue[T any] struct {
-	config  *Config.Queue
+	config  *configs.Queue
 	queue   []T
 	waiting []chan T
 	mutex   sync.Mutex
 }
 
-func NewSimpleQueue[T any](config *Config.Queue) *SimpleQueue[T] {
+func NewSimpleQueue[T any](config *configs.Queue) *SimpleQueue[T] {
 	return &SimpleQueue[T]{
 		config: config,
 		queue:  make([]T, 0),

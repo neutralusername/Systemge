@@ -1,12 +1,12 @@
 package tools
 
 import (
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type QueueConsumerFunc[T any] func(T)
 
-func NewQueueConsumer[T any](config *Config.Routine, queue IQueueConsumer[T], handler QueueConsumerFunc[T]) *Routine {
+func NewQueueConsumer[T any](config *configs.Routine, queue IQueueConsumer[T], handler QueueConsumerFunc[T]) *Routine {
 	routine := NewRoutine(
 		func(stopChannel <-chan struct{}) {
 			select {

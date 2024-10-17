@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
 )
 
@@ -18,7 +18,7 @@ type TokenBucketRateLimiter struct {
 	mutex            sync.Mutex
 }
 
-func NewTokenBucketRateLimiter(config *Config.TokenBucketRateLimiter) *TokenBucketRateLimiter {
+func NewTokenBucketRateLimiter(config *configs.TokenBucketRateLimiter) *TokenBucketRateLimiter {
 	rateLimiter := &TokenBucketRateLimiter{
 		bucket:           config.InitialBucketSize,
 		maxBucketSize:    config.MaxBucketSize,

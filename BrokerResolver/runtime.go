@@ -1,14 +1,14 @@
 package BrokerResolver
 
-import "github.com/neutralusername/systemge/Config"
+import "github.com/neutralusername/systemge/configs"
 
-func (resolver *Resolver) AddAsyncResolution(topic string, resolution *Config.TcpClient) {
+func (resolver *Resolver) AddAsyncResolution(topic string, resolution *configs.TcpClient) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	resolver.asyncTopicTcpClientConfigs[topic] = resolution
 }
 
-func (resolver *Resolver) AddSyncResolution(topic string, resolution *Config.TcpClient) {
+func (resolver *Resolver) AddSyncResolution(topic string, resolution *configs.TcpClient) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	resolver.syncTopicTcpClientConfigs[topic] = resolution

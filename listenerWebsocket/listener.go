@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gorilla/websocket"
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/httpServer"
 	"github.com/neutralusername/systemge/status"
@@ -16,7 +16,7 @@ import (
 )
 
 type WebsocketListener struct {
-	config *Config.WebsocketListener
+	config *configs.WebsocketListener
 	name   string
 
 	instanceId string
@@ -42,7 +42,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *Config.WebsocketListener) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -57,7 +57,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *Conf
 		upgradeRequests: make(chan (<-chan *upgraderResponse)),
 	}
 	listener.httpServer = httpServer.New(listener.name+"_httpServer",
-		&Config.HTTPServer{
+		&configs.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
 		httpWrapperHandler,

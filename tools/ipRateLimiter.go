@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type IpRateLimiter struct {
@@ -20,7 +20,7 @@ func (rl *IpRateLimiter) Close() {
 	rl.active = false
 }
 
-func NewIpRateLimiter(config *Config.IpRateLimiter) *IpRateLimiter {
+func NewIpRateLimiter(config *configs.IpRateLimiter) *IpRateLimiter {
 	if config.MaxAttempts < 1 {
 		config.MaxAttempts = 1
 	}

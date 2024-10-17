@@ -6,11 +6,11 @@ import (
 	"errors"
 	"net"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection(config *Config.TcpBufferedReader, tcpClientConfig *Config.TcpClient) (systemge.Connection[[]byte], error) {
+func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *configs.TcpClient) (systemge.Connection[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -30,7 +30,7 @@ func EstablishConnection(config *Config.TcpBufferedReader, tcpClientConfig *Conf
 	return connection, nil
 }
 
-func NewTcpClient(config *Config.TcpClient) (net.Conn, error) {
+func NewTcpClient(config *configs.TcpClient) (net.Conn, error) {
 	if config.TlsCert == "" {
 		return net.Dial("tcp", config.Address)
 	}

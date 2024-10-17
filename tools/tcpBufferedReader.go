@@ -5,19 +5,19 @@ import (
 	"net"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 const ENDOFMESSAGE = '\x04'
 const HEARTBEAT = '\x05'
 
 type TcpBufferedReader struct {
-	config  *Config.TcpBufferedReader
+	config  *configs.TcpBufferedReader
 	buffer  []byte
 	netConn net.Conn
 }
 
-func NewTcpBufferedReader(netConn net.Conn, config *Config.TcpBufferedReader) *TcpBufferedReader {
+func NewTcpBufferedReader(netConn net.Conn, config *configs.TcpBufferedReader) *TcpBufferedReader {
 	if config.BufferBytes == 0 {
 		config.BufferBytes = 1024 * 4
 	}

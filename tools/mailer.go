@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type Mailer struct {
@@ -22,7 +22,7 @@ type Mail struct {
 	Body    string
 }
 
-func NewMailer(config *Config.Mailer) *Mailer {
+func NewMailer(config *configs.Mailer) *Mailer {
 	if config == nil {
 		return nil
 	}

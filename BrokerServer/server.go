@@ -5,7 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/Message"
 	Server1 "github.com/neutralusername/systemge/Server"
@@ -16,7 +16,7 @@ import (
 type Server struct {
 	name string
 
-	config         *Config.MessageBrokerServer
+	config         *configs.MessageBrokerServer
 	systemgeServer *Server1.Server
 
 	eventHandler Event.Handler
@@ -38,7 +38,7 @@ type Server struct {
 	syncRequestsPropagated atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
+func New(name string, config *configs.MessageBrokerServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

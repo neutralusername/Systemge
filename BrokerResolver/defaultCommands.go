@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/systemge/Commands"
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/status"
 )
@@ -48,7 +48,7 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			if len(args) != 2 {
 				return "", Event.New("expected 2 arguments", nil)
 			}
-			tcpClientConfig := Config.UnmarshalTcpClient(args[1])
+			tcpClientConfig := configs.UnmarshalTcpClient(args[1])
 			if tcpClientConfig == nil {
 				return "", Event.New("failed unmarshalling tcpClientConfig", nil)
 			}
@@ -66,7 +66,7 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			if len(args) != 2 {
 				return "", Event.New("expected 2 arguments", nil)
 			}
-			tcpClientConfig := Config.UnmarshalTcpClient(args[1])
+			tcpClientConfig := configs.UnmarshalTcpClient(args[1])
 			if tcpClientConfig == nil {
 				return "", Event.New("failed unmarshalling tcpClientConfig", nil)
 			}

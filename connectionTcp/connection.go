@@ -6,7 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/status"
 	"github.com/neutralusername/systemge/tools"
@@ -14,7 +14,7 @@ import (
 
 // implements SystemgeConnection
 type TcpConnection struct {
-	config     *Config.TcpBufferedReader
+	config     *configs.TcpBufferedReader
 	instanceId string
 
 	netConn           net.Conn
@@ -35,7 +35,7 @@ type TcpConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.TcpBufferedReader, netConn net.Conn) (*TcpConnection, error) {
+func New(config *configs.TcpBufferedReader, netConn net.Conn) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

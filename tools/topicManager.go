@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 /*
@@ -17,7 +17,7 @@ type TopicHandler[P any, R any] func(P) (R, error)
 type TopicHandlers[P any, R any] map[string]TopicHandler[P, R]
 
 type TopicManager[P any, R any] struct {
-	config *Config.TopicManager
+	config *configs.TopicManager
 
 	topicHandlers       TopicHandlers[P, R]
 	unknownTopicHandler TopicHandler[P, R]
@@ -42,7 +42,7 @@ type queueStruct[P any, R any] struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager[P any, R any](config *Config.TopicManager, topicHandlers TopicHandlers[P, R], unknownTopicHandler TopicHandler[P, R]) *TopicManager[P, R] {
+func NewTopicManager[P any, R any](config *configs.TopicManager, topicHandlers TopicHandlers[P, R], unknownTopicHandler TopicHandler[P, R]) *TopicManager[P, R] {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers[P, R])
 	}

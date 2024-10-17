@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/systemge/Commands"
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/DashboardHelpers"
 	"github.com/neutralusername/systemge/Event"
 	Server1 "github.com/neutralusername/systemge/Server"
@@ -17,7 +17,7 @@ import (
 )
 
 type Server struct {
-	config *Config.DashboardServer
+	config *configs.DashboardServer
 
 	name string
 
@@ -48,7 +48,7 @@ type Server struct {
 	mailer        *tools.Mailer
 }
 
-func New(name string, config *Config.DashboardServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Server {
+func New(name string, config *configs.DashboardServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
 	}

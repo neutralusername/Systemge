@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type RequestResponseManager[T any] struct {
-	config   *Config.RequestResponseManager
+	config   *configs.RequestResponseManager
 	requests map[string]*Request[T]
 	mutex    sync.RWMutex
 }
@@ -21,9 +21,9 @@ type Request[T any] struct {
 	responseCount   uint64
 }
 
-func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *RequestResponseManager[T] {
+func NewRequestResponseManager[T any](config *configs.RequestResponseManager) *RequestResponseManager[T] {
 	if config == nil {
-		config = &Config.RequestResponseManager{}
+		config = &configs.RequestResponseManager{}
 	}
 	return &RequestResponseManager[T]{
 		requests: make(map[string]*Request[T]),

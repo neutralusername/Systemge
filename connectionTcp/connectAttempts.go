@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 )
 
 type ConnectionAttempt struct {
-	config             *Config.SystemgeConnectionAttempt
+	config             *configs.SystemgeConnectionAttempt
 	systemgeConnection systemge.Connection[[]byte]
 
 	attempts   uint32
@@ -18,7 +18,7 @@ type ConnectionAttempt struct {
 	abortMutex sync.Mutex
 }
 
-func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) (*ConnectionAttempt, error) {
+func EstablishConnectionAttempts(name string, config *configs.SystemgeConnectionAttempt) (*ConnectionAttempt, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -83,7 +83,7 @@ func (connectionAttempt *ConnectionAttempt) GetOngoingChannel() <-chan bool {
 	return connectionAttempt.ongoing
 }
 
-func (connectionAttempt *ConnectionAttempt) GetTcpClientConfig() *Config.TcpClient {
+func (connectionAttempt *ConnectionAttempt) GetTcpClientConfig() *configs.TcpClient {
 	return connectionAttempt.config.TcpClientConfig
 }
 

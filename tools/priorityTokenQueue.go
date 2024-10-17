@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type PriorityTokenQueue[T any] struct {
-	config        *Config.Queue
+	config        *configs.Queue
 	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[*tokenItem[T]]
@@ -23,7 +23,7 @@ type tokenItem[T any] struct {
 	isRetrievedChannel chan struct{}
 }
 
-func NewPriorityTokenQueue[T any](config *Config.Queue) *PriorityTokenQueue[T] {
+func NewPriorityTokenQueue[T any](config *configs.Queue) *PriorityTokenQueue[T] {
 	queue := &PriorityTokenQueue[T]{
 		config:        config,
 		elements:      make(map[string]*priorityQueueElement[*tokenItem[T]]),

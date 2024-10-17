@@ -7,7 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/systemge"
@@ -24,8 +24,8 @@ type TcpListener struct {
 	stopChannel chan struct{}
 	statusMutex sync.Mutex
 
-	config                  *Config.TcpListener
-	tcpBufferedReaderConfig *Config.TcpBufferedReader
+	config                  *configs.TcpListener
+	tcpBufferedReaderConfig *configs.TcpBufferedReader
 
 	tcpListener net.Listener
 	tlsListener net.Listener
@@ -36,7 +36,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpListener, bufferedReaderConfig *Config.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -53,7 +53,7 @@ func New(name string, config *Config.TcpListener, bufferedReaderConfig *Config.T
 	return server, nil
 }
 
-func (listener *TcpListener) SetTcpBufferedReaderConfig(tcpBufferedReaderConfig *Config.TcpBufferedReader) {
+func (listener *TcpListener) SetTcpBufferedReaderConfig(tcpBufferedReaderConfig *configs.TcpBufferedReader) {
 	listener.tcpBufferedReaderConfig = tcpBufferedReaderConfig
 }
 

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/status"
@@ -18,7 +18,7 @@ type HandlerFuncs map[string]http.HandlerFunc
 type WrapperHandler func(http.ResponseWriter, *http.Request) error
 
 type HTTPServer struct {
-	config *Config.HTTPServer
+	config *configs.HTTPServer
 
 	name       string
 	instanceId string
@@ -36,7 +36,7 @@ type HTTPServer struct {
 	RequestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) *HTTPServer {
+func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}

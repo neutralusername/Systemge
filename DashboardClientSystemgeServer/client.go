@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/systemge/Commands"
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/DashboardClient"
 	"github.com/neutralusername/systemge/DashboardHelpers"
 	"github.com/neutralusername/systemge/Event"
@@ -17,7 +17,7 @@ import (
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
-func New(name string, config *Config.DashboardClient, systemgeServer *Server.Server, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
+func New(name string, config *configs.DashboardClient, systemgeServer *Server.Server, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	if systemgeServer == nil {
 		panic("customService is nil")
 	}

@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/Commands"
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/SystemgeConnection"
 	"github.com/neutralusername/systemge/status"
@@ -18,7 +18,7 @@ type Client struct {
 	status      int
 	statusMutex sync.Mutex
 
-	config *Config.MessageBrokerClient
+	config *configs.MessageBrokerClient
 
 	infoLogger    *tools.Logger
 	warningLogger *tools.Logger
@@ -54,12 +54,12 @@ type Client struct {
 
 type connection struct {
 	connection             SystemgeConnection.SystemgeConnection
-	tcpClientConfig        *Config.TcpClient
+	tcpClientConfig        *configs.TcpClient
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
+func New(name string, config *configs.MessageBrokerClient, messageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Event.New("Config is required", nil))
 	}
@@ -159,6 +159,6 @@ func (messageBrokerClient *Client) GetName() string {
 	return messageBrokerClient.name
 }
 
-func getTcpClientConfigString(tcpClientConfig *Config.TcpClient) string {
+func getTcpClientConfigString(tcpClientConfig *configs.TcpClient) string {
 	return tcpClientConfig.Address + tcpClientConfig.TlsCert
 }

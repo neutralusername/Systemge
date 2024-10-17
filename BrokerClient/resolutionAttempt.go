@@ -3,7 +3,7 @@ package BrokerClient
 import (
 	"time"
 
-	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -40,7 +40,7 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 }
 
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
-	var tcpClientConfigs []*Config.TcpClient
+	var tcpClientConfigs []*configs.TcpClient
 	attempts := uint32(0)
 	for len(tcpClientConfigs) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionMaxAttempts) {
 		tcpClientConfigs = messageBrokerClient.resolveBrokerTcpClientConfigs(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
