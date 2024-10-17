@@ -11,7 +11,7 @@ func AsyncMessage[B any](connection systemge.Connection[B], data B, sendTimeoutN
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func AsyncMessageTcp[B any](tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs int64) error {
+func AsyncMessageTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs int64) error {
 	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func AsyncMessageTcp[B any](tcpClientConfig *configs.TcpClient, tcpBufferedReade
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func AsyncMessageWebsocket[B any](websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs int64) error {
+func AsyncMessageWebsocket(websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs int64) error {
 	connection, err := connectionWebsocket.EstablishConnection(websocketClientConfig, handshakeTimeoutNs)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func SyncRequest[B any](connection systemge.Connection[B], data B, sendTimeoutNs
 	return response, nil
 }
 
-func SyncRequestTcp[B any](tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
+func SyncRequestTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
 	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func SyncRequestTcp[B any](tcpClientConfig *configs.TcpClient, tcpBufferedReader
 	return response, nil
 }
 
-func SyncRequestWebsocket[B any](websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
+func SyncRequestWebsocket(websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
 	connection, err := connectionWebsocket.EstablishConnection(websocketClientConfig, handshakeTimeoutNs)
 	if err != nil {
 		return nil, err
