@@ -17,7 +17,7 @@ func NewSingleMessageServerAsync[B any](
 	messageHandler systemge.AsyncMessageHandler[B],
 	deserialize func(B) (tools.IMessage, error),
 ) (*singleRequestServer.SingleRequestServerAsync[B], error) {
-
+	// this is pointless? the basic code with all the tools is just too good
 	readHandlerWrapper := func(data B, connection systemge.Connection[B]) {
 		if err := readHandler(data, connection); err != nil {
 			connection.Close()
