@@ -1,5 +1,3 @@
-grpc?
-
 single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
 
 (refactor brokerResolver to use singleRequestServer)
@@ -11,6 +9,8 @@ single request server and broker-system will work based on systemge.Connection a
 
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
+
+consider systemge listener and connection utilizing grpc (figure out what the benefits would be)
 
 make dashboard less repetitive (implementation-/code wise) ..
 
