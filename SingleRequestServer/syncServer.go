@@ -23,7 +23,7 @@ type SyncSingleRequestServer[B any] struct {
 	FailedCalls    atomic.Uint64
 }
 
-func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
+func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTimeoutNs, readTimeoutNs, writeTimeoutNs int64, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
 
 	server := &SyncSingleRequestServer[B]{
 		listener:      listener,
