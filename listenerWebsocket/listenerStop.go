@@ -3,7 +3,7 @@ package listenerWebsocket
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (listener *WebsocketListener) Stop() error {

@@ -3,9 +3,9 @@ package BrokerClient
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/tools"
 )
 
 type resolutionAttempt struct {

@@ -3,8 +3,8 @@ package DashboardServer
 import (
 	"net/http"
 
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
 )
 
 func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {

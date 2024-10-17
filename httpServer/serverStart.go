@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/neutralusername/Systemge/constants"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/constants"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (server *HTTPServer) Start() error {

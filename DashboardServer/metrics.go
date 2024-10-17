@@ -1,8 +1,8 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 func (server *Server) GetMetrics() Metrics.MetricsTypes {

@@ -3,9 +3,9 @@ package SingleRequestServer
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (server *Server) CheckMetrics() Metrics.MetricsTypes {

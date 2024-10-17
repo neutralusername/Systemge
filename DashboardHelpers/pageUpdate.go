@@ -1,6 +1,6 @@
 package DashboardHelpers
 
-import "github.com/neutralusername/Systemge/helpers"
+import "github.com/neutralusername/systemge/helpers"
 
 type PageUpdate struct {
 	Data interface{} `json:"data"`

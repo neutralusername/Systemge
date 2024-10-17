@@ -1,7 +1,7 @@
 package BrokerResolver
 
 import (
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 func (resolver *Resolver) CheckOngoingResolutions() int64 {

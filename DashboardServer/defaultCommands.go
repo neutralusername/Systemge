@@ -1,9 +1,9 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
 )
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {

@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (client *Client) GetDefaultCommands() Commands.Handlers {

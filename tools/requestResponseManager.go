@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/Config"
 )
 
 type RequestResponseManager[T any] struct {

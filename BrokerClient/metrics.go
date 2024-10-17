@@ -1,7 +1,7 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 func (messageBrokerClient *Client) CheckMetrics() Metrics.MetricsTypes {

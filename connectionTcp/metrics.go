@@ -1,6 +1,6 @@
 package connectionTcp
 
-import "github.com/neutralusername/Systemge/tools"
+import "github.com/neutralusername/systemge/tools"
 
 func (connection *TcpConnection) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()

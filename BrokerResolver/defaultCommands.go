@@ -3,10 +3,10 @@ package BrokerResolver
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (server *Resolver) GetDefaultCommands() Commands.Handlers {

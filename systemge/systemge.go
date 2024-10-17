@@ -1,7 +1,7 @@
 package systemge
 
 import (
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 type Listener[B any, C Connection[B]] interface {

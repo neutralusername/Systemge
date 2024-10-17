@@ -1,7 +1,7 @@
 package connectionTcp
 
 import (
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (connection *TcpConnection) GetDefaultCommands() tools.Handlers {

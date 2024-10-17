@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 type TokenBucketRateLimiter struct {

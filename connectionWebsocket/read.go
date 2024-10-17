@@ -3,7 +3,7 @@ package connectionWebsocket
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {

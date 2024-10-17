@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 func (connection *WebsocketConnection) Write(messageBytes []byte, timeoutNs int64) error {

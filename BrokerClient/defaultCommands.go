@@ -3,10 +3,10 @@ package BrokerClient
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {

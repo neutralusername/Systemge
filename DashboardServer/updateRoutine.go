@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Helpers"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (server *Server) updateRoutine() {

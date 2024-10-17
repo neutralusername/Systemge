@@ -3,10 +3,10 @@ package BrokerClient
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/connectionTcp"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/connectionTcp"
 )
 
 func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, isSyncTopic bool) []*Config.TcpClient {

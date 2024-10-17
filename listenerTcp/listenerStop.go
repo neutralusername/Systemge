@@ -3,7 +3,7 @@ package listenerTcp
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.

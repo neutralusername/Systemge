@@ -1,10 +1,10 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/SystemgeConnection"
 )
 
 func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {

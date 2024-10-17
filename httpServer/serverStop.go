@@ -3,7 +3,7 @@ package httpServer
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (server *HTTPServer) Stop() error {

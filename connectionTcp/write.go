@@ -3,7 +3,7 @@ package connectionTcp
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 const ENDOFMESSAGE = '\x04'

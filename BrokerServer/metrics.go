@@ -1,7 +1,7 @@
 package BrokerServer
 
 import (
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 func (server *Server) CheckMetrics() Metrics.MetricsTypes {

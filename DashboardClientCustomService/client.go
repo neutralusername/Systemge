@@ -1,15 +1,15 @@
 package DashboardClientCustomService
 
 import (
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardClient"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/DashboardClient"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {

@@ -3,7 +3,7 @@ package tools
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 type IMessage interface {

@@ -1,6 +1,6 @@
 package httpServer
 
-import "github.com/neutralusername/Systemge/tools"
+import "github.com/neutralusername/systemge/tools"
 
 func (server *HTTPServer) GetDefaultCommands() tools.Handlers {
 	commands := tools.Handlers{}

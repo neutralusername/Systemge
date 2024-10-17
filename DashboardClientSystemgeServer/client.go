@@ -3,17 +3,17 @@ package DashboardClientSystemgeServer
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardClient"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/Server"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/DashboardClient"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/Server"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)

@@ -3,7 +3,7 @@ package connectionTcp
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {

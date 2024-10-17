@@ -1,10 +1,10 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {

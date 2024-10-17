@@ -3,8 +3,8 @@ package DashboardHelpers
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Metrics"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (page *Page) GetCachedCommands() map[string]bool {

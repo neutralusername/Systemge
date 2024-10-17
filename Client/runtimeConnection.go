@@ -3,9 +3,9 @@ package Client
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/status"
 )
 
 // AddConnection adds an active connection to the client.

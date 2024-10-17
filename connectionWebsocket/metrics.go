@@ -1,6 +1,6 @@
 package connectionWebsocket
 
-import "github.com/neutralusername/Systemge/tools"
+import "github.com/neutralusername/systemge/tools"
 
 func (connection *WebsocketConnection) GetMetrics() tools.MetricsTypes {
 	return tools.MetricsTypes{

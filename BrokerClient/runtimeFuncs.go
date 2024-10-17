@@ -1,8 +1,8 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (messageBrokerClient *Client) ResolveSubscribeTopics() error {

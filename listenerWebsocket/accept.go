@@ -3,9 +3,9 @@ package listenerWebsocket
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/connectionWebsocket"
-	"github.com/neutralusername/Systemge/systemge"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/connectionWebsocket"
+	"github.com/neutralusername/systemge/systemge"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (listener *WebsocketListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {

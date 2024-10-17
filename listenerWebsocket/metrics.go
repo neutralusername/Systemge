@@ -1,7 +1,7 @@
 package listenerWebsocket
 
 import (
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (listener *WebsocketListener) GetMetrics() tools.MetricsTypes {

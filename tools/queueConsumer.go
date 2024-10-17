@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/Config"
 )
 
 type QueueConsumerFunc[T any] func(T)

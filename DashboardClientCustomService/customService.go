@@ -1,6 +1,6 @@
 package DashboardClientCustomService
 
-import "github.com/neutralusername/Systemge/Metrics"
+import "github.com/neutralusername/systemge/Metrics"
 
 type customService interface {
 	Start() error

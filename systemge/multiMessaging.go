@@ -3,7 +3,7 @@ package systemge
 import (
 	"sync"
 
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func MultiWrite[B any](data B, timeoutNs int64, connections ...Connection[B]) {

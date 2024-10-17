@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/Config"
 )
 
 type PriorityTokenQueue[T any] struct {

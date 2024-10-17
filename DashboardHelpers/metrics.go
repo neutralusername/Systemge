@@ -3,7 +3,7 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 type DashboardMetrics map[string][]*Metrics.Metrics

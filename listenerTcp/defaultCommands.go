@@ -1,6 +1,6 @@
 package listenerTcp
 
-import "github.com/neutralusername/Systemge/tools"
+import "github.com/neutralusername/systemge/tools"
 
 func (listener *TcpListener) GetDefaultCommands() tools.Handlers {
 	commands := tools.Handlers{}

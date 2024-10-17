@@ -1,7 +1,7 @@
 package connectionChannel
 
 import (
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (connection *ChannelConnection[T]) GetMetrics() tools.MetricsTypes {

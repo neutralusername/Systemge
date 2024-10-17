@@ -3,11 +3,11 @@ package Client
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (client *Client) AsyncMessage(topic, payload string, clientNames ...string) error {

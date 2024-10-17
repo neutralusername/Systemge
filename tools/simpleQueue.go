@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/Config"
 )
 
 type SimpleQueue[T any] struct {

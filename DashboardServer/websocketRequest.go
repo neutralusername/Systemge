@@ -3,10 +3,10 @@ package DashboardServer
 import (
 	"runtime"
 
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/WebsocketServer"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/WebsocketServer"
 )
 
 func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketConnection, message *Message.Message) error {

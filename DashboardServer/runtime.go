@@ -1,6 +1,6 @@
 package DashboardServer
 
-import "github.com/neutralusername/Systemge/Event"
+import "github.com/neutralusername/systemge/Event"
 
 func (server *Server) DisconnectClient(name string) error {
 	server.mutex.Lock()

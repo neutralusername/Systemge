@@ -1,6 +1,6 @@
 package BrokerResolver
 
-import "github.com/neutralusername/Systemge/Config"
+import "github.com/neutralusername/systemge/Config"
 
 func (resolver *Resolver) AddAsyncResolution(topic string, resolution *Config.TcpClient) {
 	resolver.mutex.Lock()

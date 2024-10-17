@@ -3,8 +3,8 @@ package BrokerServer
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/systemge"
+	"github.com/neutralusername/systemge/systemge"
 )
 
 func EstablishConnection[T any](connectionChannel chan<- *ConnectionRequest[T], timeoutNs int64) (systemge.Connection[T], error) {

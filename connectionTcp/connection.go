@@ -6,10 +6,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/constants"
-	"github.com/neutralusername/Systemge/status"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/constants"
+	"github.com/neutralusername/systemge/status"
+	"github.com/neutralusername/systemge/tools"
 )
 
 // implements SystemgeConnection

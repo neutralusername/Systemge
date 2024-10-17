@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 type routineFunc func(stopChannel <-chan struct{})

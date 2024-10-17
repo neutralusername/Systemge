@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 type Logger struct {

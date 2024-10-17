@@ -3,7 +3,7 @@ package connectionChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) error {

@@ -1,7 +1,7 @@
 package Client
 
 import (
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 func (client *Client) CheckMetrics() Metrics.MetricsTypes {

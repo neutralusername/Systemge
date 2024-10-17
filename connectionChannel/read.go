@@ -3,7 +3,7 @@ package connectionChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {

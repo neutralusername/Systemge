@@ -5,9 +5,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/SystemgeConnection"
 )
 
 func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

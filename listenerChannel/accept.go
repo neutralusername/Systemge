@@ -3,9 +3,9 @@ package listenerChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/connectionChannel"
-	"github.com/neutralusername/Systemge/systemge"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/connectionChannel"
+	"github.com/neutralusername/systemge/systemge"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (listener *ChannelListener[T]) Accept(timeoutNs int64) (systemge.Connection[T], error) {

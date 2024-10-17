@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/systemge"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/systemge"
 )
 
 // wip

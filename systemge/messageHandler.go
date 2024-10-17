@@ -1,6 +1,6 @@
 package systemge
 
-import "github.com/neutralusername/Systemge/tools"
+import "github.com/neutralusername/systemge/tools"
 
 type AsyncMessageHandler[B any] func(Connection[B], tools.IMessage)
 type AsyncMessageHandlers[B any] map[string]AsyncMessageHandler[B]

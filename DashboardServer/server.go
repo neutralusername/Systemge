@@ -4,16 +4,16 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	Server1 "github.com/neutralusername/Systemge/Server"
-	"github.com/neutralusername/Systemge/WebsocketServer"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/httpServer"
-	"github.com/neutralusername/Systemge/status"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/Commands"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	Server1 "github.com/neutralusername/systemge/Server"
+	"github.com/neutralusername/systemge/WebsocketServer"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/httpServer"
+	"github.com/neutralusername/systemge/status"
+	"github.com/neutralusername/systemge/tools"
 )
 
 type Server struct {

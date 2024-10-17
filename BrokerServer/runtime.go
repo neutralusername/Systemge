@@ -1,7 +1,7 @@
 package BrokerServer
 
 import (
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/SystemgeConnection"
 )
 
 func (server *Server) AddAsyncTopics(topics []string) {

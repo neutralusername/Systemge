@@ -1,9 +1,9 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (server *Server) handleWebsocketResponseMessage(responseMessage, page string) error {

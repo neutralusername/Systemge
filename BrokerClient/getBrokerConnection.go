@@ -1,8 +1,8 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/connectionTcp"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/connectionTcp"
 )
 
 type getBrokerConnectionAttempt struct {

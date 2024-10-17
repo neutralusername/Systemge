@@ -3,8 +3,8 @@ package Client
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (client *Client) Stop() error {

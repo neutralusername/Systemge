@@ -4,8 +4,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/neutralusername/Systemge/connectionTcp"
-	"github.com/neutralusername/Systemge/systemge"
+	"github.com/neutralusername/systemge/connectionTcp"
+	"github.com/neutralusername/systemge/systemge"
 )
 
 func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {

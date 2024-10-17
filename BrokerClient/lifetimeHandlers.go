@@ -3,7 +3,7 @@ package BrokerClient
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (messageBrokerClient *Client) handleConnectionLifetime(connection *connection, stopChannel chan bool) {

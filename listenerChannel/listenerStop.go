@@ -3,7 +3,7 @@ package listenerChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (listener *ChannelListener[T]) Stop() error {

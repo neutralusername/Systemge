@@ -6,8 +6,8 @@ import (
 	"errors"
 	"net"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/systemge"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/systemge"
 )
 
 func EstablishConnection(config *Config.TcpConnection, tcpClientConfig *Config.TcpClient) (systemge.Connection[[]byte], error) {

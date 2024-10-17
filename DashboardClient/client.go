@@ -4,12 +4,12 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpConnect"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/TcpConnect"
+	"github.com/neutralusername/systemge/status"
 )
 
 type Client struct {

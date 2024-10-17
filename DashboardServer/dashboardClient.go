@@ -1,9 +1,9 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/systemge/DashboardHelpers"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/Metrics"
 )
 
 func (server *Server) addMetricsToDashboardClient(metrics map[string]*Metrics.Metrics) {

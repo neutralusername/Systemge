@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/Config"
 )
 
 type Mailer struct {

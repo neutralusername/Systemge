@@ -3,12 +3,12 @@ package Client
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpConnect"
-	"github.com/neutralusername/Systemge/helpers"
-	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/TcpConnect"
+	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/status"
 )
 
 func (client *Client) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {

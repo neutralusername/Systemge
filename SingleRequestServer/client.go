@@ -1,8 +1,8 @@
 package SingleRequestServer
 
 import (
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/systemge/Config"
+	"github.com/neutralusername/systemge/Message"
 )
 
 func AsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {

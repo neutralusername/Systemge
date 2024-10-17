@@ -1,7 +1,7 @@
 package listenerChannel
 
 import (
-	"github.com/neutralusername/Systemge/tools"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (listener *ChannelListener[T]) GetMetrics() tools.MetricsTypes {

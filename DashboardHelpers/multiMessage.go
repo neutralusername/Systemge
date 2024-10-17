@@ -3,8 +3,8 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/systemge/Message"
+	"github.com/neutralusername/systemge/helpers"
 )
 
 type MultiMessage struct {
