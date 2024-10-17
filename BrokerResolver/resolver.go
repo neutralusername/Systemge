@@ -32,7 +32,7 @@ func New[B any, O any](
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	deserializeTopic func(B, systemge.Connection[B]) (string, error), // responsible for validating the request and retrieving the topic
-	serializeResolution func(O) (B, error),
+	serializeObject func(O) (B, error),
 ) (*Resolver[B, O], error) {
 
 	resolver := &Resolver[B, O]{
@@ -58,7 +58,7 @@ func New[B any, O any](
 			var nilValue B
 			return nilValue, errors.New("topic not found")
 		}
-		return serializeResolution(tcpClientConfig)
+		return serializeObject(tcpClientConfig)
 	}
 
 	singleRequestServerSync, err := singleRequestServer.NewSingleRequestServerSync(singleRequestServerConfig, routineConfig, listener, acceptHandler, readHandlerWrapper)
