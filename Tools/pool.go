@@ -11,14 +11,14 @@ type Pool[T comparable] struct {
 	acquiredItems  map[T]bool
 	mutex          sync.RWMutex
 	waiters        *KeyDequeue[chan T, bool]
-	maxItems       uint32
+	maxItems       int
 }
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
 // maxItems == 0 means no limit.
-func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error) {
-	if maxItems > 0 && len(availableItems) > int(maxItems) {
+func NewPool[T comparable](maxItems int, availableItems []T) (*Pool[T], error) {
+	if maxItems > 0 && len(availableItems) > maxItems {
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
 	pool := &Pool[T]{
