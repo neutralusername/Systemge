@@ -20,10 +20,10 @@ make dashboard less repetitive (implementation-/code wise) ..
     +(group of clients connected to various listeners that can be messaged conveniently)
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
 
-add sample how systemge can be used as a proxy
-
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
+
+add sample how systemge can be used as a proxy
 
 add sync messaging system between websocketServer and its clients
 
