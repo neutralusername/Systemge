@@ -12,7 +12,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -oauth2ServerDashboard
 
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
-    +(group of clients connected to various listener that can be messaged to conveniently)
+    +(group of clients connected to various listeners that can be messaged to conveniently)
 
 add sample how systemge can be used as a proxy
 
