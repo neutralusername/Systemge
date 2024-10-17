@@ -110,7 +110,7 @@ type Queue struct {
 }
 
 type Routine struct {
-	MaxConcurrentHandlers uint32 `json:"maxConcurrentHandlers"` // default: 1
-	DelayNs               int64  `json:"delayNs"`               // default: 0
-	TimeoutNs             int64  `json:"timeoutNs"`             // default: 0
+	MaxConcurrentHandlers int   `json:"maxConcurrentHandlers"` // default: 1
+	DelayNs               int64 `json:"delayNs"`               // default: 0
+	TimeoutNs             int64 `json:"timeoutNs"`             // default: 0
 }

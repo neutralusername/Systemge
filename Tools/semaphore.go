@@ -6,15 +6,15 @@ type Semaphore[T any] struct {
 	channel chan T
 }
 
-func (semaphore *Semaphore[T]) AvailableAcquires() uint32 {
-	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
+func (semaphore *Semaphore[T]) AvailableAcquires() int {
+	return (cap(semaphore.channel)) - (len(semaphore.channel))
 }
 
-func NewSemaphore[T any](maxAvailableAcquires uint32, initialItems []T) (*Semaphore[T], error) {
-	if maxAvailableAcquires == 0 {
+func NewSemaphore[T any](maxAvailableAcquires int, initialItems []T) (*Semaphore[T], error) {
+	if maxAvailableAcquires <= 0 {
 		return nil, errors.New("maxAvailableAcquires must be greater than 0")
 	}
-	if len(initialItems) > int(maxAvailableAcquires) {
+	if len(initialItems) > maxAvailableAcquires {
 		return nil, errors.New("initialItems must be less than or equal to maxAvailableAcquires")
 	}
 	channel := make(chan T, maxAvailableAcquires)

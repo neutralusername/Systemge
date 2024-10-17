@@ -26,7 +26,7 @@ type Routine struct {
 	openCallGoroutines       atomic.Int32
 }
 
-func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
+func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers int, delayNs int64, timeoutNs int64) *Routine {
 	semaphore, err := NewSemaphore[struct{}](maxConcurrentHandlers, nil)
 	if err != nil {
 		return nil
