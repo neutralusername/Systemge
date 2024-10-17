@@ -6,6 +6,7 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/singleRequestServer"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -19,6 +20,8 @@ type Resolver[B any] struct {
 	mutex                 sync.Mutex
 
 	ongoingResolutions atomic.Int64
+
+	singleRequestServer singleRequestServer.SingleRequestServerSync[B]
 
 	// metrics
 
