@@ -39,7 +39,6 @@ func UnmarshalTcpSystemgeListener(data string) *TcpListener {
 
 type TcpConnection struct {
 	TcpReceiveTimeoutNs      int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
-	TcpSendTimeoutMs         uint64 `json:"tcpSendTimeoutMs"`         // default: 0 == block forever
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 }
