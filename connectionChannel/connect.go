@@ -20,7 +20,7 @@ func EstablishConnection[T any](connectionChannel chan<- *ConnectionRequest[T], 
 	case connectionChannel <- connectionRequest:
 		return New(connectionRequest.ReceiveFromListener, connectionRequest.SendToListener), nil
 	case <-deadline:
-		return nil, errors.New("connection channel is full")
+		return nil, errors.New("timeout")
 	default:
 		return nil, errors.New("connection channel is full")
 	}

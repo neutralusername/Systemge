@@ -50,39 +50,3 @@ func NewTcpClient(config *configs.TcpClient) (net.Conn, error) {
 	}
 	return dialer.Dial("tcp", config.Address)
 }
-
-/* _, err := Tcp.Write(netConn, Message.NewAsync(Message.TOPIC_NAME).Serialize(), config.TcpSendTimeoutMs)
-if err != nil {
-	return nil, err
-}
-messageReceiver := Tcp.NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
-messageBytes, err := messageReceiver.ReadNextMessage()
-if err != nil {
-	return nil, err
-}
-if len(messageBytes) == 0 {
-	return nil, errors.New("received empty message")
-}
-filteresMessageBytes := []byte{}
-for _, b := range messageBytes {
-	if b == Tcp.HEARTBEAT {
-		continue
-	}
-	if b == Tcp.ENDOFMESSAGE {
-		continue
-	}
-	filteresMessageBytes = append(filteresMessageBytes, b)
-}
-message, err := Message.Deserialize(filteresMessageBytes, "")
-if err != nil {
-	return nil, err
-}
-if message.GetTopic() != Message.TOPIC_NAME {
-	return nil, errors.New("expected \"" + Message.TOPIC_NAME + "\" message, but got \"" + message.GetTopic() + "\" message")
-}
-if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
-	return nil, errors.New("server name is too long")
-}
-if message.GetPayload() == "" {
-	return nil, errors.New("server did not respond with a name")
-} */
