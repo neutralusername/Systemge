@@ -13,8 +13,6 @@ import (
 )
 
 type Resolver[B any] struct {
-	name string
-
 	config *configs.MessageBrokerResolver
 
 	topicTcpClientConfigs map[string]*configs.TcpClient
@@ -41,6 +39,15 @@ func New[B any](
 
 	resolver := &Resolver[B]{
 		topicTcpClientConfigs: make(map[string]*configs.TcpClient),
+	}
+
+	for topic, tcpClientConfig := range topicClientConfigs {
+		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
+		if err != nil {
+			return nil, err
+		}
+		tcpClientConfig.Address = normalizedAddress
+		resolver.topicTcpClientConfigs[topic] = tcpClientConfig
 	}
 
 	readHandlerWrapper := func(data B, connection systemge.Connection[B]) (B, error) {
@@ -70,15 +77,6 @@ func New[B any](
 		return nil, err
 	}
 	resolver.singleRequestServer = singleRequestServerSync
-
-	for topic, tcpClientConfig := range topicClientConfigs {
-		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
-		if err != nil {
-			return nil, err
-		}
-		tcpClientConfig.Address = normalizedAddress
-		resolver.topicTcpClientConfigs[topic] = tcpClientConfig
-	}
 
 	return resolver, nil
 }
