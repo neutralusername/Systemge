@@ -16,11 +16,8 @@ type SyncSingleRequestServer[B any] struct {
 
 	// metrics
 
-	succeededAsyncMessages atomic.Uint64
-	failedAsyncMessages    atomic.Uint64
-
-	succeededSyncMessages atomic.Uint64
-	failedSyncMessages    atomic.Uint64
+	SucceededSyncMessages atomic.Uint64
+	FailedSyncMessages    atomic.Uint64
 }
 
 func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
@@ -35,27 +32,32 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 		func(stopChannel <-chan struct{}) {
 			connection, err := listener.Accept(acceptTimeoutNs)
 			if err != nil {
+				server.FailedSyncMessages.Add(1)
 				// do smthg with the error
 				return
 			}
 			if err = server.acceptHandler(connection); err != nil {
+				server.FailedSyncMessages.Add(1)
 				// do smthg with the error
 				connection.Close()
 				return
 			}
 			object, err := connection.Read(readTimeoutNs)
 			if err != nil {
+				server.FailedSyncMessages.Add(1)
 				// do smthg with the error
 				connection.Close()
 				return
 			}
 			result := server.readHandler(object, connection)
 			if err = connection.Write(result, writeTimeoutNs); err != nil {
+				server.FailedSyncMessages.Add(1)
 				// do smthg with the error
 				connection.Close()
 				return
 			}
 			connection.Close()
+			server.SucceededSyncMessages.Add(1)
 		},
 		routineConfig,
 	)
@@ -78,11 +80,8 @@ type AsyncSingleRequestServer[B any] struct {
 
 	// metrics
 
-	succeededAsyncMessages atomic.Uint64
-	failedAsyncMessages    atomic.Uint64
-
-	succeededSyncMessages atomic.Uint64
-	failedSyncMessages    atomic.Uint64
+	SucceededAsyncMessages atomic.Uint64
+	FailedAsyncMessages    atomic.Uint64
 }
 
 func NewAsyncSingleRequestServer[B any](routineConfig *configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandler[B, systemge.Connection[B]]) (*AsyncSingleRequestServer[B], error) {
@@ -97,22 +96,26 @@ func NewAsyncSingleRequestServer[B any](routineConfig *configs.Routine, listener
 		func(stopChannel <-chan struct{}) {
 			connection, err := listener.Accept(acceptTimeoutNs)
 			if err != nil {
+				server.FailedAsyncMessages.Add(1)
 				// do smthg with the error
 				return
 			}
 			if err = server.acceptHandler(connection); err != nil {
+				server.FailedAsyncMessages.Add(1)
 				// do smthg with the error
 				connection.Close()
 				return
 			}
 			object, err := connection.Read(readTimeoutNs)
 			if err != nil {
+				server.FailedAsyncMessages.Add(1)
 				// do smthg with the error
 				connection.Close()
 				return
 			}
 			server.readHandler(object, connection)
 			connection.Close()
+			server.SucceededAsyncMessages.Add(1)
 		},
 		routineConfig,
 	)
