@@ -52,6 +52,7 @@ func (rateLimiter *TokenBucketRateLimiter) refillRoutine() {
 func (rateLimiter *TokenBucketRateLimiter) Consume(amount uint64) bool {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	if rateLimiter.bucket < amount {
 		return false
 	}
@@ -62,39 +63,46 @@ func (rateLimiter *TokenBucketRateLimiter) Consume(amount uint64) bool {
 func (rateLimiter *TokenBucketRateLimiter) Refill() {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	rateLimiter.bucket = rateLimiter.maxBucketSize
 }
 
 func (rateLimiter *TokenBucketRateLimiter) GetRefillRate() uint64 {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	return rateLimiter.refillRate
 }
 func (rateLimiter *TokenBucketRateLimiter) SetRefillRate(rate uint64) {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	rateLimiter.refillRate = rate
 }
 
 func (rateLimiter *TokenBucketRateLimiter) GetRefillIntervalNs() int64 {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	return rateLimiter.refillIntervalNs
 }
 func (rateLimiter *TokenBucketRateLimiter) SetRefillIntervalNs(intervalNs int64) {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	rateLimiter.refillIntervalNs = intervalNs
 }
 
 func (rateLimiter *TokenBucketRateLimiter) GetMaxBucketSize() uint64 {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	return rateLimiter.maxBucketSize
 }
 func (rateLimiter *TokenBucketRateLimiter) SetMaxBucketSize(size uint64) {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
+
 	rateLimiter.maxBucketSize = size
 }
 
