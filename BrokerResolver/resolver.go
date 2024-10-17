@@ -4,15 +4,16 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Message"
 	"github.com/neutralusername/systemge/Server"
 	"github.com/neutralusername/systemge/SystemgeConnection"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Resolver struct {
+type Resolver[B any] struct {
 	name string
 
 	config *configs.MessageBrokerResolver
@@ -39,52 +40,32 @@ type Resolver struct {
 	failedResolutions         atomic.Uint64
 }
 
-func New(name string, config *configs.MessageBrokerResolver, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Resolver {
-	if config == nil {
-		panic("Config is required")
-	}
-	if config.SystemgeServerConfig == nil {
-		panic("SystemgeServerConfig is required")
-	}
-	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
-		panic("SystemgeServerConfig.ConnectionConfig is required")
-	}
-	if name == "" {
-		panic("SystemgeServerConfig.Name is required")
-	}
+func New[B any](
+	asyncTopicClientConfigs map[string]*configs.TcpClient,
+	syncTopicClientConfigs map[string]*configs.TcpClient,
+	routineConfig *configs.Routine,
+	listener systemge.Listener[B, systemge.Connection[B]],
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
+	readHandler tools.ReadHandler[B, systemge.Connection[B]],
+) (*Resolver[B], error) {
 
-	resolver := &Resolver{
-		name:                       name,
-		config:                     config,
+	resolver := &Resolver[B]{
 		asyncTopicTcpClientConfigs: make(map[string]*configs.TcpClient),
 		syncTopicTcpClientConfigs:  make(map[string]*configs.TcpClient),
 	}
 
-	if config.InfoLoggerPath != "" {
-		resolver.infoLogger = tools.NewLogger("[Info: \""+name+"\"]", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		resolver.warningLogger = tools.NewLogger("[Warning: \""+name+"\"]", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		resolver.errorLogger = tools.NewLogger("[Error: \""+name+"\"]", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		resolver.mailer = tools.NewMailer(config.MailerConfig)
-	}
-
-	for topic, tcpClientConfig := range config.AsyncTopicClientConfigs {
+	for topic, tcpClientConfig := range asyncTopicClientConfigs {
 		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		tcpClientConfig.Address = normalizedAddress
 		resolver.asyncTopicTcpClientConfigs[topic] = tcpClientConfig
 	}
-	for topic, tcpClientConfig := range config.SyncTopicClientConfigs {
+	for topic, tcpClientConfig := range syncTopicClientConfigs {
 		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		tcpClientConfig.Address = normalizedAddress
 		resolver.syncTopicTcpClientConfigs[topic] = tcpClientConfig
@@ -95,13 +76,7 @@ func New(name string, config *configs.MessageBrokerResolver, whitelist *tools.Ac
 		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
 	}, nil, nil)
 
-	resolver.systemgeServer = Server.New(name+"_systemgeServer",
-		config.SystemgeServerConfig,
-		whitelist, blacklist,
-		resolver.onConnect, nil,
-	)
-
-	return resolver
+	return resolver, nil
 }
 
 func (resolver *Resolver) Start() error {
