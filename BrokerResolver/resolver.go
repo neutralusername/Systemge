@@ -18,7 +18,7 @@ type Resolver[B any] struct {
 	config *configs.MessageBrokerResolver
 
 	topicTcpClientConfigs map[string]*configs.TcpClient
-	mutex                 sync.Mutex
+	mutex                 sync.RWMutex
 
 	ongoingResolutions atomic.Int64
 
@@ -56,9 +56,9 @@ func New[B any](
 			return nilValue, err
 		}
 
-		resolver.mutex.Lock()
+		resolver.mutex.RLock()
 		tcpClientConfig, ok := topicClientConfigs[topic]
-		resolver.mutex.Unlock()
+		resolver.mutex.RUnlock()
 
 		if !ok {
 			var nilValue B
