@@ -2,6 +2,7 @@ package SingleRequestServer
 
 import (
 	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/connectionChannel"
 	"github.com/neutralusername/systemge/connectionTcp"
 	"github.com/neutralusername/systemge/connectionWebsocket"
 	"github.com/neutralusername/systemge/systemge"
@@ -22,6 +23,15 @@ func AsyncMessageTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig
 
 func AsyncMessageWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs int64) error {
 	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs)
+	if err != nil {
+		return err
+	}
+	defer connection.Close()
+	return connection.Write(data, sendTimeoutNs)
+}
+
+func AsyncMessageChanne[B any](channelConnection chan<- *connectionChannel.ConnectionRequest[B], data B, sendTimeoutNs int64) error {
+	connection, err := connectionChannel.EstablishConnection(channelConnection, sendTimeoutNs)
 	if err != nil {
 		return err
 	}
@@ -73,6 +83,26 @@ func SyncRequestWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs
 	response, err := connection.Read(readTimeoutNs)
 	if err != nil {
 		return nil, err
+	}
+	return response, nil
+}
+
+func SyncRequestChanne[B any](channelConnection chan<- *connectionChannel.ConnectionRequest[B], data B, sendTimeoutNs, readTimeoutNs int64) (B, error) {
+	connection, err := connectionChannel.EstablishConnection(channelConnection, sendTimeoutNs)
+	if err != nil {
+		var nilValue B
+		return nilValue, err
+	}
+	defer connection.Close()
+	err = connection.Write(data, sendTimeoutNs)
+	if err != nil {
+		var nilValue B
+		return nilValue, err
+	}
+	response, err := connection.Read(readTimeoutNs)
+	if err != nil {
+		var nilValue B
+		return nilValue, err
 	}
 	return response, nil
 }
