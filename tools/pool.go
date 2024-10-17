@@ -241,7 +241,7 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	defer pool.mutex.Unlock()
 
 	if transactional {
-		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems)+len(items) > int(pool.maxItems) {
+		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems)+len(items) > pool.maxItems {
 			return errors.New("amount of items exceeds pool capacity")
 		}
 		for _, item := range items {
@@ -251,7 +251,7 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 		}
 	}
 	for _, item := range items {
-		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems) == int(pool.maxItems) {
+		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems) == pool.maxItems {
 			break
 		}
 		if pool.availableItems[item] || pool.acquiredItems[item] {

@@ -12,7 +12,7 @@ type IpRateLimiter struct {
 	mutex           sync.Mutex
 	active          bool
 	timeWindow      time.Duration
-	maxAttempts     uint32
+	maxAttempts     int
 	cleanupInterval time.Duration
 }
 
@@ -58,7 +58,7 @@ func (rl *IpRateLimiter) RegisterConnectionAttempt(ip string) bool {
 		}
 	}
 	rl.connections[ip] = append(recentAttempts, now)
-	return len(recentAttempts) < int(rl.maxAttempts)
+	return len(recentAttempts) < rl.maxAttempts
 }
 
 func (rl *IpRateLimiter) cleanupOldEntries() {

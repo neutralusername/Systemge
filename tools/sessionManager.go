@@ -16,7 +16,7 @@ type SessionManager struct {
 	instanceId string
 	sessionId  string
 
-	maxTotalSessions float64
+	maxTotalSessions int
 
 	sessionMutex sync.RWMutex
 	identities   map[string]*Identity
@@ -69,7 +69,7 @@ func NewSessionManager(config *Config.SessionManager, onCreateSession func(*Sess
 		onCreateSession: onCreateSession,
 		onRemoveSession: onRemoveSession,
 
-		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.9,
+		maxTotalSessions: int(math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.9),
 	}
 }
 
@@ -109,11 +109,11 @@ func (manager *SessionManager) Stop() error {
 
 func (manager *SessionManager) CreateSession(identityString string, keyValuePairs map[string]any) (*Session, error) {
 
-	if manager.config.MinIdentityLength > 0 && uint32(len(identityString)) < manager.config.MinIdentityLength {
+	if manager.config.MinIdentityLength > 0 && len(identityString) < manager.config.MinIdentityLength {
 		return nil, errors.New("identity too short")
 	}
 
-	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
+	if manager.config.MaxIdentityLength > 0 && len(identityString) > manager.config.MaxIdentityLength {
 		return nil, errors.New("identity too long")
 	}
 
@@ -126,19 +126,19 @@ func (manager *SessionManager) CreateSession(identityString string, keyValuePair
 	manager.waitgroup.Add(1)
 	defer manager.waitgroup.Done()
 
-	if len(manager.sessions) >= int(manager.maxTotalSessions) {
+	if len(manager.sessions) >= manager.maxTotalSessions {
 		manager.sessionMutex.Unlock()
 		return nil, errors.New("maximum number of sessions reached")
 	}
 
 	identity, ok := manager.identities[identityString]
 	if ok {
-		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
+		if manager.config.MaxSessionsPerIdentity > 0 && len(identity.sessions) >= manager.config.MaxSessionsPerIdentity {
 			manager.sessionMutex.Unlock()
 			return nil, errors.New("max sessions per identity exceeded")
 		}
 	} else {
-		if manager.config.MaxIdentities > 0 && uint32(len(manager.identities)) >= manager.config.MaxIdentities {
+		if manager.config.MaxIdentities > 0 && len(manager.identities) >= manager.config.MaxIdentities {
 			manager.sessionMutex.Unlock()
 			return nil, errors.New("max identities exceeded")
 		}

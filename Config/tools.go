@@ -38,9 +38,9 @@ func UnmarshalRateLimiter(data string) *TokenBucketRateLimiter {
 }
 
 type IpRateLimiter struct {
-	MaxAttempts         uint32 `json:"maxAttempts"`         // default: 1
-	AttemptTimeWindowNs int64  `json:"attemptTimeWindowNs"` // default: 1
-	CleanupIntervalNs   int64  `json:"cleanupIntervalNs"`   // default: 1000ms
+	MaxAttempts         int   `json:"maxAttempts"`         // default: 1
+	AttemptTimeWindowNs int64 `json:"attemptTimeWindowNs"` // default: 1
+	CleanupIntervalNs   int64 `json:"cleanupIntervalNs"`   // default: 1000ms
 }
 
 func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
@@ -55,10 +55,10 @@ func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
 type SessionManager struct {
 	SessionLifetimeNs      int64  `json:"sessionLifetimeNs"`      // default: 0 == no expiration
 	SessionIdLength        uint32 `json:"sessionIdLength"`        // default: 32
-	MaxSessionsPerIdentity uint32 `json:"maxSessionsPerIdentity"` // default: 0 == no limit
-	MaxIdentities          uint32 `json:"maxIdentities"`          // default: 0 == no limit
-	MaxIdentityLength      uint32 `json:"maxIdentityLength"`      // default: 0 == no limit
-	MinIdentityLength      uint32 `json:"minIdentityLength"`      // default: 0 == no limit
+	MaxSessionsPerIdentity int    `json:"maxSessionsPerIdentity"` // default: 0 == no limit
+	MaxIdentities          int    `json:"maxIdentities"`          // default: 0 == no limit
+	MaxIdentityLength      int    `json:"maxIdentityLength"`      // default: 0 == no limit
+	MinIdentityLength      int    `json:"minIdentityLength"`      // default: 0 == no limit
 	SessionIdAlphabet      string `json:"sessionIdAlphabet"`      // default: alphanumeric
 }
 
