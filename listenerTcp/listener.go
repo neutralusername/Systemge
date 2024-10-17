@@ -24,8 +24,8 @@ type TcpListener struct {
 	stopChannel chan struct{}
 	statusMutex sync.Mutex
 
-	config               *Config.TcpListener
-	bufferedReaderConfig *Config.TcpBufferedReader
+	config                  *Config.TcpListener
+	tcpBufferedReaderConfig *Config.TcpBufferedReader
 
 	tcpListener net.Listener
 	tlsListener net.Listener
@@ -44,17 +44,17 @@ func New(name string, config *Config.TcpListener, bufferedReaderConfig *Config.T
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpListener{
-		name:                 name,
-		config:               config,
-		bufferedReaderConfig: bufferedReaderConfig,
-		instanceId:           tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		name:                    name,
+		config:                  config,
+		tcpBufferedReaderConfig: bufferedReaderConfig,
+		instanceId:              tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return server, nil
 }
 
-func (listener *TcpListener) SetBufferedReaderConfig(connectionConfig *Config.TcpBufferedReader) {
-	listener.bufferedReaderConfig = connectionConfig
+func (listener *TcpListener) SetTcpBufferedReaderConfig(tcpBufferedReaderConfig *Config.TcpBufferedReader) {
+	listener.tcpBufferedReaderConfig = tcpBufferedReaderConfig
 }
 
 func (listener *TcpListener) GetStatus() int {
