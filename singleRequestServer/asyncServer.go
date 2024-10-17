@@ -23,8 +23,8 @@ type SingleRequestServerAsync[B any] struct {
 }
 
 func NewSingleRequestServerAsync[B any](
+	config *configs.SingleRequestServerAsync,
 	routineConfig *configs.Routine,
-	acceptTimeoutNs, readTimeoutNs int64,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	readHandler tools.ReadHandler[B, systemge.Connection[B]],
@@ -38,7 +38,7 @@ func NewSingleRequestServerAsync[B any](
 
 	server.acceptRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
-			connection, err := listener.Accept(acceptTimeoutNs)
+			connection, err := listener.Accept(config.AcceptTimeoutNs)
 			if err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
@@ -50,7 +50,7 @@ func NewSingleRequestServerAsync[B any](
 				connection.Close()
 				return
 			}
-			object, err := connection.Read(readTimeoutNs)
+			object, err := connection.Read(config.ReadTimeoutNs)
 			if err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
