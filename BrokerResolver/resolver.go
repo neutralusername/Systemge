@@ -25,18 +25,18 @@ type Resolver[B any, O any] struct {
 	FailedResolutions    atomic.Uint64
 }
 
-func New[B any, T any](
-	topicObject map[string]T,
+func New[B any, O any](
+	topicObject map[string]O,
 	singleRequestServerConfig *configs.SingleRequestServerSync,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	deserializeTopic func(B, systemge.Connection[B]) (string, error), // responsible for validating the request and retrieving the topic
-	serializeResolution func(T) (B, error),
-) (*Resolver[B, T], error) {
+	serializeResolution func(O) (B, error),
+) (*Resolver[B, O], error) {
 
-	resolver := &Resolver[B, T]{
-		topicTcpClientConfigs: make(map[string]T),
+	resolver := &Resolver[B, O]{
+		topicTcpClientConfigs: make(map[string]O),
 	}
 
 	for topic, object := range topicObject {
@@ -70,11 +70,11 @@ func New[B any, T any](
 	return resolver, nil
 }
 
-func (resolver *Resolver[B, T]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
+func (resolver *Resolver[B, O]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
 	return resolver.singleRequestServerSync
 }
 
-func (resolver *Resolver[B, T]) CheckMetrics() tools.MetricsTypes {
+func (resolver *Resolver[B, O]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	resolver.mutex.RLock()
 	metricsTypes.AddMetrics("brokerResolver_resolutions", tools.NewMetrics(
@@ -88,7 +88,7 @@ func (resolver *Resolver[B, T]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(resolver.singleRequestServerSync.CheckMetrics())
 	return metricsTypes
 }
-func (resolver *Resolver[B, T]) GetMetrics() tools.MetricsTypes {
+func (resolver *Resolver[B, O]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	resolver.mutex.RLock()
 	metricsTypes.AddMetrics("brokerResolver", tools.NewMetrics(
