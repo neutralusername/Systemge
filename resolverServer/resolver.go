@@ -14,8 +14,8 @@ import (
 type Resolver[B any, O any] struct {
 	config *configs.MessageBrokerResolver
 
-	topicTcpClientConfigs map[string]O
-	mutex                 sync.RWMutex
+	topicObjects map[string]O
+	mutex        sync.RWMutex
 
 	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
 
@@ -36,11 +36,11 @@ func New[B any, O any](
 ) (*Resolver[B, O], error) {
 
 	resolver := &Resolver[B, O]{
-		topicTcpClientConfigs: make(map[string]O),
+		topicObjects: make(map[string]O),
 	}
 
 	for topic, object := range topicObject {
-		resolver.topicTcpClientConfigs[topic] = object
+		resolver.topicObjects[topic] = object
 	}
 
 	readHandlerWrapper := func(data B, connection systemge.Connection[B]) (B, error) {
@@ -81,7 +81,7 @@ func (resolver *Resolver[B, O]) CheckMetrics() tools.MetricsTypes {
 		map[string]uint64{
 			"successes": resolver.SucessfulResolutions.Load(),
 			"failures":  resolver.FailedResolutions.Load(),
-			"topics":    uint64(len(resolver.topicTcpClientConfigs)),
+			"topics":    uint64(len(resolver.topicObjects)),
 		},
 	))
 	resolver.mutex.RUnlock()
@@ -95,7 +95,7 @@ func (resolver *Resolver[B, O]) GetMetrics() tools.MetricsTypes {
 		map[string]uint64{
 			"successes": resolver.SucessfulResolutions.Swap(0),
 			"failures":  resolver.FailedResolutions.Swap(0),
-			"topics":    uint64(len(resolver.topicTcpClientConfigs)),
+			"topics":    uint64(len(resolver.topicObjects)),
 		},
 	))
 	resolver.mutex.RUnlock()
