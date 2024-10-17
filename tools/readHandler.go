@@ -4,7 +4,7 @@ type ReadHandlerFactory[B any, C any] func() ReadHandler[B, C]
 
 type ReadHandler[B any, C any] func(B, C)
 
-type ReadHandlerWithResult[B any, C any] func(B, C) B
+type ReadHandlerWithResult[B any, C any] func(B, C) (B, error)
 
 type ReadHandlerWithError[B any, C any] func(B, C) error
 
