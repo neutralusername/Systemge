@@ -22,6 +22,7 @@ right now this is not officially supported and works for some fields, but not fo
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
     +(group of clients connected to various listeners that can be messaged conveniently)
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
+(generalize this and use it for broker client somehow )
 
 add sample how systemge can be used as a proxy
 
