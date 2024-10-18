@@ -38,6 +38,7 @@ type Connection[B any] interface {
 	Read(int64) (B, error)
 	SetReadDeadline(int64)
 
+	// WriteChannel() <-chan error
 	Write(B, int64) error
 	SetWriteDeadline(int64)
 
