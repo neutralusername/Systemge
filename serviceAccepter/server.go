@@ -24,7 +24,7 @@ type AccepterServer[D any] struct {
 }
 
 func NewAccepterServer[D any](
-	config *configs.SingleRequestServerSync,
+	config *configs.AccepterServer,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[D, systemge.Connection[D]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
@@ -77,7 +77,7 @@ func (server *AccepterServer[D]) GetRoutine() *tools.Routine {
 
 func (server *AccepterServer[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
 			"succeededAccepts": server.SucceededAccepts.Load(),
 			"failedAccepts":    server.FailedAccepts.Load(),
@@ -88,7 +88,7 @@ func (server *AccepterServer[D]) CheckMetrics() tools.MetricsTypes {
 }
 func (server *AccepterServer[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
 			"succeededAccepts": server.SucceededAccepts.Swap(0),
 			"failedAccepts":    server.FailedAccepts.Swap(0),
@@ -139,28 +139,3 @@ func (server *AccepterServer[D]) GetDefaultCommands() tools.CommandHandlers {
 	}
 	return commands
 }
-
-/*
-select {
-case <-stopChannel:
-	connection.SetReadDeadline(1)
-	// routine was stopped
-	server.FailedReads.Add(1)
-	return
-
-case <-listener.GetStopChannel():
-	server.acceptRoutine.Stop()
-	// listener was stopped
-	server.FailedReads.Add(1)
-	return
-
-case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
-	if !ok {
-		// do smthg with the error
-		server.FailedReads.Add(1)
-		return
-	}
-	server.readHandler(data, connection)
-	server.SucceededReads.Add(1)
-}
-*/

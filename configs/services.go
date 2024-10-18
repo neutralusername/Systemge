@@ -16,6 +16,10 @@ type ReaderServerSync struct {
 	WriteTimeoutNs int64
 }
 
+type AccepterServer struct {
+	AcceptTimeoutNs int64
+}
+
 /* type SingleRequestClient struct {
 	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*

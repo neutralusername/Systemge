@@ -171,3 +171,28 @@ func (server *SingleRequestServerAsync[D]) GetDefaultCommands() tools.CommandHan
 	}
 	return commands
 }
+
+/*
+select {
+case <-stopChannel:
+	connection.SetReadDeadline(1)
+	// routine was stopped
+	server.FailedReads.Add(1)
+	return
+
+case <-listener.GetStopChannel():
+	server.acceptRoutine.Stop()
+	// listener was stopped
+	server.FailedReads.Add(1)
+	return
+
+case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
+	if !ok {
+		// do smthg with the error
+		server.FailedReads.Add(1)
+		return
+	}
+	server.readHandler(data, connection)
+	server.SucceededReads.Add(1)
+}
+*/
