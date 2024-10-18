@@ -32,6 +32,7 @@ func NewSingleRequestServerSync[B any](
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
+	handleReadConcurrently bool,
 ) (*ServerSync[B], error) {
 
 	server := &ServerSync[B]{
@@ -66,20 +67,28 @@ func NewSingleRequestServerSync[B any](
 						return
 					}
 
-					// potentially problematic since this returns the result. which means it will use up one slot of the routine until it returns and sends the reply
-					result, err := server.ReadHandler(object, connection)
-					if err != nil {
-						server.FailedReads.Add(1)
-						// do smthg with the error
+					handleRead := func(object B, connection systemge.Connection[B]) {
+						result, err := server.ReadHandler(object, connection)
+						if err != nil {
+							server.FailedReads.Add(1)
+							// do smthg with the error
+							return
+						}
+						err = connection.Write(result, config.WriteTimeoutNs)
+						if err != nil {
+							server.FailedReads.Add(1)
+							// do smthg with the error
+							return
+						}
+						server.SucceededReads.Add(1)
 						return
 					}
-					err = connection.Write(result, config.WriteTimeoutNs)
-					if err != nil {
-						server.FailedReads.Add(1)
-						// do smthg with the error
-						return
+
+					if !handleReadConcurrently {
+						handleRead(object, connection)
+					} else {
+						go handleRead(object, connection)
 					}
-					server.SucceededReads.Add(1)
 				},
 				routineConfig,
 			)
