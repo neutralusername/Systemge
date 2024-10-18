@@ -14,7 +14,7 @@ import (
 type Resolver[D any] struct {
 	mutex         sync.RWMutex
 	topicData     map[string]D
-	singleRequest *serviceSingleRequest.SingleReuqest[D]
+	singleRequest *serviceSingleRequest.SingleRequestServer[D]
 	// commands
 }
 
@@ -59,7 +59,7 @@ func New[D any](
 	return resolver, nil
 }
 
-func (r *Resolver[D]) GetSingleRequest() *serviceSingleRequest.SingleReuqest[D] {
+func (r *Resolver[D]) GetSingleRequest() *serviceSingleRequest.SingleRequestServer[D] {
 	return r.singleRequest
 }
 

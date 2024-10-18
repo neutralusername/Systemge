@@ -10,11 +10,11 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type SingleReuqest[D any] struct {
+type SingleRequestServer[D any] struct {
 	accepter *serviceAccepter.Accepter[D]
 }
 
-func (s *SingleReuqest[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+func (s *SingleRequestServer[D]) GetAccepter() *serviceAccepter.Accepter[D] {
 	return s.accepter
 }
 
@@ -28,7 +28,7 @@ func NewAsync[D any](
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*serviceAccepter.Accepter[D], error) {
 
-	singleReuqestAsync := &SingleReuqest[D]{}
+	singleReuqestAsync := &SingleRequestServer[D]{}
 
 	accepter, err := serviceAccepter.NewAccepterServer(
 		listener,

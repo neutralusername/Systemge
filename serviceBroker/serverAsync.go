@@ -44,7 +44,7 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
-	writeTimeoutNs int64,
+	propagateTimeoutNs int64,
 	handleMessage HandleMessage[D],
 	topics []string,
 ) (*Broker[D], error) {
@@ -105,7 +105,7 @@ func New[D any](
 							if subscriber.connection == connection {
 								continue
 							}
-							go subscriber.connection.Write(payload, writeTimeoutNs)
+							go subscriber.connection.Write(payload, propagateTimeoutNs)
 						}
 					}
 				},
