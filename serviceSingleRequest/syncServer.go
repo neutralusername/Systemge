@@ -27,6 +27,8 @@ func NewSingleRequestServerSync[D any](
 				return err
 			}
 
+			// could use a serviceReader for this singular request but this would come with some avoidable overhead
+
 			data, err := connection.Read(readerConfig.ReadTimeoutNs) // fix this blocking call and make it dependent on the accepter stop channel / close connection
 			if err != nil {
 				// do smthg with the error
