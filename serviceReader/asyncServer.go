@@ -57,6 +57,8 @@ func NewReaderServerAsync[D any](
 					server.FailedReads.Add(1)
 					return
 				}
+				server.SucceededReads.Add(1)
+
 				if !handleReadsConcurrently {
 					server.ReadHandler(data, connection)
 				} else {
