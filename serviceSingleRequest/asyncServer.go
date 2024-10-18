@@ -44,10 +44,12 @@ func NewSingleRequestServerAsync[D any](
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
+				listener.SetAcceptDeadline(1)
 				// routine was stopped
 				return
 
 			case <-listener.GetStopChannel():
+				listener.SetAcceptDeadline(1)
 				server.acceptRoutine.Stop()
 				// listener was stopped
 				return
@@ -59,6 +61,7 @@ func NewSingleRequestServerAsync[D any](
 					return
 				}
 				defer connection.Close()
+
 				if err := server.acceptHandler(connection); err != nil {
 					server.FailedAccepts.Add(1)
 					// do smthg with the error
@@ -68,10 +71,12 @@ func NewSingleRequestServerAsync[D any](
 
 				select {
 				case <-stopChannel:
+					connection.SetReadDeadline(1)
 					// routine was stopped
 					return
 
 				case <-listener.GetStopChannel():
+					connection.SetReadDeadline(1)
 					server.acceptRoutine.Stop()
 					// listener was stopped
 					return

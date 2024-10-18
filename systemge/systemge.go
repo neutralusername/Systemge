@@ -15,7 +15,7 @@ type Listener[D any, C Connection[D]] interface {
 	GetStopChannel() <-chan struct{}
 
 	Accept(timeoutNs int64) (C, error)
-	SetAcceptTimeout(int64)
+	SetAcceptDeadline(int64)
 
 	GetDefaultCommands() tools.CommandHandlers
 

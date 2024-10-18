@@ -10,7 +10,7 @@ import (
 )
 
 func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {
-	listener.SetAcceptTimeout(timeoutNs)
+	listener.SetAcceptDeadline(timeoutNs)
 
 	l := listener.tcpListener
 	if l == nil {
@@ -38,7 +38,7 @@ func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte
 	return tcpSystemgeConnection, nil
 }
 
-func (listener *TcpListener) SetAcceptTimeout(timeoutNs int64) {
+func (listener *TcpListener) SetAcceptDeadline(timeoutNs int64) {
 	l := listener.tcpListener
 	if l == nil {
 		return
