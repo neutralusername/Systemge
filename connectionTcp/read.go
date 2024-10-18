@@ -10,16 +10,6 @@ func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) <-chan []b
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
-	go func() {
-		for {
-			select {
-			case <-stopChannel:
-				client.SetReadDeadline(1)
-				return
-			}
-		}
-	}()
-
 	resultChannel := make(chan []byte)
 	go func() {
 		defer close(resultChannel)
@@ -29,6 +19,16 @@ func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) <-chan []b
 			return
 		}
 		resultChannel <- bytes
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-stopChannel:
+				client.SetReadDeadline(1)
+				return
+			}
+		}
 	}()
 
 	return resultChannel
