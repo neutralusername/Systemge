@@ -11,17 +11,17 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func New[B any, O any](
-	listener systemge.Listener[B, systemge.Connection[B]],
+func New[D any, O any](
+	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
 	readerConfig *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
-	readHandler tools.ReadHandlerWithError[B, systemge.Connection[B]],
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	topicObject map[string]O,
-	deserializeTopic func(B, systemge.Connection[B]) (string, error), // responsible for validating the request and retrieving the topic
-	serializeObject func(O) (B, error),
-) (*serviceAccepter.AccepterServer[B], error) {
+	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
+	serializeObject func(O) (D, error),
+) (*serviceAccepter.AccepterServer[D], error) {
 
 	return serviceSingleRequest.NewSingleRequestServerSync(
 		accepterConfig,
@@ -29,7 +29,7 @@ func New[B any, O any](
 		routineConfig,
 		listener,
 		acceptHandler,
-		func(closeChannel <-chan struct{}, data B, connection systemge.Connection[B]) (B, error) {
+		func(closeChannel <-chan struct{}, data D, connection systemge.Connection[D]) (D, error) {
 			if err := readHandler(closeChannel, data, connection); err != nil {
 				return helpers.GetNilValue(data), err
 			}
