@@ -70,3 +70,5 @@ consider/support config changes at runtime.
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
     +(group of clients connected to various listeners that can be messaged conveniently)
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
+
+add options for heartbeats to tcp and websocket.
