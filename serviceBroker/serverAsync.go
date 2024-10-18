@@ -89,4 +89,10 @@ func New[D any](
 		},
 		handleAcceptsConcurrently,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	broker.accepter = accepter
+	return broker, nil
 }
