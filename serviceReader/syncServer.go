@@ -52,22 +52,23 @@ func NewReaderServerSync[D any](
 			// routine was stopped
 			server.FailedWrites.Add(1)
 			return
+
 		case <-connection.GetCloseChannel():
 			// ending routine due to connection close
 			server.FailedWrites.Add(1)
 			return
+
 		case <-helpers.ChannelCall(func() (error, error) {
-			err := connection.Write(result, config.WriteTimeoutNs)
-			if err != nil {
+			if err := connection.Write(result, config.WriteTimeoutNs); err != nil {
 				// do smthg with the error
 				server.FailedWrites.Add(1)
 				return err, err
 			}
-			server.SucceededWrites.Add(1)
 			return nil, nil
 		}):
+			server.SucceededWrites.Add(1)
+			return
 		}
-		return
 	}
 
 	server.readRoutine = tools.NewRoutine(
