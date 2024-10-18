@@ -17,6 +17,7 @@ type Resolver[D any] struct {
 	topicData map[string]D
 	accepter  *serviceAccepter.Accepter[D]
 	// runtime funcs
+	// commands
 }
 
 func New[D any](
