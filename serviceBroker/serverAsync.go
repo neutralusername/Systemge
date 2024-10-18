@@ -113,8 +113,9 @@ func New[D any](
 			}
 
 			subscriber := &subscriber[D]{
-				connection:  connection,
-				readerAsync: readerRoutine,
+				connection:    connection,
+				readerAsync:   readerRoutine,
+				subscriptions: make(map[string]struct{}),
 			}
 
 			broker.mutex.Lock()
