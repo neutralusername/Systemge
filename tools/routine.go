@@ -58,7 +58,7 @@ func (routine *Routine) StartRoutine() error {
 	return nil
 }
 
-func (routine *Routine) StopRoutine(timeoutNs int64) error {
+func (routine *Routine) StopRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
@@ -67,9 +67,6 @@ func (routine *Routine) StopRoutine(timeoutNs int64) error {
 	}
 
 	close(routine.stopChannel)
-	if abortOngoingCalls {
-		close(routine.abortOngoingCallsChannel)
-	}
 	routine.waitgroup.Wait()
 
 	routine.status = status.Stopped
