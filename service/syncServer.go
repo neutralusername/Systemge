@@ -48,7 +48,6 @@ func NewSingleRequestServerSync[B any](
 				// do smthg with the error
 				return
 			}
-			defer connection.Close()
 			if err = server.AcceptHandler(connection); err != nil {
 				server.FailedAccepts.Add(1)
 				// do smthg with the error
