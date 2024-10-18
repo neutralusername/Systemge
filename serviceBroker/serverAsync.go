@@ -22,7 +22,7 @@ type subscriber[D any] struct {
 	reader     *serviceReader.ReaderAsync[D]
 }
 
-type ObtainTopicAndPayload[D any] func(<-chan struct{}, D, systemge.Connection[D]) (string, string, error)
+type ObtainTopicAndPayload[D any] func(<-chan struct{}, D, systemge.Connection[D]) (string, D, error)
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
