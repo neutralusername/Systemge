@@ -29,6 +29,10 @@ type WebsocketListener struct {
 	httpServer *httpServer.HTTPServer
 
 	upgradeRequests chan (<-chan *upgraderResponse)
+	timeout         *tools.Timeout
+	mutex           sync.Mutex
+
+	incomingMessageByteLimit uint64
 
 	// metrics
 
@@ -42,7 +46,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener, incomingMessageByteLimit uint64) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -50,11 +54,12 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	listener := &WebsocketListener{
-		name:            name,
-		config:          config,
-		status:          status.Stopped,
-		instanceId:      tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
-		upgradeRequests: make(chan (<-chan *upgraderResponse)),
+		name:                     name,
+		config:                   config,
+		status:                   status.Stopped,
+		instanceId:               tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		upgradeRequests:          make(chan (<-chan *upgraderResponse)),
+		incomingMessageByteLimit: incomingMessageByteLimit,
 	}
 	listener.httpServer = httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{

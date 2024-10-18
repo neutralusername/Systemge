@@ -9,19 +9,19 @@ import (
 )
 
 func (listener *WebsocketListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {
-	timeout := tools.NewTimeout(timeoutNs, nil, false)
-	connection, err := listener.accept(timeout.GetIsExpiredChannel())
-	timeout.Trigger()
+	listener.mutex.Lock()
+	defer listener.mutex.Unlock()
 
-	return connection, err
-}
-
-func (listener *WebsocketListener) accept(cancel <-chan struct{}) (systemge.Connection[[]byte], error) {
+	listener.timeout = tools.NewTimeout(timeoutNs, nil, false)
+	defer func() {
+		listener.timeout.Trigger()
+		listener.timeout = nil
+	}()
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
 
-	case <-cancel:
+	case <-listener.timeout.GetIsExpiredChannel():
 		return nil, errors.New("accept canceled")
 
 	case upgraderResponseChannel := <-listener.upgradeRequests:
@@ -29,7 +29,7 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (systemge.Conn
 		case <-listener.stopChannel:
 			return nil, errors.New("listener stopped")
 
-		case <-cancel:
+		case <-listener.timeout.GetIsExpiredChannel():
 			return nil, errors.New("accept canceled")
 
 		case upgraderResponse := <-upgraderResponseChannel:
@@ -37,7 +37,7 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (systemge.Conn
 				listener.ClientsFailed.Add(1)
 				return nil, upgraderResponse.err
 			}
-			websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn)
+			websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn, listener.incomingMessageByteLimit)
 			if err != nil {
 				listener.ClientsFailed.Add(1)
 				upgraderResponse.websocketConn.Close()
@@ -46,5 +46,11 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (systemge.Conn
 			listener.ClientsAccepted.Add(1)
 			return websocketClient, nil
 		}
+	}
+}
+
+func (listener *WebsocketListener) SetAcceptDeadline(timeoutNs int64) {
+	if timeout := listener.timeout; timeout != nil {
+		timeout.Refresh(timeoutNs)
 	}
 }
