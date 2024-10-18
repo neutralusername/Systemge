@@ -78,8 +78,10 @@ func (server *SingleRequestServerAsync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
-			"successes": server.SucceededReads.Load(),
-			"fails":     server.FailedReads.Load(),
+			"succeededReads":   server.SucceededReads.Load(),
+			"failedReads":      server.FailedReads.Load(),
+			"succeededAccepts": server.SucceededAccepts.Load(),
+			"failedAccepts":    server.FailedAccepts.Load(),
 		},
 	))
 	metricsTypes.Merge(server.listener.CheckMetrics())
@@ -89,8 +91,10 @@ func (server *SingleRequestServerAsync[B]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
-			"successes": server.SucceededReads.Swap(0),
-			"fails":     server.FailedReads.Swap(0),
+			"succeededReads":   server.SucceededReads.Swap(0),
+			"failedReads":      server.FailedReads.Swap(0),
+			"succeededAccepts": server.SucceededAccepts.Swap(0),
+			"failedAccepts":    server.FailedAccepts.Swap(0),
 		},
 	))
 	metricsTypes.Merge(server.listener.GetMetrics())
