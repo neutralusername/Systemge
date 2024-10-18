@@ -18,11 +18,15 @@ type Broker[D any] struct {
 }
 
 type subscriber[D any] struct {
-	connection systemge.Connection[D]
-	reader     *serviceReader.ReaderAsync[D]
+	connection  systemge.Connection[D]
+	readerAsync *serviceReader.ReaderAsync[D]
 }
 
-type ObtainTopicAndPayload[D any] func(<-chan struct{}, D, systemge.Connection[D]) (string, D, error)
+type ObtainTopicAndPayload[D any] func(
+	stopChannel <-chan struct{},
+	data D,
+	connection systemge.Connection[D],
+) (subscription bool, topic string, payload D, err error)
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
