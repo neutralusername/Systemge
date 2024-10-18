@@ -46,11 +46,13 @@ func NewSingleRequestServerAsync[D any](
 			case <-stopChannel:
 				listener.SetAcceptDeadline(1)
 				// routine was stopped
+				server.FailedAccepts.Add(1)
 				return
 
 			case <-listener.GetStopChannel():
 				server.acceptRoutine.Stop()
 				// listener was stopped
+				server.FailedAccepts.Add(1)
 				return
 
 			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(config.AcceptTimeoutNs) }):
@@ -72,11 +74,13 @@ func NewSingleRequestServerAsync[D any](
 				case <-stopChannel:
 					connection.SetReadDeadline(1)
 					// routine was stopped
+					server.FailedReads.Add(1)
 					return
 
 				case <-listener.GetStopChannel():
 					server.acceptRoutine.Stop()
 					// listener was stopped
+					server.FailedReads.Add(1)
 					return
 
 				case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
