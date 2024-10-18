@@ -64,9 +64,7 @@ func NewSingleRequestServerSync[D any](
 				// ending routine due to connection close
 				return
 
-			case data, ok := <-tools.ChannelCall(func() (D, error) {
-				return connection.Read(config.ReadTimeoutNs)
-			}):
+			case data, ok := <-tools.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
 				if !ok {
 					server.FailedReads.Add(1)
 					// do smthg with the error
