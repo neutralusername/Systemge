@@ -103,6 +103,9 @@ func New[D any](
 						}
 
 						for subscriber := range subscribers {
+							if subscriber.connection == connection {
+								continue
+							}
 							subscriber.connection.Write(payload, writeTimeoutNs)
 						}
 					}
