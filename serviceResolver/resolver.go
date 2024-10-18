@@ -20,6 +20,10 @@ type Resolver[D any] struct {
 	// commands
 }
 
+func (r *Resolver[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+	return r.accepter
+}
+
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
