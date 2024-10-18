@@ -29,7 +29,7 @@ func NewBrokerServer[D any](
 
 	config *configs.ReaderServerAsync,
 	readerRoutineConfig *configs.Routine,
-	readHandler tools.ReadHandler[D, systemge.Connection[D]],
+	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
 ) (*BrokerServer[D], error) {
 
