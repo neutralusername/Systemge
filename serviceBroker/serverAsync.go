@@ -22,7 +22,7 @@ type subscriber[D any] struct {
 	reader     *serviceReader.ReaderAsync[D]
 }
 
-type ExtractPayloadAndTopic[D any] func(<-chan struct{}, D, systemge.Connection[D]) (string, string, error)
+type ExtractTopicAndPayload[D any] func(<-chan struct{}, D, systemge.Connection[D]) (string, string, error)
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
@@ -35,7 +35,7 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
-	extractPayloadAndTopic ExtractPayloadAndTopic[D],
+	extractTopicAndPayload ExtractTopicAndPayload[D],
 	topics []string,
 ) (*Broker[D], error) {
 
