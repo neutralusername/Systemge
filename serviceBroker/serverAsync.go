@@ -34,6 +34,7 @@ func New[D any](
 	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
 
+	extractPayloadAndTopic func(D) (string, string, error),
 	topics []string,
 ) (*Broker[D], error) {
 
