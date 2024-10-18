@@ -14,7 +14,7 @@ func NewSingleRequestServerSync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
-	handleAcceptsConcurrently bool,
+	handleRequestsConcurrently bool,
 ) (*serviceAccepter.AccepterServer[D], error) {
 
 	return serviceAccepter.NewAccepterServer(
@@ -46,6 +46,6 @@ func NewSingleRequestServerSync[D any](
 			connection.Close()
 			return nil
 		},
-		handleAcceptsConcurrently,
+		handleRequestsConcurrently,
 	)
 }
