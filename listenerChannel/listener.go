@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ChannelListener[T any] struct {
+type ChannelListener[D any] struct {
 	name string
 
 	instanceId string
@@ -21,7 +21,7 @@ type ChannelListener[T any] struct {
 	status      int
 	stopChannel chan struct{}
 
-	connectionChannel chan *connectionChannel.ConnectionRequest[T]
+	connectionChannel chan *connectionChannel.ConnectionRequest[D]
 
 	// metrics
 
@@ -29,37 +29,37 @@ type ChannelListener[T any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[B any](name string) (systemge.Listener[B, systemge.Connection[B]], error) {
-	listener := &ChannelListener[B]{
+func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], error) {
+	listener := &ChannelListener[D]{
 		name:              name,
 		status:            status.Stopped,
 		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan *connectionChannel.ConnectionRequest[B]),
+		connectionChannel: make(chan *connectionChannel.ConnectionRequest[D]),
 	}
 
 	return listener, nil
 }
 
-func (listener *ChannelListener[T]) GetConnectionChannel() chan<- *connectionChannel.ConnectionRequest[T] {
+func (listener *ChannelListener[D]) GetConnectionChannel() chan<- *connectionChannel.ConnectionRequest[D] {
 	return listener.connectionChannel
 }
 
-func (listener *ChannelListener[T]) GetStopChannel() <-chan struct{} {
+func (listener *ChannelListener[D]) GetStopChannel() <-chan struct{} {
 	return listener.stopChannel
 }
 
-func (listener *ChannelListener[T]) GetInstanceId() string {
+func (listener *ChannelListener[D]) GetInstanceId() string {
 	return listener.instanceId
 }
 
-func (listener *ChannelListener[T]) GetSessionId() string {
+func (listener *ChannelListener[D]) GetSessionId() string {
 	return listener.sessionId
 }
 
-func (listener *ChannelListener[T]) GetStatus() int {
+func (listener *ChannelListener[D]) GetStatus() int {
 	return listener.status
 }
 
-func (server *ChannelListener[T]) GetName() string {
+func (server *ChannelListener[D]) GetName() string {
 	return server.name
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func (connection *ChannelConnection[T]) Close() error {
+func (connection *ChannelConnection[D]) Close() error {
 	if !connection.closedMutex.TryLock() {
 		return errors.New("websocketClient already closing")
 	}

@@ -10,12 +10,12 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type SingleRequestServerSync[B any] struct {
-	listener      systemge.Listener[B, systemge.Connection[B]]
+type SingleRequestServerSync[D any] struct {
+	listener      systemge.Listener[D, systemge.Connection[D]]
 	acceptRoutine *tools.Routine
 
-	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
-	ReadHandler   tools.ReadHandlerWithResult[B, systemge.Connection[B]]
+	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
+	ReadHandler   tools.ReadHandlerWithResult[D, systemge.Connection[D]]
 
 	// metrics
 
@@ -26,15 +26,15 @@ type SingleRequestServerSync[B any] struct {
 	FailedReads    atomic.Uint64
 }
 
-func NewSingleRequestServerSync[B any](
+func NewSingleRequestServerSync[D any](
 	config *configs.SingleRequestServerSync,
 	routineConfig *configs.Routine,
-	listener systemge.Listener[B, systemge.Connection[B]],
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
-	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
-) (*SingleRequestServerSync[B], error) {
+	listener systemge.Listener[D, systemge.Connection[D]],
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
+) (*SingleRequestServerSync[D], error) {
 
-	server := &SingleRequestServerSync[B]{
+	server := &SingleRequestServerSync[D]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
 		ReadHandler:   readHandler,
@@ -82,11 +82,11 @@ func NewSingleRequestServerSync[B any](
 	return server, nil
 }
 
-func (server *SingleRequestServerSync[B]) GetRoutine() *tools.Routine {
+func (server *SingleRequestServerSync[D]) GetRoutine() *tools.Routine {
 	return server.acceptRoutine
 }
 
-func (server *SingleRequestServerSync[B]) CheckMetrics() tools.MetricsTypes {
+func (server *SingleRequestServerSync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -99,7 +99,7 @@ func (server *SingleRequestServerSync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.listener.CheckMetrics())
 	return metricsTypes
 }
-func (server *SingleRequestServerSync[B]) GetMetrics() tools.MetricsTypes {
+func (server *SingleRequestServerSync[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -113,7 +113,7 @@ func (server *SingleRequestServerSync[B]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *SingleRequestServerSync[B]) GetDefaultCommands() tools.CommandHandlers {
+func (server *SingleRequestServerSync[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().StartRoutine()

@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (connection *ChannelConnection[T]) GetMetrics() tools.MetricsTypes {
+func (connection *ChannelConnection[D]) GetMetrics() tools.MetricsTypes {
 	return tools.MetricsTypes{
 		"websocketClient": tools.NewMetrics(map[string]uint64{
 			"messagesSent":     connection.MessagesSent.Swap(0),
@@ -13,7 +13,7 @@ func (connection *ChannelConnection[T]) GetMetrics() tools.MetricsTypes {
 	}
 }
 
-func (connection *ChannelConnection[T]) CheckMetrics() tools.MetricsTypes {
+func (connection *ChannelConnection[D]) CheckMetrics() tools.MetricsTypes {
 	return tools.MetricsTypes{
 		"websocketClient": tools.NewMetrics(map[string]uint64{
 			"messagesSent":     connection.MessagesSent.Load(),

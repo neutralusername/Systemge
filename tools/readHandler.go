@@ -1,16 +1,16 @@
 package tools
 
-type ReadHandlerFactory[B any, C any] func() ReadHandler[B, C]
+type ReadHandlerFactory[D any, C any] func() ReadHandler[D, C]
 
-type ReadHandler[B any, C any] func(B, C)
+type ReadHandler[D any, C any] func(D, C)
 
-type ReadHandlerWithResult[B any, C any] func(B, C) (B, error)
+type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
 
-type ReadHandlerWithError[B any, C any] func(B, C) error
+type ReadHandlerWithError[D any, C any] func(D, C) error
 
 /*
-type ByteHandler[B any, C any] func(B, C) error
-type ObjectDeserializer[B any, O any, C any] func(B, C) (O, error)
+type ByteHandler[D any, C any] func(D, C) error
+type ObjectDeserializer[D any, O any, C any] func(D, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
 
 type ReadHandlerQueueWrapper[O any, C any] struct {
@@ -18,12 +18,12 @@ type ReadHandlerQueueWrapper[O any, C any] struct {
 	caller C
 }
 
-func NewDefaultReadHandler[B any, O any, C any](
-	byteHandler ByteHandler[B, C],
-	deserializer ObjectDeserializer[B, O, C],
+func NewDefaultReadHandler[D any, O any, C any](
+	byteHandler ByteHandler[D, C],
+	deserializer ObjectDeserializer[D, O, C],
 	objectHandler ObjectHandler[O, C],
-) ReadHandler[B, C] {
-	return func(bytes B, caller C) {
+) ReadHandler[D, C] {
+	return func(bytes D, caller C) {
 
 		err := byteHandler(bytes, caller)
 		if err != nil {
@@ -76,8 +76,8 @@ func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) O
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewByteHandler[B any, C any](handlers ...ByteHandler[B, C]) ByteHandler[B, C] {
-	return func(bytes B, caller C) error {
+func NewByteHandler[D any, C any](handlers ...ByteHandler[D, C]) ByteHandler[D, C] {
+	return func(bytes D, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(bytes, caller); err != nil {
 				return err
@@ -87,11 +87,11 @@ func NewByteHandler[B any, C any](handlers ...ByteHandler[B, C]) ByteHandler[B, 
 	}
 }
 
-type ObtainTokensFromBytes[B any] func(B) uint64
+type ObtainTokensFromBytes[D any] func(D) uint64
 
-func NewTokenBucketRateLimitHandler[B any, C any](obtainTokensFromBytes ObtainTokensFromBytes[B], tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter) ByteHandler[B, C] {
+func NewTokenBucketRateLimitHandler[D any, C any](obtainTokensFromBytes ObtainTokensFromBytes[D], tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter) ByteHandler[D, C] {
 	tokenBucketRateLimiter := NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
-	return func(bytes B, caller C) error {
+	return func(bytes D, caller C) error {
 		tokens := obtainTokensFromBytes(bytes)
 		tokenBucketRateLimiter.Consume(tokens)
 		return nil

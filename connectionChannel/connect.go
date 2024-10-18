@@ -7,10 +7,10 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection[T any](connectionChannel chan<- *ConnectionRequest[T], timeoutNs int64) (systemge.Connection[T], error) {
-	connectionRequest := &ConnectionRequest[T]{
-		SendToListener:      make(chan T),
-		ReceiveFromListener: make(chan T),
+func EstablishConnection[D any](connectionChannel chan<- *ConnectionRequest[D], timeoutNs int64) (systemge.Connection[D], error) {
+	connectionRequest := &ConnectionRequest[D]{
+		SendToListener:      make(chan D),
+		ReceiveFromListener: make(chan D),
 	}
 	var deadline <-chan time.Time
 	if timeoutNs > 0 {

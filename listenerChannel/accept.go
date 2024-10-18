@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (listener *ChannelListener[T]) Accept(timeoutNs int64) (systemge.Connection[T], error) {
+func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection[D], error) {
 
 	timeout := tools.NewTimeout(timeoutNs, nil, false)
 	connection, err := listener.accept(timeout.GetIsExpiredChannel())
@@ -17,7 +17,7 @@ func (listener *ChannelListener[T]) Accept(timeoutNs int64) (systemge.Connection
 	return connection, err
 }
 
-func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (systemge.Connection[T], error) {
+func (listener *ChannelListener[D]) accept(cancel <-chan struct{}) (systemge.Connection[D], error) {
 	select {
 	case <-listener.stopChannel:
 		listener.ClientsFailed.Add(1)

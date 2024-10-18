@@ -10,12 +10,12 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ReaderServerSync[B any] struct {
-	connection systemge.Connection[B]
+type ReaderServerSync[D any] struct {
+	connection systemge.Connection[D]
 
 	readRoutine *tools.Routine
 
-	ReadHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]
+	ReadHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]]
 
 	// metrics
 
@@ -23,19 +23,19 @@ type ReaderServerSync[B any] struct {
 	FailedReads    atomic.Uint64
 }
 
-func NewSingleRequestServerSync[B any](
+func NewSingleRequestServerSync[D any](
 	config *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
-	connection systemge.Connection[B],
-	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
+	connection systemge.Connection[D],
+	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
-) (*ReaderServerSync[B], error) {
+) (*ReaderServerSync[D], error) {
 
-	server := &ReaderServerSync[B]{
+	server := &ReaderServerSync[D]{
 		ReadHandler: readHandler,
 	}
 
-	handleRead := func(object B, connection systemge.Connection[B]) {
+	handleRead := func(object D, connection systemge.Connection[D]) {
 		result, err := server.ReadHandler(object, connection)
 		if err != nil {
 			server.FailedReads.Add(1)
@@ -64,16 +64,18 @@ func NewSingleRequestServerSync[B any](
 				// ending routine due to connection close
 				return
 
-			case object, ok := <-connection.ReadChannel():
+			case data, ok := <-tools.ChannelCall(func() (D, error) {
+				return connection.Read(config.ReadTimeoutNs)
+			}):
 				if !ok {
 					server.FailedReads.Add(1)
 					// do smthg with the error
 					return
 				}
 				if !handleReadsConcurrently {
-					handleRead(object, connection)
+					handleRead(data, connection)
 				} else {
-					go handleRead(object, connection)
+					go handleRead(data, connection)
 				}
 			}
 		},
@@ -83,11 +85,11 @@ func NewSingleRequestServerSync[B any](
 	return server, nil
 }
 
-func (server *ReaderServerSync[B]) GetRoutine() *tools.Routine {
+func (server *ReaderServerSync[D]) GetRoutine() *tools.Routine {
 	return server.readRoutine
 }
 
-func (server *ReaderServerSync[B]) CheckMetrics() tools.MetricsTypes {
+func (server *ReaderServerSync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -98,7 +100,7 @@ func (server *ReaderServerSync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.connection.CheckMetrics())
 	return metricsTypes
 }
-func (server *ReaderServerSync[B]) GetMetrics() tools.MetricsTypes {
+func (server *ReaderServerSync[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -110,7 +112,7 @@ func (server *ReaderServerSync[B]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *ReaderServerSync[B]) GetDefaultCommands() tools.CommandHandlers {
+func (server *ReaderServerSync[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().StartRoutine()

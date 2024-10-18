@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Listener[B any, C Connection[B]] interface {
+type Listener[D any, C Connection[D]] interface {
 	Start() error
 	Stop() error
 
@@ -23,7 +23,7 @@ type Listener[B any, C Connection[B]] interface {
 	GetMetrics() tools.MetricsTypes
 }
 
-type Connection[B any] interface {
+type Connection[D any] interface {
 	Close() error
 
 	GetInstanceId() string
@@ -31,10 +31,10 @@ type Connection[B any] interface {
 	GetStatus() int
 	GetCloseChannel() <-chan struct{}
 
-	Read(int64) (B, error)
+	Read(int64) (D, error)
 	SetReadDeadline(int64)
 
-	Write(B, int64) error
+	Write(D, int64) error
 	SetWriteDeadline(int64)
 
 	GetDefaultCommands() tools.CommandHandlers

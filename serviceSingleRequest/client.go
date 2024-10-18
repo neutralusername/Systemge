@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func AsyncMessage[B any](connection systemge.Connection[B], data B, sendTimeoutNs int64) error {
+func AsyncMessage[D any](connection systemge.Connection[D], data D, sendTimeoutNs int64) error {
 	return connection.Write(data, sendTimeoutNs)
 }
 
@@ -30,7 +30,7 @@ func AsyncMessageWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutN
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func AsyncMessageChanne[B any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[B], data B, sendTimeoutNs int64) error {
+func AsyncMessageChanne[D any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D], data D, sendTimeoutNs int64) error {
 	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
 	if err != nil {
 		return err
@@ -39,15 +39,15 @@ func AsyncMessageChanne[B any](channelListenerConnectionReuqest chan<- *connecti
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func SyncRequest[B any](connection systemge.Connection[B], data B, sendTimeoutNs, readTimeoutNs int64) (B, error) {
+func SyncRequest[D any](connection systemge.Connection[D], data D, sendTimeoutNs, readTimeoutNs int64) (D, error) {
 	err := connection.Write(data, sendTimeoutNs)
 	if err != nil {
-		var nilValue B
+		var nilValue D
 		return nilValue, err
 	}
 	response, err := connection.Read(readTimeoutNs)
 	if err != nil {
-		var nilValue B
+		var nilValue D
 		return nilValue, err
 	}
 	return response, nil
@@ -87,21 +87,21 @@ func SyncRequestWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs
 	return response, nil
 }
 
-func SyncRequestChanne[B any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[B], data B, sendTimeoutNs, readTimeoutNs int64) (B, error) {
+func SyncRequestChanne[D any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D], data D, sendTimeoutNs, readTimeoutNs int64) (D, error) {
 	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
 	if err != nil {
-		var nilValue B
+		var nilValue D
 		return nilValue, err
 	}
 	defer connection.Close()
 	err = connection.Write(data, sendTimeoutNs)
 	if err != nil {
-		var nilValue B
+		var nilValue D
 		return nilValue, err
 	}
 	response, err := connection.Read(readTimeoutNs)
 	if err != nil {
-		var nilValue B
+		var nilValue D
 		return nilValue, err
 	}
 	return response, nil

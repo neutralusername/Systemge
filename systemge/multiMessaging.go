@@ -6,11 +6,11 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func MultiWrite[B any](data B, timeoutNs int64, connections ...Connection[B]) {
+func MultiWrite[D any](data D, timeoutNs int64, connections ...Connection[D]) {
 	waitgroup := sync.WaitGroup{}
 	for _, connection := range connections {
 		waitgroup.Add(1)
-		go func(connection Connection[B]) {
+		go func(connection Connection[D]) {
 			defer waitgroup.Done()
 			connection.Write(data, timeoutNs)
 		}(connection)
@@ -18,7 +18,7 @@ func MultiWrite[B any](data B, timeoutNs int64, connections ...Connection[B]) {
 	waitgroup.Wait()
 }
 
-func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[B], connections ...Connection[B]) (*tools.Request[B], error) {
+func MultiSyncRequest[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
 	request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, sync
 	return request, nil
 }
 
-func MultiSyncRequestBlocking[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[B], connections ...Connection[B]) (*tools.Request[B], error) {
+func MultiSyncRequestBlocking[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
 	request, err := MultiSyncRequest(data, responseLimit, timeoutNs, syncToken, requestResponseManager, connections...)
 	if err != nil {
 		return nil, err

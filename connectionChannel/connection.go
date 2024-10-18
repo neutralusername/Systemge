@@ -9,17 +9,17 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ConnectionRequest[T any] struct {
-	SendToListener      chan T
-	ReceiveFromListener chan T
+type ConnectionRequest[D any] struct {
+	SendToListener      chan D
+	ReceiveFromListener chan D
 }
 
 // implements SystemgeConnection
-type ChannelConnection[T any] struct {
+type ChannelConnection[D any] struct {
 	instanceId string
 
-	receiveChannel chan T
-	sendChannel    chan T
+	receiveChannel chan D
+	sendChannel    chan D
 
 	closed       bool
 	closedMutex  sync.Mutex
@@ -37,9 +37,9 @@ type ChannelConnection[T any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
+func New[D any](receiveChannel chan D, sendChannel chan D) *ChannelConnection[D] {
 
-	connection := &ChannelConnection[T]{
+	connection := &ChannelConnection[D]{
 		closeChannel:   make(chan struct{}),
 		instanceId:     tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		receiveChannel: receiveChannel,
@@ -49,7 +49,7 @@ func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T]
 	return connection
 }
 
-func (connection *ChannelConnection[T]) GetStatus() int {
+func (connection *ChannelConnection[D]) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {
@@ -59,17 +59,17 @@ func (connection *ChannelConnection[T]) GetStatus() int {
 	}
 }
 
-func (connection *ChannelConnection[T]) GetInstanceId() string {
+func (connection *ChannelConnection[D]) GetInstanceId() string {
 	return connection.instanceId
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *ChannelConnection[T]) GetCloseChannel() <-chan struct{} {
+func (connection *ChannelConnection[D]) GetCloseChannel() <-chan struct{} {
 	return connection.closeChannel
 }
 
-func (connection *ChannelConnection[T]) GetAddress() string {
+func (connection *ChannelConnection[D]) GetAddress() string {
 	return connection.instanceId
 }

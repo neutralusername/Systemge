@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (listener *ChannelListener[T]) Start() error {
+func (listener *ChannelListener[D]) Start() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 

@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/systemge/status"
 )
 
-func (listener *ChannelListener[T]) Stop() error {
+func (listener *ChannelListener[D]) Stop() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
