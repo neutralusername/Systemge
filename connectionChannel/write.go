@@ -6,7 +6,14 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) error {
+func (client *ChannelConnection[T]) WriteChannel(data T) <-chan error {
+	return tools.ChannelCall(func() (error, error) {
+		err := client.Write(data, 0)
+		return err, nil
+	})
+}
+
+func (connection *ChannelConnection[T]) Write(data T, timeoutNs int64) error {
 	connection.writeMutex.Lock()
 	defer connection.writeMutex.Unlock()
 
@@ -18,7 +25,7 @@ func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) e
 
 	for {
 		select {
-		case connection.sendChannel <- messageBytes:
+		case connection.sendChannel <- data:
 			connection.MessagesSent.Add(1)
 			connection.writeTimeout.Trigger()
 			connection.writeTimeout = nil

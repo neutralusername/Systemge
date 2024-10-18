@@ -25,19 +25,26 @@ func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	return nil
 }
 
-func (client *TcpConnection) Write(messageBytes []byte, timeoutNs int64) error {
+func (client *TcpConnection) WriteChannel(data []byte) <-chan error {
+	return tools.ChannelCall(func() (error, error) {
+		err := client.Write(data, 0)
+		return err, nil
+	})
+}
+
+func (client *TcpConnection) Write(data []byte, timeoutNs int64) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()
 
 	client.SetWriteDeadline(timeoutNs)
-	_, err := client.netConn.Write(append(messageBytes, tools.ENDOFMESSAGE))
+	_, err := client.netConn.Write(append(data, tools.ENDOFMESSAGE))
 	if err != nil {
 		if helpers.IsNetConnClosedErr(err) {
 			client.Close()
 		}
 		return err
 	}
-	client.BytesSent.Add(uint64(len(messageBytes)))
+	client.BytesSent.Add(uint64(len(data)))
 	client.MessagesSent.Add(1)
 	return nil
 }

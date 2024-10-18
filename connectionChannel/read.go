@@ -24,11 +24,11 @@ func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 
 	for {
 		select {
-		case item := <-connection.receiveChannel:
+		case data := <-connection.receiveChannel:
 			connection.MessagesReceived.Add(1)
 			connection.readTimeout.Trigger()
 			connection.readTimeout = nil
-			return item, nil
+			return data, nil
 
 		case <-connection.readTimeout.GetIsExpiredChannel():
 			connection.readTimeout = nil
