@@ -57,10 +57,12 @@ func NewSingleRequestServerSync[D any](
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
+				connection.SetReadDeadline(1)
 				// routine was stopped
 				return
 
 			case <-connection.GetCloseChannel():
+				connection.SetReadDeadline(1)
 				server.readRoutine.Stop()
 				// ending routine due to connection close
 				return
