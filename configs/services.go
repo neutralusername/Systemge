@@ -1,7 +1,8 @@
 package configs
 
 type ReaderServerSync struct {
-	ReadTimeoutNs int64
+	ReadTimeoutNs  int64
+	WriteTimeoutNs int64
 }
 
 type ReaderServerAsync struct {
