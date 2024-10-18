@@ -11,7 +11,7 @@ import (
 )
 
 func (listener *TcpListener) AcceptChannel() <-chan systemge.Connection[[]byte] {
-	return tools.CallChannel(func() (systemge.Connection[[]byte], error) {
+	return tools.ChannelCall(func() (systemge.Connection[[]byte], error) {
 		return listener.Accept(0)
 	})
 }

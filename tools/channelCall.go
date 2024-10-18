@@ -1,6 +1,6 @@
 package tools
 
-func CallChannel[T any](f func() (T, error)) <-chan T {
+func ChannelCall[T any](f func() (T, error)) <-chan T {
 	resultChannel := make(chan T)
 	go func() {
 		defer close(resultChannel)
