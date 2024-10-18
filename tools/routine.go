@@ -17,11 +17,10 @@ type Routine struct {
 
 	config *configs.Routine
 
-	routineFunc              routineFunc
-	stopChannel              chan struct{}
-	waitgroup                sync.WaitGroup
-	semaphore                *Semaphore[struct{}]
-	abortOngoingCallsChannel chan struct{}
+	routineFunc routineFunc
+	stopChannel chan struct{}
+	waitgroup   sync.WaitGroup
+	semaphore   *Semaphore[struct{}]
 }
 
 func NewRoutine(routineFunc routineFunc, config *configs.Routine) *Routine {
@@ -49,7 +48,6 @@ func (routine *Routine) StartRoutine() error {
 	}
 
 	routine.stopChannel = make(chan struct{})
-	routine.abortOngoingCallsChannel = make(chan struct{})
 	routine.status = status.Started
 
 	routine.waitgroup.Add(1)
@@ -123,7 +121,6 @@ func (routine *Routine) routine() {
 			select {
 			case <-done:
 			case <-deadline:
-			case <-routine.abortOngoingCallsChannel:
 			}
 			close(stopChannel)
 			routine.semaphore.Signal(struct{}{})
