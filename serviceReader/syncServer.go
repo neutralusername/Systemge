@@ -60,7 +60,7 @@ func NewSingleRequestServerSync[B any](
 				return
 
 			case <-connection.GetCloseChannel():
-				server.readRoutine.StopRoutine(true)
+				server.readRoutine.StopRoutine()
 				// ending routine due to connection close
 				return
 
@@ -120,7 +120,7 @@ func (server *ReaderServerSync[B]) GetDefaultCommands() tools.CommandHandlers {
 		return "success", nil
 	}
 	commands["stop"] = func(args []string) (string, error) {
-		err := server.GetRoutine().StopRoutine(true)
+		err := server.GetRoutine().StopRoutine()
 		if err != nil {
 			return "", err
 		}
