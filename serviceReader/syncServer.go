@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/status"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -64,7 +65,7 @@ func NewSingleRequestServerSync[D any](
 				// ending routine due to connection close
 				return
 
-			case data, ok := <-tools.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
+			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
 				if !ok {
 					server.FailedReads.Add(1)
 					// do smthg with the error
