@@ -8,8 +8,7 @@ import (
 
 func (client *ChannelConnection[T]) WriteChannel(data T) <-chan error {
 	return tools.ChannelCall(func() (error, error) {
-		err := client.Write(data, 0)
-		return err, nil
+		return client.Write(data, 0), nil
 	})
 }
 
