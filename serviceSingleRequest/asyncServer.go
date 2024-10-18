@@ -27,7 +27,7 @@ func NewSingleRequestServerAsync[D any](
 				return err
 			}
 
-			data, err := connection.Read(readerConfig.ReadTimeoutNs) // fix this blocking call and make it dependent on the accepter stop channel
+			data, err := connection.Read(readerConfig.ReadTimeoutNs) // fix this blocking call and make it dependent on the accepter stop channel / close connection
 			if err != nil {
 				// do smthg with the error
 				return err
