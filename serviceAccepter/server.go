@@ -16,7 +16,6 @@ type AccepterServer[D any] struct {
 	acceptRoutine *tools.Routine
 
 	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
-	ReadHandler   tools.ReadHandlerWithResult[D, systemge.Connection[D]]
 
 	// metrics
 
