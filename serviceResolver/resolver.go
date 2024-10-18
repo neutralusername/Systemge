@@ -16,7 +16,6 @@ type Resolver[D any] struct {
 	mutex     sync.RWMutex
 	topicData map[string]D
 	accepter  *serviceAccepter.Accepter[D]
-	// runtime funcs
 	// commands
 }
 
