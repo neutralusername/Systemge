@@ -32,7 +32,7 @@ func NewSingleRequestServerSync[B any](
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
-	handleReadConcurrently bool,
+	handleReadsConcurrently bool,
 ) (*ServerSync[B], error) {
 
 	server := &ServerSync[B]{
@@ -84,7 +84,7 @@ func NewSingleRequestServerSync[B any](
 						return
 					}
 
-					if !handleReadConcurrently {
+					if !handleReadsConcurrently {
 						handleRead(object, connection)
 					} else {
 						go handleRead(object, connection)
