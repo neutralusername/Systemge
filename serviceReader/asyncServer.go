@@ -16,7 +16,7 @@ type ReaderServerAsync[D any] struct {
 
 	readRoutine *tools.Routine
 
-	ReadHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]]
+	ReadHandler tools.ReadHandler[D, systemge.Connection[D]]
 
 	// metrics
 
@@ -28,29 +28,12 @@ func NewReaderServerAsync[D any](
 	config *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
-	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
+	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
 ) (*ReaderServerAsync[D], error) {
 
 	server := &ReaderServerAsync[D]{
 		ReadHandler: readHandler,
-	}
-
-	handleRead := func(object D, connection systemge.Connection[D]) {
-		result, err := server.ReadHandler(object, connection)
-		if err != nil {
-			// do smthg with the error
-			server.FailedReads.Add(1)
-			return
-		}
-		err = connection.Write(result, config.WriteTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			server.FailedReads.Add(1)
-			return
-		}
-		server.SucceededReads.Add(1)
-		return
 	}
 
 	server.readRoutine = tools.NewRoutine(
@@ -75,9 +58,9 @@ func NewReaderServerAsync[D any](
 					return
 				}
 				if !handleReadsConcurrently {
-					handleRead(data, connection)
+					server.ReadHandler(data, connection)
 				} else {
-					go handleRead(data, connection)
+					go server.ReadHandler(data, connection)
 				}
 			}
 		},
