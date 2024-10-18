@@ -24,9 +24,9 @@ type AccepterServer[D any] struct {
 }
 
 func NewAccepterServer[D any](
-	config *configs.AccepterServer,
-	routineConfig *configs.Routine,
 	listener systemge.Listener[D, systemge.Connection[D]],
+	accepterConfig *configs.AccepterServer,
+	routineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	handleAcceptsConcurrently bool,
 ) (*AccepterServer[D], error) {
@@ -61,7 +61,7 @@ func NewAccepterServer[D any](
 				server.FailedAccepts.Add(1)
 				return
 
-			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(config.AcceptTimeoutNs) }):
+			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(accepterConfig.AcceptTimeoutNs) }):
 				if !ok {
 					// do smthg with the error
 					server.FailedAccepts.Add(1)

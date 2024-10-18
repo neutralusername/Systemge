@@ -28,7 +28,7 @@ type ReaderServerSync[D any] struct {
 }
 
 func NewReaderServerSync[D any](
-	config *configs.ReaderServerSync,
+	readerServerSyncConfig *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
@@ -60,7 +60,7 @@ func NewReaderServerSync[D any](
 			return
 
 		case <-helpers.ChannelCall(func() (error, error) {
-			if err := connection.Write(result, config.WriteTimeoutNs); err != nil {
+			if err := connection.Write(result, readerServerSyncConfig.WriteTimeoutNs); err != nil {
 				// do smthg with the error
 				server.FailedWrites.Add(1)
 				return err, err
@@ -87,7 +87,7 @@ func NewReaderServerSync[D any](
 				server.FailedReads.Add(1)
 				return
 
-			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
+			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(readerServerSyncConfig.ReadTimeoutNs) }):
 				if !ok {
 					// do smthg with the error
 					server.FailedReads.Add(1)

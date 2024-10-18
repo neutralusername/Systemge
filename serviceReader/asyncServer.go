@@ -25,7 +25,7 @@ type ReaderServerAsync[D any] struct {
 }
 
 func NewReaderServerAsync[D any](
-	config *configs.ReaderServerAsync,
+	readerServerAsyncConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
@@ -51,7 +51,7 @@ func NewReaderServerAsync[D any](
 				server.FailedReads.Add(1)
 				return
 
-			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
+			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(readerServerAsyncConfig.ReadTimeoutNs) }):
 				if !ok {
 					// do smthg with the error
 					server.FailedReads.Add(1)

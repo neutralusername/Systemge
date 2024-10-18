@@ -21,9 +21,9 @@ func NewSingleRequestServerAsync[D any](
 ) (*serviceAccepter.AccepterServer[D], error) {
 
 	return serviceAccepter.NewAccepterServer(
+		listener,
 		accepterConfig,
 		routineConfig,
-		listener,
 		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
 			if err := acceptHandler(stopChannel, connection); err != nil {
 				// do smthg with the error
