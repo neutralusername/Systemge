@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/serviceAccepter"
+	"github.com/neutralusername/systemge/serviceReader"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -13,11 +14,12 @@ type BrokerServer[D any] struct {
 	mutex         sync.RWMutex
 	topics        map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscriptions map[*subscriber[D]]map[string]struct{} // connection -> topic -> struct{}
+	accepter      *serviceAccepter.AccepterServer[D]
 }
 
 type subscriber[D any] struct {
-	connection  systemge.Connection[D]
-	readRoutine *tools.Routine
+	connection systemge.Connection[D]
+	reader     *serviceReader.ReaderServerAsync[D]
 }
 
 func NewBrokerServer[D any](
