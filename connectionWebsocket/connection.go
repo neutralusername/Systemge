@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/systemge/constants"
@@ -33,7 +34,7 @@ type WebsocketConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64) (*WebsocketConnection, error) {
+func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64, connectionLifetimeNs int64) (*WebsocketConnection, error) {
 	if websocketConn == nil {
 		return nil, errors.New("websocketConn is nil")
 	}
@@ -44,6 +45,16 @@ func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64) (*Webso
 		websocketConn: websocketConn,
 		closeChannel:  make(chan struct{}),
 		instanceId:    tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+	}
+
+	if connectionLifetimeNs > 0 {
+		go func() {
+			select {
+			case <-time.After(time.Duration(connectionLifetimeNs)):
+				connection.Close()
+			case <-connection.closeChannel:
+			}
+		}()
 	}
 
 	return connection, nil

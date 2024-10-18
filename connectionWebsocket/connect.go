@@ -14,7 +14,7 @@ import (
 )
 
 // wip
-func EstablishConnection(tcpClientConfig *configs.TcpClient, handshakeTimoeutNs int64, incomingDataByteLimit uint64) (systemge.Connection[[]byte], error) {
+func EstablishConnection(tcpClientConfig *configs.TcpClient, handshakeTimoeutNs int64, incomingDataByteLimit uint64, lifetimeNs int64) (systemge.Connection[[]byte], error) {
 	dialer := websocket.DefaultDialer
 
 	dialer.HandshakeTimeout = time.Duration(handshakeTimoeutNs) * time.Nanosecond
@@ -58,5 +58,5 @@ func EstablishConnection(tcpClientConfig *configs.TcpClient, handshakeTimoeutNs 
 		return nil, err
 	}
 
-	return New(conn, incomingDataByteLimit)
+	return New(conn, incomingDataByteLimit, lifetimeNs)
 }

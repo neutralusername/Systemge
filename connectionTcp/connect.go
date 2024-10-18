@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *configs.TcpClient) (systemge.Connection[[]byte], error) {
+func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *configs.TcpClient, lifetimeNs int64) (systemge.Connection[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -23,7 +23,7 @@ func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *con
 	if err != nil {
 		return nil, err
 	}
-	connection, err := New(config, netConn)
+	connection, err := New(config, netConn, lifetimeNs)
 	if err != nil {
 		netConn.Close()
 		return nil, err

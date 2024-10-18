@@ -3,6 +3,7 @@ package connectionChannel
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/status"
@@ -37,13 +38,23 @@ type ChannelConnection[D any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[D any](receiveChannel chan D, sendChannel chan D) *ChannelConnection[D] {
+func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *ChannelConnection[D] {
 
 	connection := &ChannelConnection[D]{
 		closeChannel:   make(chan struct{}),
 		instanceId:     tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		receiveChannel: receiveChannel,
 		sendChannel:    sendChannel,
+	}
+
+	if lifetimeNs > 0 {
+		go func() {
+			select {
+			case <-time.After(time.Duration(lifetimeNs)):
+				connection.Close()
+			case <-connection.closeChannel:
+			}
+		}()
 	}
 
 	return connection

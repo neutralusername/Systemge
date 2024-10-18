@@ -42,7 +42,7 @@ func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 			return
 		}
 		connectionAttempt.attempts++
-		connection, err := EstablishConnection(connectionAttempt.config.TcpBufferedReaderConfig, connectionAttempt.config.TcpClientConfig)
+		connection, err := EstablishConnection(connectionAttempt.config.TcpBufferedReaderConfig, connectionAttempt.config.TcpClientConfig, connectionAttempt.config.ConnectionLifetimeNs)
 		if err != nil {
 			select {
 			case <-time.After(time.Duration(connectionAttempt.config.RetryIntervalMs) * time.Millisecond):

@@ -25,18 +25,21 @@ type ChannelListener[D any] struct {
 	timeout           *tools.Timeout
 	mutex             sync.Mutex
 
+	connectionLifetimeNs int64
+
 	// metrics
 
 	ClientsAccepted atomic.Uint64
 	ClientsFailed   atomic.Uint64
 }
 
-func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], error) {
+func New[D any](name string, connectionLifetimeNs int64) (systemge.Listener[D, systemge.Connection[D]], error) {
 	listener := &ChannelListener[D]{
-		name:              name,
-		status:            status.Stopped,
-		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan *connectionChannel.ConnectionRequest[D]),
+		name:                 name,
+		status:               status.Stopped,
+		instanceId:           tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		connectionChannel:    make(chan *connectionChannel.ConnectionRequest[D]),
+		connectionLifetimeNs: connectionLifetimeNs,
 	}
 
 	return listener, nil

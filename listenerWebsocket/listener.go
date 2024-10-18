@@ -33,6 +33,7 @@ type WebsocketListener struct {
 	mutex           sync.Mutex
 
 	incomingMessageByteLimit uint64
+	connectionLifetimeNs     int64
 
 	// metrics
 
@@ -46,7 +47,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener, incomingMessageByteLimit uint64) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener, incomingMessageByteLimit uint64, connectionLifetimeNs int64) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -60,6 +61,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		instanceId:               tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		upgradeRequests:          make(chan (<-chan *upgraderResponse)),
 		incomingMessageByteLimit: incomingMessageByteLimit,
+		connectionLifetimeNs:     connectionLifetimeNs,
 	}
 	listener.httpServer = httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{

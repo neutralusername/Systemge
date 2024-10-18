@@ -5,6 +5,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
@@ -35,7 +36,7 @@ type TcpConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *configs.TcpBufferedReader, netConn net.Conn) (*TcpConnection, error) {
+func New(config *configs.TcpBufferedReader, netConn net.Conn, lifetimeNs int64) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -49,6 +50,16 @@ func New(config *configs.TcpBufferedReader, netConn net.Conn) (*TcpConnection, e
 		tcpBufferedReader: tools.NewTcpBufferedReader(netConn, config),
 		closeChannel:      make(chan struct{}),
 		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+	}
+
+	if lifetimeNs > 0 {
+		go func() {
+			select {
+			case <-time.After(time.Duration(lifetimeNs)):
+				connection.Close()
+			case <-connection.closeChannel:
+			}
+		}()
 	}
 
 	return connection, nil

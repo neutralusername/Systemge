@@ -13,7 +13,7 @@ func AsyncMessage[D any](connection systemge.Connection[D], data D, sendTimeoutN
 }
 
 func AsyncMessageTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs int64) error {
-	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
+	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig, 0)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func AsyncMessageTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig
 }
 
 func AsyncMessageWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs int64, incomingDataByteLimit uint64, data []byte, sendTimeoutNs int64) error {
-	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
+	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit, 0)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func AsyncMessageWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutN
 }
 
 func AsyncMessageChanne[D any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D], data D, sendTimeoutNs int64) error {
-	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
+	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs, 0)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func SyncRequest[D any](connection systemge.Connection[D], data D, sendTimeoutNs
 }
 
 func SyncRequestTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig *configs.TcpBufferedReader, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
-	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
+	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func SyncRequestTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig 
 }
 
 func SyncRequestWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs int64, incomingDataByteLimit uint64, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
-	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
+	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func SyncRequestWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs
 }
 
 func SyncRequestChanne[D any](channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D], data D, sendTimeoutNs, readTimeoutNs int64) (D, error) {
-	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
+	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs, 0)
 	if err != nil {
 		var nilValue D
 		return nilValue, err

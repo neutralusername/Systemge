@@ -28,7 +28,7 @@ func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection
 
 	case connectionRequest := <-listener.connectionChannel:
 		listener.ClientsAccepted.Add(1)
-		return connectionChannel.New(connectionRequest.SendToListener, connectionRequest.ReceiveFromListener), nil
+		return connectionChannel.New(connectionRequest.SendToListener, connectionRequest.ReceiveFromListener, listener.connectionLifetimeNs), nil
 	}
 }
 
