@@ -10,6 +10,9 @@ import (
 )
 
 func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {
+	listener.mutex.Lock()
+	defer listener.mutex.Unlock()
+
 	listener.SetAcceptDeadline(timeoutNs)
 
 	l := listener.tcpListener
