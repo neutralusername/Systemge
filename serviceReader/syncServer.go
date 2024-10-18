@@ -70,6 +70,11 @@ func NewSingleRequestServerSync[B any](
 		routineConfig,
 	)
 
+	/* 	go func() {
+		<-server.connection.GetCloseChannel()
+		server.readRoutine.StopRoutine(true)
+	}() */
+
 	return server, nil
 }
 
