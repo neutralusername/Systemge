@@ -6,12 +6,6 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (client *ChannelConnection[T]) WriteChannel(data T) <-chan error {
-	return tools.ChannelCall(func() (error, error) {
-		return client.Write(data, 0), nil
-	})
-}
-
 func (connection *ChannelConnection[T]) Write(data T, timeoutNs int64) error {
 	connection.writeMutex.Lock()
 	defer connection.writeMutex.Unlock()

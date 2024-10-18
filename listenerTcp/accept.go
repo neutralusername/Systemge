@@ -7,14 +7,7 @@ import (
 
 	"github.com/neutralusername/systemge/connectionTcp"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
-
-func (listener *TcpListener) AcceptChannel() <-chan systemge.Connection[[]byte] {
-	return tools.ChannelCall(func() (systemge.Connection[[]byte], error) {
-		return listener.Accept(0)
-	})
-}
 
 func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte], error) {
 	listener.SetAcceptTimeout(timeoutNs)

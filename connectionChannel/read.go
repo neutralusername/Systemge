@@ -6,12 +6,6 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (client *ChannelConnection[T]) ReadChannel() <-chan T {
-	return tools.ChannelCall(func() (T, error) {
-		return client.Read(0)
-	})
-}
-
 func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()

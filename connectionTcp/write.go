@@ -25,12 +25,6 @@ func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	return nil
 }
 
-func (client *TcpConnection) WriteChannel(data []byte) <-chan error {
-	return tools.ChannelCall(func() (error, error) {
-		return client.Write(data, 0), nil
-	})
-}
-
 func (client *TcpConnection) Write(data []byte, timeoutNs int64) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()

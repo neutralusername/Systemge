@@ -4,14 +4,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/systemge/helpers"
-	"github.com/neutralusername/systemge/tools"
 )
-
-func (client *WebsocketConnection) ReadChannel() <-chan []byte {
-	return tools.ChannelCall(func() ([]byte, error) {
-		return client.Read(0)
-	})
-}
 
 func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	connection.readMutex.Lock()

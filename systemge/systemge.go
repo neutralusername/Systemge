@@ -14,7 +14,6 @@ type Listener[B any, C Connection[B]] interface {
 	GetStatus() int
 	GetStopChannel() <-chan struct{}
 
-	AcceptChannel() <-chan C
 	Accept(timeoutNs int64) (C, error)
 	SetAcceptTimeout(int64)
 
@@ -32,11 +31,9 @@ type Connection[B any] interface {
 	GetStatus() int
 	GetCloseChannel() <-chan struct{}
 
-	ReadChannel() <-chan B
 	Read(int64) (B, error)
 	SetReadDeadline(int64)
 
-	WriteChannel(B) <-chan error
 	Write(B, int64) error
 	SetWriteDeadline(int64)
 

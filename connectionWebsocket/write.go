@@ -5,14 +5,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/systemge/helpers"
-	"github.com/neutralusername/systemge/tools"
 )
-
-func (client *WebsocketConnection) WriteChannel(data []byte) <-chan error {
-	return tools.ChannelCall(func() (error, error) {
-		return client.Write(data, 0), nil
-	})
-}
 
 func (connection *WebsocketConnection) Write(data []byte, timeoutNs int64) error {
 	connection.writeMutex.Lock()
