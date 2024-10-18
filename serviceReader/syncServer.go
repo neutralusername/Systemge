@@ -24,7 +24,7 @@ type ReaderServerSync[D any] struct {
 	FailedReads    atomic.Uint64
 }
 
-func NewSingleRequestServerSync[D any](
+func NewReaderServerSync[D any](
 	config *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
@@ -93,7 +93,7 @@ func (server *ReaderServerSync[D]) GetRoutine() *tools.Routine {
 
 func (server *ReaderServerSync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
 			"succeededReads": server.SucceededReads.Load(),
 			"failedReads":    server.FailedReads.Load(),
@@ -104,7 +104,7 @@ func (server *ReaderServerSync[D]) CheckMetrics() tools.MetricsTypes {
 }
 func (server *ReaderServerSync[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
 			"succeededReads": server.SucceededReads.Swap(0),
 			"failedReads":    server.FailedReads.Swap(0),
