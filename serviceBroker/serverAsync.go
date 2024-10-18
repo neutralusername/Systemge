@@ -22,7 +22,7 @@ type subscriber[D any] struct {
 	readerAsync *serviceReader.ReaderAsync[D]
 }
 
-type ObtainTopicAndPayload[D any] func(
+type HandleMessage[D any] func(
 	stopChannel <-chan struct{},
 	data D,
 	connection systemge.Connection[D],
@@ -39,7 +39,7 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
-	obtainTopicAndPayload ObtainTopicAndPayload[D],
+	handleMessage HandleMessage[D],
 	topics []string,
 ) (*Broker[D], error) {
 
