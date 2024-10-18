@@ -65,7 +65,7 @@ func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) <-chan []b
 }
 */
 
-func (client *TcpConnection) ReadChannel() <-chan []byte {
+func (client *TcpConnection) ReadChannel() <-chan []byte { // this should be the one with the most generic usage
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
