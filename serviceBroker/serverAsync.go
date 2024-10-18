@@ -24,7 +24,6 @@ type subscriber[D any] struct {
 }
 
 type HandleMessage[D any] func(
-	stopChannel <-chan struct{},
 	data D,
 	connection systemge.Connection[D],
 ) (
@@ -63,8 +62,8 @@ func New[D any](
 		accepterServerConfig,
 		accepterRoutineConfig,
 		handleAcceptsConcurrently,
-		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
-			if err := acceptHandler(stopChannel, connection); err != nil {
+		func(connection systemge.Connection[D]) error {
+			if err := acceptHandler(connection); err != nil {
 				return nil
 			}
 
@@ -73,8 +72,8 @@ func New[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				func(stopChannel <-chan struct{}, data D, connection systemge.Connection[D]) {
-					subscription, topic, payload, err := handleMessage(stopChannel, data, connection)
+				func(data D, connection systemge.Connection[D]) {
+					subscription, topic, payload, err := handleMessage(data, connection)
 					if err != nil {
 						return
 					}

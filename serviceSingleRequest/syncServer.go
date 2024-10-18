@@ -27,14 +27,14 @@ func NewSync[D any](
 		accepterConfig,
 		routineConfig,
 		handleRequestsConcurrently,
-		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
-			if err := acceptHandler(stopChannel, connection); err != nil {
+		func(connection systemge.Connection[D]) error {
+			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error
 				return err
 			}
 
 			select {
-			case <-stopChannel:
+			case <-singleReuqestSync.GetAccepter().GetRoutine().GetStopChannel():
 				connection.SetReadDeadline(1)
 				// routine was stopped
 				return errors.New("routine was stopped")
@@ -49,14 +49,14 @@ func NewSync[D any](
 					return errors.New("error reading data")
 				}
 
-				result, err := readHandler(stopChannel, data, connection)
+				result, err := readHandler(data, connection)
 				if err != nil {
 					// do smthg with the error
 					return err
 				}
 
 				select {
-				case <-stopChannel:
+				case <-singleReuqestSync.GetAccepter().GetRoutine().GetStopChannel():
 					connection.SetWriteDeadline(1)
 					// routine was stopped
 					return errors.New("routine was stopped")

@@ -38,7 +38,7 @@ func New[D any](
 		routineConfig,
 		true,
 		acceptHandler,
-		func(closeChannel <-chan struct{}, incomingData D, connection systemge.Connection[D]) (D, error) {
+		func(incomingData D, connection systemge.Connection[D]) (D, error) {
 			topic, err := deserializeTopic(incomingData, connection)
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err

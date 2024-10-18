@@ -37,7 +37,7 @@ func NewAccepterServer[D any](
 	}
 
 	handleAccept := func(stopChannel <-chan struct{}, connection systemge.Connection[D]) {
-		if err := server.AcceptHandler(stopChannel, connection); err != nil {
+		if err := server.AcceptHandler(connection); err != nil {
 			connection.Close()
 			// do smthg with the error
 			server.FailedAccepts.Add(1)

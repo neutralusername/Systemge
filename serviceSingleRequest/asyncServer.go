@@ -35,8 +35,8 @@ func NewAsync[D any](
 		accepterConfig,
 		routineConfig,
 		handleRequestsConcurrently,
-		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
-			if err := acceptHandler(stopChannel, connection); err != nil {
+		func(connection systemge.Connection[D]) error {
+			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error
 				return err
 			}
@@ -56,7 +56,7 @@ func NewAsync[D any](
 					// do smthg with the error
 					return errors.New("error reading data")
 				}
-				readHandler(stopChannel, data, connection)
+				readHandler(data, connection)
 				connection.Close()
 				return nil
 			}

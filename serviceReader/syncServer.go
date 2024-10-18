@@ -40,7 +40,7 @@ func NewSync[D any](
 	}
 
 	handleRead := func(stopChannel <-chan struct{}, object D, connection systemge.Connection[D]) {
-		result, err := server.ReadHandler(stopChannel, object, connection)
+		result, err := server.ReadHandler(object, connection)
 		if err != nil {
 			// do smthg with the error
 			server.FailedReads.Add(1)

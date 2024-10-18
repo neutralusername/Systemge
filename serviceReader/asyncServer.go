@@ -60,9 +60,9 @@ func NewAsync[D any](
 				server.SucceededReads.Add(1)
 
 				if !handleReadsConcurrently {
-					server.ReadHandler(stopChannel, data, connection)
+					server.ReadHandler(data, connection)
 				} else {
-					go server.ReadHandler(stopChannel, data, connection)
+					go server.ReadHandler(data, connection)
 				}
 			}
 		},

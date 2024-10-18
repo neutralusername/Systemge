@@ -1,10 +1,10 @@
 package tools
 
-type ReadHandler[D any, C any] func(<-chan struct{}, D, C)
+type ReadHandler[D any, C any] func(D, C)
 
-type ReadHandlerWithResult[D any, C any] func(<-chan struct{}, D, C) (D, error)
+type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
 
-type ReadHandlerWithError[D any, C any] func(<-chan struct{}, D, C) error
+type ReadHandlerWithError[D any, C any] func(D, C) error
 
 /*
 type ByteHandler[D any, C any] func(D, C) error
