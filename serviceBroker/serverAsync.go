@@ -26,7 +26,12 @@ type HandleMessage[D any] func(
 	stopChannel <-chan struct{},
 	data D,
 	connection systemge.Connection[D],
-) (subscription bool, topic string, payload D, err error)
+) (
+	subscription bool,
+	topic string,
+	payload D,
+	err error,
+)
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
