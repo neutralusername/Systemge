@@ -18,9 +18,11 @@ func NewSync[D any](
 	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
-) (*serviceAccepter.Accepter[D], error) {
+) (*SingleReuqest[D], error) {
 
-	return serviceAccepter.NewAccepterServer(
+	singleReuqestSync := &SingleReuqest[D]{}
+
+	accepter, err := serviceAccepter.NewAccepterServer(
 		listener,
 		accepterConfig,
 		routineConfig,
@@ -76,4 +78,12 @@ func NewSync[D any](
 			}
 		},
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	singleReuqestSync.accepter = accepter
+
+	return singleReuqestSync, nil
 }

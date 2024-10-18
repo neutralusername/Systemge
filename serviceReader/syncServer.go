@@ -48,7 +48,7 @@ func NewSync[D any](
 		}
 
 		select {
-		case <-stopChannel:
+		case <-server.readRoutine.GetStopChannel():
 			connection.SetWriteDeadline(1)
 			// routine was stopped
 			server.FailedWrites.Add(1)

@@ -6,16 +6,15 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
-	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/serviceSingleRequest"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
 
 type Resolver[D any] struct {
-	mutex     sync.RWMutex
-	topicData map[string]D
-	accepter  *serviceAccepter.Accepter[D]
+	mutex         sync.RWMutex
+	topicData     map[string]D
+	singleRequest *serviceSingleRequest.SingleReuqest[D]
 	// commands
 }
 
@@ -32,7 +31,7 @@ func New[D any](
 	resolver := &Resolver[D]{
 		topicData: topicData,
 	}
-	accepter, err := serviceSingleRequest.NewSync(
+	singleRequestServer, err := serviceSingleRequest.NewSync(
 		listener,
 		accepterConfig,
 		readerConfig,
@@ -56,12 +55,12 @@ func New[D any](
 	if err != nil {
 		return nil, err
 	}
-	resolver.accepter = accepter
+	resolver.singleRequest = singleRequestServer
 	return resolver, nil
 }
 
-func (r *Resolver[D]) GetAccepter() *serviceAccepter.Accepter[D] {
-	return r.accepter
+func (r *Resolver[D]) GetSingleRequest() *serviceSingleRequest.SingleReuqest[D] {
+	return r.singleRequest
 }
 
 func (r *Resolver[D]) SetTopicData(topic string, data D) {

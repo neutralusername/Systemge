@@ -10,6 +10,14 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type SingleReuqest[D any] struct {
+	accepter *serviceAccepter.Accepter[D]
+}
+
+func (s *SingleReuqest[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+	return s.accepter
+}
+
 func NewAsync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
@@ -20,7 +28,9 @@ func NewAsync[D any](
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*serviceAccepter.Accepter[D], error) {
 
-	return serviceAccepter.NewAccepterServer(
+	singleReuqestAsync := &SingleReuqest[D]{}
+
+	accepter, err := serviceAccepter.NewAccepterServer(
 		listener,
 		accepterConfig,
 		routineConfig,
@@ -32,7 +42,7 @@ func NewAsync[D any](
 			}
 
 			select {
-			case <-stopChannel:
+			case <-singleReuqestAsync.GetAccepter().GetRoutine().GetStopChannel():
 				connection.SetReadDeadline(1)
 				// routine was stopped
 				return errors.New("routine was stopped")
@@ -52,4 +62,11 @@ func NewAsync[D any](
 			}
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	singleReuqestAsync.accepter = accepter
+
+	return accepter, nil
 }
