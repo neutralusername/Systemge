@@ -56,10 +56,12 @@ func NewSingleRequestServerSync[B any](
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
+				// routine was stopped
 				return
 
 			case <-connection.GetCloseChannel():
 				server.readRoutine.StopRoutine(true)
+				// ending routine due to connection close
 				return
 
 			case object, ok := <-connection.ReadChannel():
@@ -68,7 +70,6 @@ func NewSingleRequestServerSync[B any](
 					// do smthg with the error
 					return
 				}
-
 				if !handleReadsConcurrently {
 					handleRead(object, connection)
 				} else {

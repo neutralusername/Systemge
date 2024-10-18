@@ -58,7 +58,7 @@ func (routine *Routine) StartRoutine() error {
 	return nil
 }
 
-func (routine *Routine) StopRoutine(abortOngoingCalls bool) error {
+func (routine *Routine) StopRoutine(timeoutNs int64) error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
