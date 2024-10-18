@@ -58,6 +58,7 @@ func (routine *Routine) StartRoutine() error {
 	return nil
 }
 
+// will return eventually if calls are made with a timeout
 func (routine *Routine) StopRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
