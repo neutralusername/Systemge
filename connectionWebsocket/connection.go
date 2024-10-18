@@ -33,10 +33,12 @@ type WebsocketConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(websocketConn *websocket.Conn) (*WebsocketConnection, error) {
+func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64) (*WebsocketConnection, error) {
 	if websocketConn == nil {
 		return nil, errors.New("websocketConn is nil")
 	}
+
+	websocketConn.SetReadLimit(int64(incomingMessageByteLimit))
 
 	connection := &WebsocketConnection{
 		websocketConn: websocketConn,
