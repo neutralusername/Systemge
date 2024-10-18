@@ -24,7 +24,7 @@ type ReaderServerSync[B any] struct {
 }
 
 func NewSingleRequestServerSync[B any](
-	config *configs.SingleRequestServerSync,
+	config *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[B],
 	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
