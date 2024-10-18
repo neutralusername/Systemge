@@ -62,7 +62,6 @@ func NewSingleRequestServerSync[D any](
 				return
 
 			case <-connection.GetCloseChannel():
-				connection.SetReadDeadline(1)
 				server.readRoutine.Stop()
 				// ending routine due to connection close
 				return

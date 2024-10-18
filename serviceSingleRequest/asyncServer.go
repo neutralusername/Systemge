@@ -49,7 +49,6 @@ func NewSingleRequestServerAsync[D any](
 				return
 
 			case <-listener.GetStopChannel():
-				listener.SetAcceptDeadline(1)
 				server.acceptRoutine.Stop()
 				// listener was stopped
 				return
@@ -76,7 +75,6 @@ func NewSingleRequestServerAsync[D any](
 					return
 
 				case <-listener.GetStopChannel():
-					connection.SetReadDeadline(1)
 					server.acceptRoutine.Stop()
 					// listener was stopped
 					return
