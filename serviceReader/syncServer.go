@@ -28,11 +28,11 @@ type ReaderSync[D any] struct {
 }
 
 func NewSync[D any](
+	connection systemge.Connection[D],
 	readerServerSyncConfig *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
-	connection systemge.Connection[D],
-	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
+	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 ) (*ReaderSync[D], error) {
 
 	server := &ReaderSync[D]{

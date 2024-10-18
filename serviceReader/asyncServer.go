@@ -28,8 +28,8 @@ func NewAsync[D any](
 	connection systemge.Connection[D],
 	readerServerAsyncConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
-	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
+	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*ReaderAsync[D], error) {
 
 	server := &ReaderAsync[D]{

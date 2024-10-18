@@ -70,8 +70,8 @@ func New[D any](
 				connection,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
-				nil,
 				handleReadsConcurrently,
+				nil,
 			)
 			if err != nil {
 				return err

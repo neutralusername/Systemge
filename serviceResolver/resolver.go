@@ -24,10 +24,11 @@ func New[D any, O any](
 ) (*serviceAccepter.Accepter[D], error) {
 
 	return serviceSingleRequest.NewSync(
+		listener,
 		accepterConfig,
 		readerConfig,
 		routineConfig,
-		listener,
+		true,
 		acceptHandler,
 		func(closeChannel <-chan struct{}, data D, connection systemge.Connection[D]) (D, error) {
 			if err := readHandler(closeChannel, data, connection); err != nil {
@@ -43,6 +44,5 @@ func New[D any, O any](
 			}
 			return serializeObject(object)
 		},
-		true,
 	)
 }

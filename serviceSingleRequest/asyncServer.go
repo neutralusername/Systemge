@@ -11,13 +11,13 @@ import (
 )
 
 func NewAsync[D any](
+	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
 	readerConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
-	listener systemge.Listener[D, systemge.Connection[D]],
+	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
-	handleRequestsConcurrently bool,
 ) (*serviceAccepter.Accepter[D], error) {
 
 	return serviceAccepter.NewAccepterServer(
