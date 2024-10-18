@@ -113,7 +113,6 @@ func (routine *Routine) routine() {
 			stopChannel := routine.stopChannel
 
 			go func() {
-
 				routine.routineFunc(stopChannel)
 				close(done)
 			}()

@@ -125,7 +125,7 @@ func New[D any](
 			go func() {
 				select {
 				case <-connection.GetCloseChannel():
-					/* case <-stopChannel: */
+				case <-broker.accepter.GetRoutine().GetStopChannel():
 				}
 				broker.mutex.Lock()
 				defer broker.mutex.Unlock()
