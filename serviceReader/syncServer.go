@@ -41,34 +41,38 @@ func NewSingleRequestServerSync[B any](
 				server.readRoutine.StopRoutine(true)
 				return
 			} */
-			object, err := connection.Read(config.ReadTimeoutNs)
-			if err != nil {
-				server.FailedReads.Add(1)
-				// do smthg with the error
+			select {
+			case <-stopChannel:
 				return
-			}
 
-			handleRead := func(object B, connection systemge.Connection[B]) {
-				result, err := server.ReadHandler(object, connection)
-				if err != nil {
+			case object, ok := <-connection.ReadChannel():
+				if !ok {
 					server.FailedReads.Add(1)
 					// do smthg with the error
 					return
 				}
-				err = connection.Write(result, config.WriteTimeoutNs)
-				if err != nil {
-					server.FailedReads.Add(1)
-					// do smthg with the error
+				handleRead := func(object B, connection systemge.Connection[B]) {
+					result, err := server.ReadHandler(object, connection)
+					if err != nil {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					err = connection.Write(result, config.WriteTimeoutNs)
+					if err != nil {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					server.SucceededReads.Add(1)
 					return
 				}
-				server.SucceededReads.Add(1)
-				return
-			}
 
-			if !handleReadsConcurrently {
-				handleRead(object, connection)
-			} else {
-				go handleRead(object, connection)
+				if !handleReadsConcurrently {
+					handleRead(object, connection)
+				} else {
+					go handleRead(object, connection)
+				}
 			}
 		},
 		routineConfig,
