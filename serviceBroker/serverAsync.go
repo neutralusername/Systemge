@@ -29,10 +29,12 @@ func New[D any](
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	handleAcceptsConcurrently bool,
 
-	config *configs.ReaderServerAsync,
+	readerServerAsyncConfig *configs.ReaderServerAsync,
 	readerRoutineConfig *configs.Routine,
 	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
+
+	topics []string,
 ) (*Broker[D], error) {
 
 	accepterServer, err := serviceAccepter.NewAccepterServer(
