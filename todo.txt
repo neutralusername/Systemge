@@ -70,9 +70,3 @@ consider/support config changes at runtime.
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
     +(group of clients connected to various listeners that can be messaged conveniently)
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
-
-(refactor brokerResolver to use singleRequestServer)
-
-single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
-
-add connection lifetime config to listeners (also to establish connection?)
