@@ -11,15 +11,16 @@ import (
 )
 
 type Broker[D any] struct {
-	mutex         sync.RWMutex
-	topics        map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
-	subscriptions map[*subscriber[D]]map[string]struct{} // connection -> topic -> struct{}
-	accepter      *serviceAccepter.Accepter[D]
+	mutex       sync.RWMutex
+	topics      map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
+	subscribers map[systemge.Connection[D]]*subscriber[D]
+	accepter    *serviceAccepter.Accepter[D]
 }
 
 type subscriber[D any] struct {
-	connection  systemge.Connection[D]
-	readerAsync *serviceReader.ReaderAsync[D]
+	connection    systemge.Connection[D]
+	readerAsync   *serviceReader.ReaderAsync[D]
+	subscriptions map[string]struct{}
 }
 
 type HandleMessage[D any] func(
@@ -44,13 +45,14 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
+	writeTimeoutNs int64,
 	handleMessage HandleMessage[D],
 	topics []string,
 ) (*Broker[D], error) {
 
 	broker := &Broker[D]{
-		topics:        make(map[string]map[*subscriber[D]]struct{}),
-		subscriptions: make(map[*subscriber[D]]map[string]struct{}),
+		topics:      make(map[string]map[*subscriber[D]]struct{}),
+		subscribers: make(map[systemge.Connection[D]]*subscriber[D]),
 	}
 	for _, topic := range topics {
 		broker.topics[topic] = make(map[*subscriber[D]]struct{})
@@ -71,7 +73,40 @@ func New[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				nil,
+				func(stopChannel <-chan struct{}, data D, connection systemge.Connection[D]) {
+					subscription, topic, payload, err := handleMessage(stopChannel, data, connection)
+					if err != nil {
+						return
+					}
+
+					if subscription {
+						broker.mutex.Lock()
+						defer broker.mutex.Unlock()
+
+						subscriber, ok := broker.subscribers[connection]
+						if !ok {
+							return
+						}
+
+						if _, ok := subscriber.subscriptions[topic]; !ok {
+							subscriber.subscriptions[topic] = struct{}{}
+						} else {
+							delete(subscriber.subscriptions, topic)
+						}
+					} else {
+						broker.mutex.RLock()
+						defer broker.mutex.RUnlock()
+
+						subscribers, ok := broker.topics[topic]
+						if !ok {
+							return
+						}
+
+						for subscriber := range subscribers {
+							subscriber.connection.Write(payload, writeTimeoutNs)
+						}
+					}
+				},
 			)
 			if err != nil {
 				return err
@@ -85,7 +120,9 @@ func New[D any](
 			broker.mutex.Lock()
 			defer broker.mutex.Unlock()
 
-			broker.subscriptions[subscriber] = make(map[string]struct{})
+			broker.subscribers[connection] = subscriber
+
+			// handle disconnect
 			return nil
 		},
 	)
