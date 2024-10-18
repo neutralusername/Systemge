@@ -37,11 +37,11 @@ func NewSingleRequestServerSync[B any](
 
 	server.readRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
-			/* if connection.GetStatus() != Status.STARTED {
+			select {
+			case <-connection.GetCloseChannel():
 				server.readRoutine.StopRoutine(true)
 				return
-			} */
-			select {
+
 			case <-stopChannel:
 				return
 
@@ -77,11 +77,6 @@ func NewSingleRequestServerSync[B any](
 		},
 		routineConfig,
 	)
-
-	/* 	go func() {
-		<-server.connection.GetCloseChannel()
-		server.readRoutine.StopRoutine(true)
-	}() */
 
 	return server, nil
 }
