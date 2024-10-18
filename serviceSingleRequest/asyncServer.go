@@ -18,8 +18,11 @@ type SingleRequestServerAsync[B any] struct {
 
 	// metrics
 
-	SucceededCalls atomic.Uint64
-	FailedCalls    atomic.Uint64
+	SucceededAccepts atomic.Uint64
+	FailedAccepts    atomic.Uint64
+
+	SucceededReads atomic.Uint64
+	FailedReads    atomic.Uint64
 }
 
 func NewSingleRequestServerAsync[B any](
@@ -38,25 +41,29 @@ func NewSingleRequestServerAsync[B any](
 
 	server.acceptRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
+
 			connection, err := listener.Accept(config.AcceptTimeoutNs)
 			if err != nil {
-				server.FailedCalls.Add(1)
+				server.FailedAccepts.Add(1)
 				// do smthg with the error
 				return
 			}
 			defer connection.Close()
 			if err = server.acceptHandler(connection); err != nil {
-				server.FailedCalls.Add(1)
+				server.FailedAccepts.Add(1)
 				// do smthg with the error
 				return
 			}
+			server.SucceededAccepts.Add(1)
+
 			object, err := connection.Read(config.ReadTimeoutNs)
 			if err != nil {
-				server.FailedCalls.Add(1)
+				server.FailedReads.Add(1)
 				return
 			}
 			server.readHandler(object, connection)
-			server.SucceededCalls.Add(1)
+			server.SucceededReads.Add(1)
+
 		},
 		routineConfig,
 	)
@@ -71,8 +78,8 @@ func (server *SingleRequestServerAsync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
-			"successes": server.SucceededCalls.Load(),
-			"fails":     server.FailedCalls.Load(),
+			"successes": server.SucceededReads.Load(),
+			"fails":     server.FailedReads.Load(),
 		},
 	))
 	metricsTypes.Merge(server.listener.CheckMetrics())
@@ -82,8 +89,8 @@ func (server *SingleRequestServerAsync[B]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
-			"successes": server.SucceededCalls.Swap(0),
-			"fails":     server.FailedCalls.Swap(0),
+			"successes": server.SucceededReads.Swap(0),
+			"fails":     server.FailedReads.Swap(0),
 		},
 	))
 	metricsTypes.Merge(server.listener.GetMetrics())

@@ -1,4 +1,4 @@
-package serviceSingleRequest
+package service
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type SingleRequestServerSync[B any] struct {
+type ServerSync[B any] struct {
 	listener      systemge.Listener[B, systemge.Connection[B]]
 	acceptRoutine *tools.Routine
 
@@ -32,9 +32,9 @@ func NewSingleRequestServerSync[B any](
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
-) (*SingleRequestServerSync[B], error) {
+) (*ServerSync[B], error) {
 
-	server := &SingleRequestServerSync[B]{
+	server := &ServerSync[B]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
 		ReadHandler:   readHandler,
@@ -42,7 +42,6 @@ func NewSingleRequestServerSync[B any](
 
 	server.acceptRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
-
 			connection, err := listener.Accept(config.AcceptTimeoutNs)
 			if err != nil {
 				server.FailedAccepts.Add(1)
@@ -57,24 +56,32 @@ func NewSingleRequestServerSync[B any](
 			}
 			server.SucceededAccepts.Add(1)
 
-			object, err := connection.Read(config.ReadTimeoutNs)
-			if err != nil {
-				server.FailedReads.Add(1)
-				// do smthg with the error
-				return
-			}
-			result, err := server.ReadHandler(object, connection)
-			if err != nil {
-				server.FailedReads.Add(1)
-				// do smthg with the error
-				return
-			}
-			if err = connection.Write(result, config.WriteTimeoutNs); err != nil {
-				server.FailedReads.Add(1)
-				// do smthg with the error
-				return
-			}
-			server.SucceededReads.Add(1)
+			// handle disconnect
+
+			readRoutine := tools.NewRoutine(
+				func(stopChannel <-chan struct{}) {
+					object, err := connection.Read(config.ReadTimeoutNs)
+					if err != nil {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					result, err := server.ReadHandler(object, connection)
+					if err != nil {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					err = connection.Write(result, config.WriteTimeoutNs)
+					if err != nil {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					server.SucceededReads.Add(1)
+				},
+				routineConfig,
+			)
 
 		},
 		routineConfig,
@@ -82,11 +89,11 @@ func NewSingleRequestServerSync[B any](
 	return server, nil
 }
 
-func (server *SingleRequestServerSync[B]) GetRoutine() *tools.Routine {
+func (server *ServerSync[B]) GetRoutine() *tools.Routine {
 	return server.acceptRoutine
 }
 
-func (server *SingleRequestServerSync[B]) CheckMetrics() tools.MetricsTypes {
+func (server *ServerSync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -97,7 +104,7 @@ func (server *SingleRequestServerSync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.listener.CheckMetrics())
 	return metricsTypes
 }
-func (server *SingleRequestServerSync[B]) GetMetrics() tools.MetricsTypes {
+func (server *ServerSync[B]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -109,7 +116,7 @@ func (server *SingleRequestServerSync[B]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *SingleRequestServerSync[B]) GetDefaultCommands() tools.CommandHandlers {
+func (server *ServerSync[B]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().StartRoutine()
