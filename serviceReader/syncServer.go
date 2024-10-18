@@ -37,6 +37,10 @@ func NewSingleRequestServerSync[B any](
 
 	server.readRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
+			/* if connection.GetStatus() != Status.STARTED {
+				server.readRoutine.StopRoutine(true)
+				return
+			} */
 			object, err := connection.Read(config.ReadTimeoutNs)
 			if err != nil {
 				server.FailedReads.Add(1)
@@ -69,11 +73,6 @@ func NewSingleRequestServerSync[B any](
 		},
 		routineConfig,
 	)
-
-	/* 	go func() {
-		<-server.connection.GetCloseChannel()
-		server.readRoutine.StopRoutine(true)
-	}() */
 
 	return server, nil
 }
