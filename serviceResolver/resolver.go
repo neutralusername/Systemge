@@ -12,6 +12,12 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type Resolver[D any] struct {
+	mutex     sync.RWMutex
+	topicData map[string]D
+	accepter  *serviceAccepter.Accepter[D]
+}
+
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
@@ -20,10 +26,12 @@ func New[D any](
 	topicData map[string]D,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
-) (*serviceAccepter.Accepter[D], error) {
+) (*Resolver[D], error) {
 
-	mutex := sync.RWMutex{}
-	return serviceSingleRequest.NewSync(
+	resolver := &Resolver[D]{
+		topicData: topicData,
+	}
+	accepter, err := serviceSingleRequest.NewSync(
 		listener,
 		accepterConfig,
 		readerConfig,
@@ -35,13 +43,18 @@ func New[D any](
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err
 			}
-			mutex.RLock()
+			resolver.mutex.RLock()
 			outgoingData, ok := topicData[topic]
-			mutex.RUnlock()
+			resolver.mutex.RUnlock()
 			if !ok {
 				return helpers.GetNilValue(incomingData), errors.New("topic not found")
 			}
 			return outgoingData, nil
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+	resolver.accepter = accepter
+	return resolver, nil
 }
