@@ -10,19 +10,19 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type BrokerServer[D any] struct {
+type Broker[D any] struct {
 	mutex         sync.RWMutex
 	topics        map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscriptions map[*subscriber[D]]map[string]struct{} // connection -> topic -> struct{}
-	accepter      *serviceAccepter.AccepterServer[D]
+	accepter      *serviceAccepter.Accepter[D]
 }
 
 type subscriber[D any] struct {
 	connection systemge.Connection[D]
-	reader     *serviceReader.ReaderServerAsync[D]
+	reader     *serviceReader.ReaderAsync[D]
 }
 
-func NewBrokerServer[D any](
+func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
 	accepterRoutineConfig *configs.Routine,
@@ -33,7 +33,7 @@ func NewBrokerServer[D any](
 	readerRoutineConfig *configs.Routine,
 	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
-) (*BrokerServer[D], error) {
+) (*Broker[D], error) {
 
 	accepterServer, err := serviceAccepter.NewAccepterServer(
 		listener,

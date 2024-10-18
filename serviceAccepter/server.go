@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type AccepterServer[D any] struct {
+type Accepter[D any] struct {
 	listener      systemge.Listener[D, systemge.Connection[D]]
 	acceptRoutine *tools.Routine
 
@@ -29,9 +29,9 @@ func NewAccepterServer[D any](
 	routineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	handleAcceptsConcurrently bool,
-) (*AccepterServer[D], error) {
+) (*Accepter[D], error) {
 
-	server := &AccepterServer[D]{
+	server := &Accepter[D]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
 	}
@@ -80,11 +80,11 @@ func NewAccepterServer[D any](
 	return server, nil
 }
 
-func (server *AccepterServer[D]) GetRoutine() *tools.Routine {
+func (server *Accepter[D]) GetRoutine() *tools.Routine {
 	return server.acceptRoutine
 }
 
-func (server *AccepterServer[D]) CheckMetrics() tools.MetricsTypes {
+func (server *Accepter[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
@@ -95,7 +95,7 @@ func (server *AccepterServer[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.listener.CheckMetrics())
 	return metricsTypes
 }
-func (server *AccepterServer[D]) GetMetrics() tools.MetricsTypes {
+func (server *Accepter[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
@@ -107,7 +107,7 @@ func (server *AccepterServer[D]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *AccepterServer[D]) GetDefaultCommands() tools.CommandHandlers {
+func (server *Accepter[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().Start()

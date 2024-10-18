@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ReaderServerAsync[D any] struct {
+type ReaderAsync[D any] struct {
 	connection systemge.Connection[D]
 
 	readRoutine *tools.Routine
@@ -24,15 +24,15 @@ type ReaderServerAsync[D any] struct {
 	FailedReads    atomic.Uint64
 }
 
-func NewReaderServerAsync[D any](
+func NewAsync[D any](
 	readerServerAsyncConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
-) (*ReaderServerAsync[D], error) {
+) (*ReaderAsync[D], error) {
 
-	server := &ReaderServerAsync[D]{
+	server := &ReaderAsync[D]{
 		ReadHandler: readHandler,
 	}
 
@@ -72,11 +72,11 @@ func NewReaderServerAsync[D any](
 	return server, nil
 }
 
-func (server *ReaderServerAsync[D]) GetRoutine() *tools.Routine {
+func (server *ReaderAsync[D]) GetRoutine() *tools.Routine {
 	return server.readRoutine
 }
 
-func (server *ReaderServerAsync[D]) CheckMetrics() tools.MetricsTypes {
+func (server *ReaderAsync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -87,7 +87,7 @@ func (server *ReaderServerAsync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.connection.CheckMetrics())
 	return metricsTypes
 }
-func (server *ReaderServerAsync[D]) GetMetrics() tools.MetricsTypes {
+func (server *ReaderAsync[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
@@ -99,7 +99,7 @@ func (server *ReaderServerAsync[D]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *ReaderServerAsync[D]) GetDefaultCommands() tools.CommandHandlers {
+func (server *ReaderAsync[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().Start()

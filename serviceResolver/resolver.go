@@ -21,9 +21,9 @@ func New[D any, O any](
 	topicObject map[string]O,
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 	serializeObject func(O) (D, error),
-) (*serviceAccepter.AccepterServer[D], error) {
+) (*serviceAccepter.Accepter[D], error) {
 
-	return serviceSingleRequest.NewSingleRequestServerSync(
+	return serviceSingleRequest.NewSync(
 		accepterConfig,
 		readerConfig,
 		routineConfig,

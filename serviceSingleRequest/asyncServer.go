@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func NewSingleRequestServerAsync[D any](
+func NewAsync[D any](
 	accepterConfig *configs.AccepterServer,
 	readerConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
@@ -18,7 +18,7 @@ func NewSingleRequestServerAsync[D any](
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 	handleRequestsConcurrently bool,
-) (*serviceAccepter.AccepterServer[D], error) {
+) (*serviceAccepter.Accepter[D], error) {
 
 	return serviceAccepter.NewAccepterServer(
 		listener,
