@@ -55,15 +55,15 @@ func NewSingleRequestServerAsync[D any](
 
 			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(config.AcceptTimeoutNs) }):
 				if !ok {
-					server.FailedAccepts.Add(1)
 					// do smthg with the error
+					server.FailedAccepts.Add(1)
 					return
 				}
 				defer connection.Close()
 
 				if err := server.acceptHandler(connection); err != nil {
-					server.FailedAccepts.Add(1)
 					// do smthg with the error
+					server.FailedAccepts.Add(1)
 					return
 				}
 				server.SucceededAccepts.Add(1)
@@ -81,8 +81,8 @@ func NewSingleRequestServerAsync[D any](
 
 				case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
 					if !ok {
-						server.FailedReads.Add(1)
 						// do smthg with the error
+						server.FailedReads.Add(1)
 						return
 					}
 					server.readHandler(data, connection)

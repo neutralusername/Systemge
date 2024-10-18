@@ -39,14 +39,14 @@ func NewSingleRequestServerSync[D any](
 	handleRead := func(object D, connection systemge.Connection[D]) {
 		result, err := server.ReadHandler(object, connection)
 		if err != nil {
-			server.FailedReads.Add(1)
 			// do smthg with the error
+			server.FailedReads.Add(1)
 			return
 		}
 		err = connection.Write(result, config.WriteTimeoutNs)
 		if err != nil {
-			server.FailedReads.Add(1)
 			// do smthg with the error
+			server.FailedReads.Add(1)
 			return
 		}
 		server.SucceededReads.Add(1)
@@ -68,8 +68,8 @@ func NewSingleRequestServerSync[D any](
 
 			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
 				if !ok {
-					server.FailedReads.Add(1)
 					// do smthg with the error
+					server.FailedReads.Add(1)
 					return
 				}
 				if !handleReadsConcurrently {
