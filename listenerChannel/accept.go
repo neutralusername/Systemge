@@ -9,14 +9,20 @@ import (
 )
 
 func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection[D], error) {
+	listener.mutex.Lock()
+	defer listener.mutex.Unlock()
 
-	timeout := tools.NewTimeout(timeoutNs, nil, false)
+	listener.timeout = tools.NewTimeout(timeoutNs, nil, false)
+	defer func() {
+		listener.timeout.Trigger()
+		listener.timeout = nil
+	}()
 	select {
 	case <-listener.stopChannel:
 		listener.ClientsFailed.Add(1)
 		return nil, errors.New("listener stopped")
 
-	case <-timeout.GetIsExpiredChannel():
+	case <-listener.timeout.GetIsExpiredChannel():
 		listener.ClientsFailed.Add(1)
 		return nil, errors.New("accept canceled")
 
@@ -27,5 +33,7 @@ func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection
 }
 
 func (listener *ChannelListener[D]) SetAcceptDeadline(timeoutNs int64) {
-
+	if timeout := listener.timeout; timeout != nil {
+		timeout.Refresh(timeoutNs)
+	}
 }

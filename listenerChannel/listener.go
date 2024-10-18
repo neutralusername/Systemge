@@ -22,6 +22,8 @@ type ChannelListener[D any] struct {
 	stopChannel chan struct{}
 
 	connectionChannel chan *connectionChannel.ConnectionRequest[D]
+	timeout           *tools.Timeout
+	mutex             sync.Mutex
 
 	// metrics
 
