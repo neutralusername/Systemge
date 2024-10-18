@@ -19,29 +19,6 @@ type Resolver[D any] struct {
 	// commands
 }
 
-func (r *Resolver[D]) GetAccepter() *serviceAccepter.Accepter[D] {
-	return r.accepter
-}
-
-func (r *Resolver[D]) SetTopicData(topic string, data D) {
-	r.mutex.Lock()
-	r.topicData[topic] = data
-	r.mutex.Unlock()
-}
-
-func (r *Resolver[D]) GetTopicData(topic string) (D, bool) {
-	r.mutex.RLock()
-	data, ok := r.topicData[topic]
-	r.mutex.RUnlock()
-	return data, ok
-}
-
-func (r *Resolver[D]) DeleteTopicData(topic string) {
-	r.mutex.Lock()
-	delete(r.topicData, topic)
-	r.mutex.Unlock()
-}
-
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.AccepterServer,
@@ -81,4 +58,27 @@ func New[D any](
 	}
 	resolver.accepter = accepter
 	return resolver, nil
+}
+
+func (r *Resolver[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+	return r.accepter
+}
+
+func (r *Resolver[D]) SetTopicData(topic string, data D) {
+	r.mutex.Lock()
+	r.topicData[topic] = data
+	r.mutex.Unlock()
+}
+
+func (r *Resolver[D]) GetTopicData(topic string) (D, bool) {
+	r.mutex.RLock()
+	data, ok := r.topicData[topic]
+	r.mutex.RUnlock()
+	return data, ok
+}
+
+func (r *Resolver[D]) DeleteTopicData(topic string) {
+	r.mutex.Lock()
+	delete(r.topicData, topic)
+	r.mutex.Unlock()
 }
