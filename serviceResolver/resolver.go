@@ -16,9 +16,8 @@ func New[D any](
 	accepterConfig *configs.AccepterServer,
 	readerConfig *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-	readHandler tools.ReadHandlerWithError[D, systemge.Connection[D]],
 	topicData map[string]D,
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*serviceAccepter.Accepter[D], error) {
 
@@ -30,9 +29,6 @@ func New[D any](
 		true,
 		acceptHandler,
 		func(closeChannel <-chan struct{}, incomingData D, connection systemge.Connection[D]) (D, error) {
-			if err := readHandler(closeChannel, incomingData, connection); err != nil {
-				return helpers.GetNilValue(incomingData), err
-			}
 			topic, err := deserializeTopic(incomingData, connection)
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err
