@@ -32,7 +32,7 @@ type Connection[B any] interface {
 
 	// SetReadLimit(int64) would be nice but redundant for channel communication. integrate this config somehow into tcp and websocket connections
 
-	ReadChannel(stopChannel <-chan struct{}) (<-chan B, error)
+	ReadChannel(stopChannel <-chan struct{}) (B, error)
 	Read(int64) (B, error)
 	SetReadDeadline(int64)
 
