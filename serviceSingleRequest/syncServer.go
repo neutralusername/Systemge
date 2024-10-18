@@ -123,7 +123,7 @@ func (server *SingleRequestServerSync[D]) GetDefaultCommands() tools.CommandHand
 		return "success", nil
 	}
 	commands["stop"] = func(args []string) (string, error) {
-		err := server.GetRoutine().StopRoutine(true)
+		err := server.GetRoutine().StopRoutine()
 		if err != nil {
 			return "", err
 		}

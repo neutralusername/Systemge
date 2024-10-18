@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/status"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -41,29 +42,50 @@ func NewSingleRequestServerAsync[D any](
 
 	server.acceptRoutine = tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
-
-			connection, err := listener.Accept(config.AcceptTimeoutNs)
-			if err != nil {
-				server.FailedAccepts.Add(1)
-				// do smthg with the error
+			select {
+			case <-stopChannel:
+				// routine was stopped
 				return
-			}
-			defer connection.Close()
-			if err = server.acceptHandler(connection); err != nil {
-				server.FailedAccepts.Add(1)
-				// do smthg with the error
-				return
-			}
-			server.SucceededAccepts.Add(1)
 
-			object, err := connection.Read(config.ReadTimeoutNs)
-			if err != nil {
-				server.FailedReads.Add(1)
+			case <-listener.GetStopChannel():
+				server.acceptRoutine.Stop()
+				// listener was stopped
 				return
-			}
-			server.readHandler(object, connection)
-			server.SucceededReads.Add(1)
 
+			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(config.AcceptTimeoutNs) }):
+				if !ok {
+					server.FailedAccepts.Add(1)
+					// do smthg with the error
+					return
+				}
+				defer connection.Close()
+				if err := server.acceptHandler(connection); err != nil {
+					server.FailedAccepts.Add(1)
+					// do smthg with the error
+					return
+				}
+				server.SucceededAccepts.Add(1)
+
+				select {
+				case <-stopChannel:
+					// routine was stopped
+					return
+
+				case <-listener.GetStopChannel():
+					server.acceptRoutine.Stop()
+					// listener was stopped
+					return
+
+				case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(config.ReadTimeoutNs) }):
+					if !ok {
+						server.FailedReads.Add(1)
+						// do smthg with the error
+						return
+					}
+					server.readHandler(data, connection)
+					server.SucceededReads.Add(1)
+				}
+			}
 		},
 		routineConfig,
 	)
@@ -104,14 +126,14 @@ func (server *SingleRequestServerAsync[D]) GetMetrics() tools.MetricsTypes {
 func (server *SingleRequestServerAsync[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
-		err := server.GetRoutine().StartRoutine()
+		err := server.GetRoutine().Start()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
 	commands["stop"] = func(args []string) (string, error) {
-		err := server.GetRoutine().StopRoutine(true)
+		err := server.GetRoutine().Stop()
 		if err != nil {
 			return "", err
 		}

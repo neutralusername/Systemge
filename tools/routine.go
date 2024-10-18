@@ -39,7 +39,7 @@ func (routine *Routine) GetStopChannel() <-chan struct{} {
 	return routine.stopChannel
 }
 
-func (routine *Routine) StartRoutine() error {
+func (routine *Routine) Start() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
@@ -57,7 +57,7 @@ func (routine *Routine) StartRoutine() error {
 }
 
 // will return eventually if calls are made with a timeout
-func (routine *Routine) StopRoutine() error {
+func (routine *Routine) Stop() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 

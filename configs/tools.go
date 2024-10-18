@@ -152,9 +152,9 @@ func UnmarshalRoutine(data string) *Routine {
 }
 
 type TcpBufferedReader struct {
-	ReadTimeoutNs            int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
-	BufferBytes              uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+	ReadTimeoutNs         int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
+	BufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
+	IncomingDataByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 }
 
 func UnmarshalTcpBufferedReader(data string) *TcpBufferedReader {

@@ -32,7 +32,7 @@ func (messageReceiver *TcpBufferedReader) Read() ([]byte, int, error) {
 	completedMsgBytes := []byte{}
 	newBytesRead := 0
 	for {
-		if messageReceiver.config.IncomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.config.IncomingMessageByteLimit {
+		if messageReceiver.config.IncomingDataByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.config.IncomingDataByteLimit {
 			return nil, newBytesRead, errors.New("incoming message byte limit exceeded")
 		}
 		for i, b := range messageReceiver.buffer {
@@ -41,7 +41,7 @@ func (messageReceiver *TcpBufferedReader) Read() ([]byte, int, error) {
 			}
 			if b == ENDOFMESSAGE {
 				messageReceiver.buffer = messageReceiver.buffer[i+1:]
-				if messageReceiver.config.IncomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.config.IncomingMessageByteLimit {
+				if messageReceiver.config.IncomingDataByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.config.IncomingDataByteLimit {
 					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
 					return nil, newBytesRead, errors.New("incoming message byte limit exceeded")
 				}
