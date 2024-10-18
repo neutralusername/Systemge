@@ -60,6 +60,7 @@ func New[D any](
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,
+		handleAcceptsConcurrently,
 		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
 			if err := acceptHandler(stopChannel, connection); err != nil {
 				return nil
@@ -87,7 +88,6 @@ func New[D any](
 			broker.subscriptions[subscriber] = make(map[string]struct{})
 			return nil
 		},
-		handleAcceptsConcurrently,
 	)
 	if err != nil {
 		return nil, err

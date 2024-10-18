@@ -24,6 +24,7 @@ func NewAsync[D any](
 		listener,
 		accepterConfig,
 		routineConfig,
+		handleRequestsConcurrently,
 		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
 			if err := acceptHandler(stopChannel, connection); err != nil {
 				// do smthg with the error
@@ -50,6 +51,5 @@ func NewAsync[D any](
 				return nil
 			}
 		},
-		handleRequestsConcurrently,
 	)
 }

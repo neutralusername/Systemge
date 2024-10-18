@@ -24,6 +24,7 @@ func NewSync[D any](
 		listener,
 		accepterConfig,
 		routineConfig,
+		handleRequestsConcurrently,
 		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
 			if err := acceptHandler(stopChannel, connection); err != nil {
 				// do smthg with the error
@@ -74,6 +75,5 @@ func NewSync[D any](
 				}
 			}
 		},
-		handleRequestsConcurrently,
 	)
 }
