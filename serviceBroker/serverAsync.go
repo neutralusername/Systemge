@@ -33,7 +33,7 @@ type HandleMessage[D any] func(
 	err error,
 )
 
-func New[D any](
+func NewAsync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
 	accepterRoutineConfig *configs.Routine,
