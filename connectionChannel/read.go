@@ -7,21 +7,9 @@ import (
 )
 
 func (client *ChannelConnection[T]) ReadChannel() <-chan T {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
-
-	resultChannel := make(chan T)
-	go func() {
-		defer close(resultChannel)
-
-		bytes, err := client.Read(0)
-		if err != nil {
-			return
-		}
-		resultChannel <- bytes
-	}()
-
-	return resultChannel
+	return tools.ChannelCall(func() (T, error) {
+		return client.Read(0)
+	})
 }
 
 func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {

@@ -4,24 +4,13 @@ import (
 	"time"
 
 	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (client *TcpConnection) ReadChannel() <-chan []byte {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
-
-	resultChannel := make(chan []byte)
-	go func() {
-		defer close(resultChannel)
-
-		bytes, err := client.Read(0)
-		if err != nil {
-			return
-		}
-		resultChannel <- bytes
-	}()
-
-	return resultChannel
+	return tools.ChannelCall(func() ([]byte, error) {
+		return client.Read(0)
+	})
 }
 
 func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
