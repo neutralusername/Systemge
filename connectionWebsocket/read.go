@@ -6,6 +6,24 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 )
 
+func (client *WebsocketConnection) ReadChannel() <-chan []byte {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	resultChannel := make(chan []byte)
+	go func() {
+		defer close(resultChannel)
+
+		bytes, err := client.Read(0)
+		if err != nil {
+			return
+		}
+		resultChannel <- bytes
+	}()
+
+	return resultChannel
+}
+
 func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
