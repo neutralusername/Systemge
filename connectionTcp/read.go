@@ -6,25 +6,11 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 )
 
-func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) <-chan []byte {
+func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
-	resultChannel := make(chan []byte)
 	doneChannel := make(chan struct{})
-	go func() {
-		defer func() {
-			close(resultChannel)
-			close(doneChannel)
-		}()
-
-		bytes, err := client.Read(0)
-		if err != nil {
-			return
-		}
-		resultChannel <- bytes
-	}()
-
 	go func() {
 		select {
 		case <-stopChannel:
@@ -35,7 +21,12 @@ func (client *TcpConnection) ReadChannel(stopChannel <-chan struct{}) <-chan []b
 		}
 	}()
 
-	return resultChannel
+	bytes, err := client.Read(0)
+	close(doneChannel)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
 
 func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
