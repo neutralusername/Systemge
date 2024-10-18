@@ -2,6 +2,7 @@ package serviceResolver
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
@@ -21,6 +22,7 @@ func New[D any](
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*serviceAccepter.Accepter[D], error) {
 
+	mutex := sync.RWMutex{}
 	return serviceSingleRequest.NewSync(
 		listener,
 		accepterConfig,
@@ -33,7 +35,9 @@ func New[D any](
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err
 			}
+			mutex.RLock()
 			outgoingData, ok := topicData[topic]
+			mutex.RUnlock()
 			if !ok {
 				return helpers.GetNilValue(incomingData), errors.New("topic not found")
 			}
