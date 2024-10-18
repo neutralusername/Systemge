@@ -30,7 +30,7 @@ func NewSingleRequestServerSync[D any](
 				return err
 			}
 
-			select { // code repetition
+			select {
 			case <-stopChannel:
 				connection.SetReadDeadline(1)
 				// routine was stopped
@@ -52,7 +52,7 @@ func NewSingleRequestServerSync[D any](
 					return err
 				}
 
-				select { // code repetition
+				select {
 				case <-stopChannel:
 					connection.SetWriteDeadline(1)
 					// routine was stopped

@@ -30,7 +30,7 @@ func NewSingleRequestServerAsync[D any](
 				return err
 			}
 
-			select { // code repetition
+			select {
 			case <-stopChannel:
 				connection.SetReadDeadline(1)
 				// routine was stopped
