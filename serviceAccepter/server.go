@@ -36,8 +36,8 @@ func NewAccepterServer[D any](
 		AcceptHandler: acceptHandler,
 	}
 
-	handleAccept := func(connection systemge.Connection[D]) {
-		if err := server.AcceptHandler(connection); err != nil {
+	handleAccept := func(stopChannel <-chan struct{}, connection systemge.Connection[D]) {
+		if err := server.AcceptHandler(stopChannel, connection); err != nil {
 			connection.Close()
 			// do smthg with the error
 			server.FailedAccepts.Add(1)
@@ -69,9 +69,9 @@ func NewAccepterServer[D any](
 				}
 
 				if !handleAcceptsConcurrently {
-					handleAccept(connection)
+					handleAccept(stopChannel, connection)
 				} else {
-					go handleAccept(connection)
+					go handleAccept(stopChannel, connection)
 				}
 			}
 		},
