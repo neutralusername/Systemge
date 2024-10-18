@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ReaderServerSync[D any] struct {
+type ReaderServerAsync[D any] struct {
 	connection systemge.Connection[D]
 
 	readRoutine *tools.Routine
@@ -22,51 +22,34 @@ type ReaderServerSync[D any] struct {
 
 	SucceededReads atomic.Uint64
 	FailedReads    atomic.Uint64
-
-	SucceededWrites atomic.Uint64
-	FailedWrites    atomic.Uint64
 }
 
-func NewReaderServerSync[D any](
-	config *configs.ReaderServerSync,
+func NewReaderServerAsync[D any](
+	config *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
 	connection systemge.Connection[D],
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
-) (*ReaderServerSync[D], error) {
+) (*ReaderServerAsync[D], error) {
 
-	server := &ReaderServerSync[D]{
+	server := &ReaderServerAsync[D]{
 		ReadHandler: readHandler,
 	}
 
-	handleRead := func(stopChannel <-chan struct{}, object D, connection systemge.Connection[D]) {
+	handleRead := func(object D, connection systemge.Connection[D]) {
 		result, err := server.ReadHandler(object, connection)
 		if err != nil {
 			// do smthg with the error
 			server.FailedReads.Add(1)
 			return
 		}
-
-		select {
-		case <-stopChannel:
-			// routine was stopped
-			server.FailedWrites.Add(1)
+		err = connection.Write(result, config.WriteTimeoutNs)
+		if err != nil {
+			// do smthg with the error
+			server.FailedReads.Add(1)
 			return
-		case <-connection.GetCloseChannel():
-			// ending routine due to connection close
-			server.FailedWrites.Add(1)
-			return
-		case <-helpers.ChannelCall(func() (error, error) {
-			err := connection.Write(result, config.WriteTimeoutNs)
-			if err != nil {
-				// do smthg with the error
-				server.FailedWrites.Add(1)
-				return err, err
-			}
-			server.SucceededWrites.Add(1)
-			return nil, nil
-		}):
 		}
+		server.SucceededReads.Add(1)
 		return
 	}
 
@@ -92,9 +75,9 @@ func NewReaderServerSync[D any](
 					return
 				}
 				if !handleReadsConcurrently {
-					handleRead(stopChannel, data, connection)
+					handleRead(data, connection)
 				} else {
-					go handleRead(stopChannel, data, connection)
+					go handleRead(data, connection)
 				}
 			}
 		},
@@ -104,38 +87,34 @@ func NewReaderServerSync[D any](
 	return server, nil
 }
 
-func (server *ReaderServerSync[D]) GetRoutine() *tools.Routine {
+func (server *ReaderServerAsync[D]) GetRoutine() *tools.Routine {
 	return server.readRoutine
 }
 
-func (server *ReaderServerSync[D]) CheckMetrics() tools.MetricsTypes {
+func (server *ReaderServerAsync[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
-			"succeededReads":  server.SucceededReads.Load(),
-			"failedReads":     server.FailedReads.Load(),
-			"succeededWrites": server.SucceededWrites.Load(),
-			"failedWrites":    server.FailedWrites.Load(),
+			"succeededReads": server.SucceededReads.Load(),
+			"failedReads":    server.FailedReads.Load(),
 		},
 	))
 	metricsTypes.Merge(server.connection.CheckMetrics())
 	return metricsTypes
 }
-func (server *ReaderServerSync[D]) GetMetrics() tools.MetricsTypes {
+func (server *ReaderServerAsync[D]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("reader_server_sync", tools.NewMetrics(
 		map[string]uint64{
-			"succeededReads":  server.SucceededReads.Swap(0),
-			"failedReads":     server.FailedReads.Swap(0),
-			"succeededWrites": server.SucceededWrites.Swap(0),
-			"failedWrites":    server.FailedWrites.Swap(0),
+			"succeededReads": server.SucceededReads.Swap(0),
+			"failedReads":    server.FailedReads.Swap(0),
 		},
 	))
 	metricsTypes.Merge(server.connection.GetMetrics())
 	return metricsTypes
 }
 
-func (server *ReaderServerSync[D]) GetDefaultCommands() tools.CommandHandlers {
+func (server *ReaderServerAsync[D]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().Start()
