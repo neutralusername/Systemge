@@ -122,7 +122,23 @@ func New[D any](
 
 			broker.subscribers[connection] = subscriber
 
-			// handle disconnect
+			go func() {
+				select {
+				case <-connection.GetCloseChannel():
+				case <-stopChannel:
+				}
+				broker.mutex.Lock()
+				defer broker.mutex.Unlock()
+
+				subscriber := broker.subscribers[connection]
+				delete(broker.subscribers, connection)
+
+				for topic := range subscriber.subscriptions {
+					subscribers := broker.topics[topic]
+					delete(subscribers, subscriber)
+				}
+			}()
+
 			return nil
 		},
 	)
