@@ -28,11 +28,22 @@ func NewAccepterServer[D any](
 	routineConfig *configs.Routine,
 	listener systemge.Listener[D, systemge.Connection[D]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	handleAcceptsConcurrently bool,
 ) (*AccepterServer[D], error) {
 
 	server := &AccepterServer[D]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
+	}
+
+	handleAccept := func(connection systemge.Connection[D]) {
+		if err := server.AcceptHandler(connection); err != nil {
+			connection.Close()
+			// do smthg with the error
+			server.FailedAccepts.Add(1)
+			return
+		}
+		server.SucceededAccepts.Add(1)
 	}
 
 	server.acceptRoutine = tools.NewRoutine(
@@ -57,13 +68,11 @@ func NewAccepterServer[D any](
 					return
 				}
 
-				if err := server.AcceptHandler(connection); err != nil {
-					connection.Close()
-					// do smthg with the error
-					server.FailedAccepts.Add(1)
-					return
+				if !handleAcceptsConcurrently {
+					handleAccept(connection)
+				} else {
+					go handleAccept(connection)
 				}
-				server.SucceededAccepts.Add(1)
 			}
 		},
 		routineConfig,
