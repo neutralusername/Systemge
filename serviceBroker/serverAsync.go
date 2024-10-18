@@ -106,7 +106,7 @@ func New[D any](
 							if subscriber.connection == connection {
 								continue
 							}
-							subscriber.connection.Write(payload, writeTimeoutNs)
+							go subscriber.connection.Write(payload, writeTimeoutNs)
 						}
 					}
 				},
