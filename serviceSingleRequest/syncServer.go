@@ -1,7 +1,10 @@
 package serviceSingleRequest
 
 import (
+	"errors"
+
 	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -21,32 +24,55 @@ func NewSingleRequestServerSync[D any](
 		accepterConfig,
 		routineConfig,
 		listener,
-		func(connection systemge.Connection[D]) error {
-			if err := acceptHandler(connection); err != nil {
+		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
+			if err := acceptHandler(stopChannel, connection); err != nil {
 				// do smthg with the error
 				return err
 			}
 
-			// could use a serviceReader for this singular request but this would come with some avoidable overhead
+			select { // code repetition
+			case <-stopChannel:
+				connection.SetReadDeadline(1)
+				// routine was stopped
+				return errors.New("routine was stopped")
 
-			data, err := connection.Read(readerConfig.ReadTimeoutNs) // fix this blocking call and make it dependent on the accepter stop channel / close connection
-			if err != nil {
-				// do smthg with the error
-				return err
-			}
-			result, err := readHandler(data, connection)
-			if err != nil {
-				// do smthg with the error
-				return err
-			}
+			case <-connection.GetCloseChannel():
+				// ending routine due to connection close
+				return errors.New("connection was closed")
 
-			if err := connection.Write(result, readerConfig.WriteTimeoutNs); err != nil { // fix this blocking call and make it dependent on the accepter stop channel / close connection
-				// do smthg with the error
-				return err
-			}
+			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(readerConfig.ReadTimeoutNs) }):
+				if !ok {
+					// do smthg with the error
+					return errors.New("error reading data")
+				}
 
-			connection.Close()
-			return nil
+				result, err := readHandler(stopChannel, data, connection)
+				if err != nil {
+					// do smthg with the error
+					return err
+				}
+
+				select {
+				case <-stopChannel:
+					connection.SetWriteDeadline(1)
+					// routine was stopped
+					return errors.New("routine was stopped")
+
+				case <-connection.GetCloseChannel():
+					// ending routine due to connection close
+					return errors.New("connection was closed")
+
+				case <-helpers.ChannelCall(func() (error, error) {
+					if err := connection.Write(result, readerConfig.WriteTimeoutNs); err != nil {
+						// do smthg with the error
+						return err, err
+					}
+					return nil, nil
+				}):
+					connection.Close()
+					return nil
+				}
+			}
 		},
 		handleRequestsConcurrently,
 	)
