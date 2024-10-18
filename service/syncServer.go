@@ -65,6 +65,8 @@ func NewSingleRequestServerSync[B any](
 						// do smthg with the error
 						return
 					}
+
+					// potentially problematic since this returns the result. which means it will use up one slot of the routine until it returns and sends the reply
 					result, err := server.ReadHandler(object, connection)
 					if err != nil {
 						server.FailedReads.Add(1)
