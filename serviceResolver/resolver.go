@@ -24,6 +24,7 @@ func New[D any](
 	readerConfig *configs.ReaderServerSync,
 	routineConfig *configs.Routine,
 	topicData map[string]D,
+	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*Resolver[D], error) {
@@ -36,7 +37,7 @@ func New[D any](
 		accepterConfig,
 		readerConfig,
 		routineConfig,
-		true,
+		handleRequestsConcurrently,
 		acceptHandler,
 		func(incomingData D, connection systemge.Connection[D]) (D, error) {
 			topic, err := deserializeTopic(incomingData, connection)
