@@ -48,11 +48,45 @@ func New[D any](
 	topics []string,
 ) (*Broker[D], error) {
 
-	accepterServer, err := serviceAccepter.NewAccepterServer(
+	broker := &Broker[D]{
+		topics:        make(map[string]map[*subscriber[D]]struct{}),
+		subscriptions: make(map[*subscriber[D]]map[string]struct{}),
+	}
+	for _, topic := range topics {
+		broker.topics[topic] = make(map[*subscriber[D]]struct{})
+	}
+
+	accepter, err := serviceAccepter.NewAccepterServer(
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,
-		acceptHandler,
+		func(stopChannel <-chan struct{}, connection systemge.Connection[D]) error {
+			if err := acceptHandler(stopChannel, connection); err != nil {
+				return nil
+			}
+
+			readerRoutine, err := serviceReader.NewAsync(
+				connection,
+				readerServerAsyncConfig,
+				readerRoutineConfig,
+				nil,
+				handleReadsConcurrently,
+			)
+			if err != nil {
+				return err
+			}
+
+			subscriber := &subscriber[D]{
+				connection:  connection,
+				readerAsync: readerRoutine,
+			}
+
+			broker.mutex.Lock()
+			defer broker.mutex.Unlock()
+
+			broker.subscriptions[subscriber] = make(map[string]struct{})
+			return nil
+		},
 		handleAcceptsConcurrently,
 	)
 }

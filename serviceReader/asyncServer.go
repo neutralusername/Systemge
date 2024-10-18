@@ -25,9 +25,9 @@ type ReaderAsync[D any] struct {
 }
 
 func NewAsync[D any](
+	connection systemge.Connection[D],
 	readerServerAsyncConfig *configs.ReaderServerAsync,
 	routineConfig *configs.Routine,
-	connection systemge.Connection[D],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 	handleReadsConcurrently bool,
 ) (*ReaderAsync[D], error) {
