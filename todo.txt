@@ -72,3 +72,5 @@ consider/support config changes at runtime.
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
 
 add options for heartbeats to tcp and websocket.
+
+chang connection lifetime to work based on tools.timeout
