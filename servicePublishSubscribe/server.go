@@ -33,11 +33,11 @@ type subscriber[D any] struct {
 const (
 	Subscribe = iota
 	Unsubscribe
-	Response
+	Respond
 	Request
 	Propagate
 	RequestAndPropagate
-	ResponseAndPropagate
+	RespondAndPropagate
 )
 
 type HandleMessage[D any] func(
@@ -177,15 +177,15 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 	case Request:
 		publishSubscribeServer.Request(connection, syncToken)
 
-	case Response:
-		publishSubscribeServer.Response(syncToken, payload)
+	case Respond:
+		publishSubscribeServer.Respond(syncToken, payload)
 
 	case RequestAndPropagate:
 		publishSubscribeServer.Request(connection, syncToken)
 		publishSubscribeServer.Propagate(connection, topic, payload)
 
-	case ResponseAndPropagate:
-		publishSubscribeServer.Response(syncToken, payload)
+	case RespondAndPropagate:
+		publishSubscribeServer.Respond(syncToken, payload)
 		publishSubscribeServer.Propagate(connection, topic, payload)
 
 	default:
@@ -234,7 +234,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 	}
 }
 
-func (publishSubscribeServer *PublishSubscribeServer[D]) Response(
+func (publishSubscribeServer *PublishSubscribeServer[D]) Respond(
 	syncToken string,
 	payload D,
 ) {
