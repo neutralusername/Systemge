@@ -31,16 +31,13 @@ type ChannelConnection[D any] struct {
 	readMutex   sync.RWMutex
 	readTimeout *tools.Timeout
 
-	lifeTimeout *tools.Timeout
-
 	// metrics
 
 	MessagesSent     atomic.Uint64
 	MessagesReceived atomic.Uint64
 }
 
-func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *ChannelConnection[D] {
-
+func New[D any](receiveChannel chan D, sendChannel chan D) *ChannelConnection[D] {
 	connection := &ChannelConnection[D]{
 		closeChannel:   make(chan struct{}),
 		instanceId:     tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
@@ -48,19 +45,7 @@ func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *Ch
 		sendChannel:    sendChannel,
 	}
 
-	connection.lifeTimeout = tools.NewTimeout(
-		lifetimeNs,
-		func() {
-			connection.Close()
-		},
-		false,
-	)
-
 	return connection
-}
-
-func (connection *ChannelConnection[D]) GetLifeTimeout() *tools.Timeout {
-	return connection.lifeTimeout
 }
 
 func (connection *ChannelConnection[D]) GetStatus() int {

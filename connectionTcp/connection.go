@@ -27,8 +27,6 @@ type TcpConnection struct {
 	readMutex  sync.RWMutex
 	writeMutex sync.Mutex
 
-	lifeTimeout *tools.Timeout
-
 	// metrics
 	BytesSent     atomic.Uint64
 	BytesReceived atomic.Uint64
@@ -37,7 +35,7 @@ type TcpConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *configs.TcpBufferedReader, netConn net.Conn, lifetimeNs int64) (*TcpConnection, error) {
+func New(config *configs.TcpBufferedReader, netConn net.Conn) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -52,14 +50,6 @@ func New(config *configs.TcpBufferedReader, netConn net.Conn, lifetimeNs int64) 
 		closeChannel:      make(chan struct{}),
 		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
-
-	connection.lifeTimeout = tools.NewTimeout(
-		lifetimeNs,
-		func() {
-			connection.Close()
-		},
-		false,
-	)
 
 	return connection, nil
 }
@@ -87,8 +77,4 @@ func (connection *TcpConnection) GetAddress() string {
 
 func (connection *TcpConnection) GetInstanceId() string {
 	return connection.instanceId
-}
-
-func (connection *TcpConnection) GetLifeTimeout() *tools.Timeout {
-	return connection.lifeTimeout
 }

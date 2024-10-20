@@ -30,7 +30,7 @@ func (listener *TcpListener) Accept(timeoutNs int64) (systemge.Connection[[]byte
 		return nil, err
 	}
 
-	tcpSystemgeConnection, err := connectionTcp.New(listener.tcpBufferedReaderConfig, netConn, listener.connectionLifetimeNs)
+	tcpSystemgeConnection, err := connectionTcp.New(listener.tcpBufferedReaderConfig, netConn)
 	if err != nil {
 		listener.ClientsFailed.Add(1)
 		netConn.Close()

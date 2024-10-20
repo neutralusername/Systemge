@@ -26,7 +26,6 @@ type TcpListener struct {
 
 	config                  *configs.TcpListener
 	tcpBufferedReaderConfig *configs.TcpBufferedReader
-	connectionLifetimeNs    int64
 
 	tcpListener net.Listener
 	tlsListener net.Listener
@@ -38,7 +37,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader, connectionLifetimeNs int64) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -50,7 +49,6 @@ func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs
 		config:                  config,
 		tcpBufferedReaderConfig: bufferedReaderConfig,
 		instanceId:              tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
-		connectionLifetimeNs:    connectionLifetimeNs,
 	}
 
 	return server, nil

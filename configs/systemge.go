@@ -13,8 +13,6 @@ type SystemgeConnectionAttempt struct {
 
 	TcpClientConfig         *TcpClient         `json:"tcpClientConfig"`             // *required*
 	TcpBufferedReaderConfig *TcpBufferedReader `json:"tcpSystemgeConnectionConfig"` // *required*
-
-	ConnectionLifetimeNs int64 `json:"connectionLifetimeNs"` // default: 0 (no lifetime)
 }
 
 func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt {

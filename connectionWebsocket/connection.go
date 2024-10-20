@@ -24,8 +24,6 @@ type WebsocketConnection struct {
 	writeMutex sync.Mutex
 	readMutex  sync.RWMutex
 
-	lifeTimeout *tools.Timeout
-
 	// metrics
 
 	BytesSent     atomic.Uint64
@@ -35,7 +33,7 @@ type WebsocketConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64, connectionLifetimeNs int64) (*WebsocketConnection, error) {
+func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64) (*WebsocketConnection, error) {
 	if websocketConn == nil {
 		return nil, errors.New("websocketConn is nil")
 	}
@@ -47,14 +45,6 @@ func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64, connect
 		closeChannel:  make(chan struct{}),
 		instanceId:    tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
-
-	connection.lifeTimeout = tools.NewTimeout(
-		connectionLifetimeNs,
-		func() {
-			connection.Close()
-		},
-		false,
-	)
 
 	return connection, nil
 }
@@ -82,8 +72,4 @@ func (connection *WebsocketConnection) GetCloseChannel() <-chan struct{} {
 
 func (connection *WebsocketConnection) GetAddress() string {
 	return connection.websocketConn.RemoteAddr().String()
-}
-
-func (connection *WebsocketConnection) GetLifeTimeout() *tools.Timeout {
-	return connection.lifeTimeout
 }

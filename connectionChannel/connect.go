@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection[D any](connectionChannel chan<- *ConnectionRequest[D], timeoutNs int64, lifetimeNs int64) (systemge.Connection[D], error) {
+func EstablishConnection[D any](connectionChannel chan<- *ConnectionRequest[D], timeoutNs int64) (systemge.Connection[D], error) {
 	connectionRequest := &ConnectionRequest[D]{
 		SendToListener:      make(chan D),
 		ReceiveFromListener: make(chan D),
@@ -18,7 +18,7 @@ func EstablishConnection[D any](connectionChannel chan<- *ConnectionRequest[D], 
 	}
 	select {
 	case connectionChannel <- connectionRequest:
-		return New(connectionRequest.ReceiveFromListener, connectionRequest.SendToListener, lifetimeNs), nil
+		return New(connectionRequest.ReceiveFromListener, connectionRequest.SendToListener), nil
 	case <-deadline:
 		return nil, errors.New("timeout")
 	default:

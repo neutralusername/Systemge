@@ -37,7 +37,7 @@ func (listener *WebsocketListener) Accept(timeoutNs int64) (systemge.Connection[
 				listener.ClientsFailed.Add(1)
 				return nil, upgraderResponse.err
 			}
-			websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn, listener.incomingMessageByteLimit, listener.connectionLifetimeNs)
+			websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn, listener.incomingMessageByteLimit)
 			if err != nil {
 				listener.ClientsFailed.Add(1)
 				upgraderResponse.websocketConn.Close()

@@ -33,7 +33,6 @@ type WebsocketListener struct {
 	mutex           sync.Mutex
 
 	incomingMessageByteLimit uint64
-	connectionLifetimeNs     int64
 
 	// metrics
 
@@ -61,7 +60,6 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		instanceId:               tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		upgradeRequests:          make(chan (<-chan *upgraderResponse)),
 		incomingMessageByteLimit: incomingMessageByteLimit,
-		connectionLifetimeNs:     connectionLifetimeNs,
 	}
 	listener.httpServer = httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{
