@@ -81,7 +81,7 @@ func NewSync[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				broker.readRoutine,
+				broker.readHandler,
 			)
 			if err != nil {
 				return err
@@ -127,7 +127,7 @@ func NewSync[D any](
 	return broker, nil
 }
 
-func (broker *BrokerSync[D]) readRoutine(
+func (broker *BrokerSync[D]) readHandler(
 	data D,
 	connection systemge.Connection[D],
 ) {
