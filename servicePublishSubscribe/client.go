@@ -32,7 +32,6 @@ func NewPublishSubscribeClientWebsocket(
 	if err != nil {
 		return err
 	}
-	defer connection.Close()
 
 }
 
@@ -45,6 +44,5 @@ func NewPublishSubscribeClientChannel[D any](
 	if err != nil {
 		return err
 	}
-	defer connection.Close()
 
 }
