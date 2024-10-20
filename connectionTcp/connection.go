@@ -99,3 +99,7 @@ func (connection *TcpConnection) GetAddress() string {
 func (connection *TcpConnection) GetInstanceId() string {
 	return connection.instanceId
 }
+
+func (connection *TcpConnection) GetLifeTimeout() *tools.Timeout {
+	return connection.lifeTimeout
+}

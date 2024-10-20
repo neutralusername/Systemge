@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/systemge/constants"
@@ -24,6 +23,8 @@ type WebsocketConnection struct {
 
 	writeMutex sync.Mutex
 	readMutex  sync.RWMutex
+
+	lifeTimeout *tools.Timeout
 
 	// metrics
 
@@ -47,15 +48,13 @@ func New(websocketConn *websocket.Conn, incomingMessageByteLimit uint64, connect
 		instanceId:    tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
-	if connectionLifetimeNs > 0 {
-		go func() {
-			select {
-			case <-time.After(time.Duration(connectionLifetimeNs)):
-				connection.Close()
-			case <-connection.closeChannel:
-			}
-		}()
-	}
+	connection.lifeTimeout = tools.NewTimeout(
+		connectionLifetimeNs,
+		func() {
+			connection.Close()
+		},
+		false,
+	)
 
 	return connection, nil
 }
@@ -83,4 +82,8 @@ func (connection *WebsocketConnection) GetCloseChannel() <-chan struct{} {
 
 func (connection *WebsocketConnection) GetAddress() string {
 	return connection.websocketConn.RemoteAddr().String()
+}
+
+func (connection *WebsocketConnection) GetLifetimeout() *tools.Timeout {
+	return connection.lifeTimeout
 }
