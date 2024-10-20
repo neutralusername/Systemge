@@ -179,7 +179,7 @@ func (broker *BrokerSync[D]) readHandler(
 			responseLimit,
 			timeoutNs,
 			func(request *tools.Request[D], response D) {
-				// propagate sync response
+				// go connection.Write(response, broker.propagateTimeoutNs) // associate message with provided syncToken
 			},
 		)
 		if err != nil {
