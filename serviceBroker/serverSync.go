@@ -10,8 +10,6 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-// what if i removed topics from the broker altogether and just use it for a/sync propagation?
-
 type Broker[D any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
@@ -171,7 +169,7 @@ func (broker *Broker[D]) readHandler(
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
-		if err := broker.requestResponseManager.AddResponse(syncToken, payload); err != nil {
+		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil {
 			return
 		}
 
@@ -189,7 +187,7 @@ func (broker *Broker[D]) readHandler(
 			responseLimit,
 			timeoutNs,
 			func(request *tools.Request[D], response D) {
-				// go connection.Write(response, broker.propagateTimeoutNs) // associate message with provided syncToken
+				go connection.Write(response, broker.propagateTimeoutNs)
 			},
 		)
 		if err != nil {
