@@ -1,5 +1,7 @@
 package servicClient
 
+import "github.com/neutralusername/systemge/systemge"
+
 // is supposed to replace "brokerClient"
 
 // manages connections to publish/subscribe servers
@@ -18,3 +20,10 @@ package servicClient
 // topics have a lifetime. if the topic is a "subscribe topic" the client will contact the resolvers again after the lifetime is reached to determine if the servers have changed.
 
 // (wip, missing some details)
+
+func New[B any](
+	topics []string,
+	resolveFunc func(string) []systemge.Connection[B],
+) {
+
+}
