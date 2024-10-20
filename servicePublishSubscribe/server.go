@@ -105,10 +105,11 @@ func New[D any](
 			go func() {
 				select {
 				case <-connection.GetCloseChannel():
-					reader.GetRoutine().Stop()
 				case <-publishSubscribeServer.accepter.GetRoutine().GetStopChannel():
 					connection.Close()
 				}
+
+				reader.GetRoutine().Stop()
 
 				publishSubscribeServer.mutex.Lock()
 				defer publishSubscribeServer.mutex.Unlock()
