@@ -1,4 +1,4 @@
-package servicClient
+package servicePublishSubscribe
 
 import "github.com/neutralusername/systemge/systemge"
 
