@@ -38,7 +38,7 @@ func NewPublishSubscribeClientWebsocket(
 
 	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	client := &Client[[]byte]{
 		connection: connection,
@@ -54,7 +54,7 @@ func NewPublishSubscribeClientChannel[D any](
 
 	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	client := &Client[D]{
 		connection: connection,
