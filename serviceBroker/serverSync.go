@@ -145,7 +145,6 @@ func (broker *BrokerSync[D]) readHandler(
 		if !ok {
 			return
 		}
-
 		subscriber.subscriptions[topic] = struct{}{}
 
 	case Unsubscribe:
@@ -156,7 +155,6 @@ func (broker *BrokerSync[D]) readHandler(
 		if !ok {
 			return
 		}
-
 		delete(subscriber.subscriptions, topic)
 
 	case Response:
@@ -176,7 +174,6 @@ func (broker *BrokerSync[D]) readHandler(
 		if !ok {
 			return
 		}
-
 		_, err := broker.requestResponseManager.NewRequest(
 			syncToken,
 			responseLimit,
@@ -188,7 +185,6 @@ func (broker *BrokerSync[D]) readHandler(
 		if err != nil {
 			return
 		}
-
 		for subscriber := range subscribers {
 			if subscriber.connection == connection {
 				continue
