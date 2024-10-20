@@ -49,6 +49,8 @@ type HandleMessage[D any] func(
 
 func New[D any](
 	publishSubscribeServerConfig *configs.PublishSubscribeServer,
+	handleMessage HandleMessage[D],
+	requestResponseManager *tools.RequestResponseManager[D],
 
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
@@ -60,8 +62,6 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
-	handleMessage HandleMessage[D],
-	requestResponseManager *tools.RequestResponseManager[D],
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
