@@ -76,6 +76,7 @@ func New[D any](
 		accepterRoutineConfig,
 		func(connection systemge.Connection[D]) error {
 			if err := acceptHandler(connection); err != nil {
+				// do smthg with the error
 				return nil
 			}
 
@@ -86,6 +87,7 @@ func New[D any](
 				publishSubscribeServer.readHandler,
 			)
 			if err != nil {
+				// do smthg with the error
 				return err
 			}
 
@@ -137,6 +139,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 ) {
 	messageType, topic, payload, syncToken, err := publishSubscribeServer.handleMessage(data, connection)
 	if err != nil {
+		// do smthg with the error
 		return
 	}
 
@@ -147,7 +150,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 
 		subscriber, ok := publishSubscribeServer.subscribers[connection]
 		if !ok {
-
+			// do smthg with the error
 			return
 		}
 		subscriber.subscriptions[topic] = struct{}{}
@@ -158,6 +161,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 
 		subscriber, ok := publishSubscribeServer.subscribers[connection]
 		if !ok {
+			// do smthg with the error
 			return
 		}
 		delete(subscriber.subscriptions, topic)
