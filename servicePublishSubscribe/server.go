@@ -172,46 +172,76 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 		delete(subscriber.subscriptions, topic)
 
 	case Propagate:
-		publishSubscribeServer.mutex.RLock()
-		defer publishSubscribeServer.mutex.RUnlock()
-
-		subscribers, ok := publishSubscribeServer.topics[topic]
-		if !ok {
-			return
-		}
-
-		for subscriber := range subscribers {
-			if subscriber.connection == connection {
-				continue
-			}
-			go subscriber.connection.Write(payload, publishSubscribeServer.propagateTimeoutNs)
-		}
+		publishSubscribeServer.Propagate(connection, topic, payload)
 
 	case Request:
-		publishSubscribeServer.mutex.Lock()
-		defer publishSubscribeServer.mutex.Unlock()
-
-		_, err := publishSubscribeServer.requestResponseManager.NewRequest(
-			syncToken,
-			responseLimit,
-			timeoutNs,
-			func(request *tools.Request[D], response D) {
-				go connection.Write(response, publishSubscribeServer.propagateTimeoutNs)
-			},
-		)
-		if err != nil {
-			return
-		}
+		publishSubscribeServer.Request(connection, syncToken)
 
 	case Response:
-		publishSubscribeServer.mutex.Lock()
-		defer publishSubscribeServer.mutex.Unlock()
+		publishSubscribeServer.Response(syncToken, payload)
 
-		if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
-			return
-		}
+	case RequestAndPropagate:
+		publishSubscribeServer.Request(connection, syncToken)
+		publishSubscribeServer.Propagate(connection, topic, payload)
+
+	case ResponseAndPropagate:
+		publishSubscribeServer.Response(syncToken, payload)
+		publishSubscribeServer.Propagate(connection, topic, payload)
 
 	default:
 		// unknown message type
+	}
+}
+
+func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
+	publisher systemge.Connection[D],
+	topic string,
+	payload D,
+) {
+	publishSubscribeServer.mutex.RLock()
+	defer publishSubscribeServer.mutex.RUnlock()
+
+	subscribers, ok := publishSubscribeServer.topics[topic]
+	if !ok {
+		return
+	}
+
+	for subscriber := range subscribers {
+		if subscriber.connection == publisher {
+			continue
+		}
+		go subscriber.connection.Write(payload, publishSubscribeServer.propagateTimeoutNs)
+	}
+}
+
+func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
+	connection systemge.Connection[D],
+	syncToken string,
+) {
+	publishSubscribeServer.mutex.Lock()
+	defer publishSubscribeServer.mutex.Unlock()
+
+	_, err := publishSubscribeServer.requestResponseManager.NewRequest(
+		syncToken,
+		responseLimit,
+		timeoutNs,
+		func(request *tools.Request[D], response D) {
+			go connection.Write(response, publishSubscribeServer.propagateTimeoutNs)
+		},
+	)
+	if err != nil {
+		return
+	}
+}
+
+func (publishSubscribeServer *PublishSubscribeServer[D]) Response(
+	syncToken string,
+	payload D,
+) {
+	publishSubscribeServer.mutex.Lock()
+	defer publishSubscribeServer.mutex.Unlock()
+
+	if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, payload); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
+		return
 	}
 }
