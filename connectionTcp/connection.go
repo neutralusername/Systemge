@@ -5,7 +5,6 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
@@ -61,16 +60,6 @@ func New(config *configs.TcpBufferedReader, netConn net.Conn, lifetimeNs int64) 
 		},
 		false,
 	)
-
-	if lifetimeNs > 0 {
-		go func() {
-			select {
-			case <-time.After(time.Duration(lifetimeNs)):
-				connection.Close()
-			case <-connection.closeChannel:
-			}
-		}()
-	}
 
 	return connection, nil
 }
