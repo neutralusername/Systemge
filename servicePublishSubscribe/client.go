@@ -3,19 +3,21 @@ package servicePublishSubscribe
 import "github.com/neutralusername/systemge/systemge"
 
 type Client[D any] struct {
-	topics map[string]map[systemge.Connection[D]]int64 // topic -> connections -> subscribe topic resolveInterval
+	topicResolverIntervals map[string]int64                            // topic -> resolveInterval
+	topics                 map[string]map[systemge.Connection[D]]int64 // topic -> connections -> subscribe topic resolveInterval
 }
 
 func NewClient[D any](
-	topics map[string]int64,
+	topicResolverIntervals map[string]int64,
 	resolveFunc func(string) []systemge.Connection[D],
 	resolveOnConnectionLoss bool,
 	topicResolveInterval int64,
 ) {
 	client := &Client[D]{
-		topics: make(map[string]map[systemge.Connection[D]]int64),
+		topicResolverIntervals: topicResolverIntervals,
+		topics:                 make(map[string]map[systemge.Connection[D]]int64),
 	}
-	for topic, resolveInterval := range topics {
+	for topic, _ := range topicResolverIntervals {
 		client.topics[topic] = make(map[systemge.Connection[D]]int64)
 	}
 
