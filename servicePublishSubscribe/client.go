@@ -1,10 +1,18 @@
 package servicePublishSubscribe
 
-import "github.com/neutralusername/systemge/systemge"
+import (
+	"sync"
+
+	"github.com/neutralusername/systemge/systemge"
+)
 
 type Client[D any] struct {
 	topicResolverIntervals map[string]int64                            // topic -> resolveInterval
 	topics                 map[string]map[systemge.Connection[D]]int64 // topic -> connections -> subscribe topic resolveInterval
+
+	resolveFunc func(string) []systemge.Connection[D]
+
+	mutex sync.RWMutex
 }
 
 func NewClient[D any](
@@ -16,6 +24,7 @@ func NewClient[D any](
 	client := &Client[D]{
 		topicResolverIntervals: topicResolverIntervals,
 		topics:                 make(map[string]map[systemge.Connection[D]]int64),
+		resolveFunc:            resolveFunc,
 	}
 	for topic, _ := range topicResolverIntervals {
 		client.topics[topic] = make(map[systemge.Connection[D]]int64)
@@ -24,7 +33,15 @@ func NewClient[D any](
 }
 
 func (client *Client[D]) Start() error {
-	for topic, connections := range client.topics {
+	client.mutex.Lock()
+	defer client.mutex.Unlock()
 
+	for topic, connections := range client.topics {
+		resolveConnections := client.resolveFunc(topic)
+		for _, connection := range resolveConnections {
+			connections[connection] = client.topicResolverIntervals[topic]
+		}
 	}
+
+	return nil
 }
