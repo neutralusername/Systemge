@@ -35,8 +35,6 @@ func NewClient[D any](
 
 func (client *Client[D]) Start() error {
 	for topic, connections := range client.topics {
-		for connection := range connections {
-			// connect to the server
-		}
+
 	}
 }
