@@ -174,13 +174,8 @@ func (broker *Broker[D]) readHandler(
 		}
 
 	case Request:
-		broker.mutex.RLock()
-		defer broker.mutex.RUnlock()
-
-		subscribers, ok := broker.topics[topic]
-		if !ok {
-			return
-		}
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
 
 		_, err := broker.requestResponseManager.NewRequest(
 			syncToken,
@@ -192,13 +187,6 @@ func (broker *Broker[D]) readHandler(
 		)
 		if err != nil {
 			return
-		}
-
-		for subscriber := range subscribers {
-			if subscriber.connection == connection {
-				continue
-			}
-			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
 		}
 
 	case Propagate:
