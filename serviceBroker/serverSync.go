@@ -81,7 +81,7 @@ func NewSync[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				broker.readerRoutine,
+				broker.readRoutine,
 			)
 			if err != nil {
 				return err
