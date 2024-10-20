@@ -18,6 +18,8 @@ type PublishSubscribeServer[D any] struct {
 	requestResponseManager *tools.RequestResponseManager[D]
 	handleMessage          HandleMessage[D]
 	propagateTimeoutNs     int64
+	responseLimit          uint64
+	responseTimeoutNs      int64
 }
 
 type subscriber[D any] struct {
@@ -59,6 +61,8 @@ func New[D any](
 	handleReadsConcurrently bool,
 
 	requestResponseManager *tools.RequestResponseManager[D],
+	responseLimit uint64,
+	responseTimeoutNs int64,
 	propagateTimeoutNs int64,
 	handleMessage HandleMessage[D],
 	topics []string,
@@ -219,8 +223,8 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 
 	_, err := publishSubscribeServer.requestResponseManager.NewRequest(
 		syncToken,
-		responseLimit,
-		timeoutNs,
+		publishSubscribeServer.responseLimit,
+		publishSubscribeServer.responseTimeoutNs,
 		func(request *tools.Request[D], response D) {
 			go requester.Write(response, publishSubscribeServer.propagateTimeoutNs)
 		},
