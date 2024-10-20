@@ -10,6 +10,8 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// propagating message origin - (connection address ? introduce name system ?)
+
 type PublishSubscribeServer[D any] struct {
 	config   *configs.PublishSubscribeServer
 	listener systemge.Listener[D, systemge.Connection[D]]
