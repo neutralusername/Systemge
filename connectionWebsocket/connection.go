@@ -84,6 +84,6 @@ func (connection *WebsocketConnection) GetAddress() string {
 	return connection.websocketConn.RemoteAddr().String()
 }
 
-func (connection *WebsocketConnection) GetLifetimeout() *tools.Timeout {
+func (connection *WebsocketConnection) GetLifeTimeout() *tools.Timeout {
 	return connection.lifeTimeout
 }
