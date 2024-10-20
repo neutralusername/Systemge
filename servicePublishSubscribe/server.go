@@ -127,6 +127,7 @@ func New[D any](
 		},
 	)
 	if err != nil {
+		// do smthg with the error (? accepter failed to start)
 		return nil, err
 	}
 
