@@ -10,30 +10,32 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type BrokerAsync[D any] struct {
+type BrokerSync[D any] struct {
 	mutex       sync.RWMutex
 	topics      map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscribers map[systemge.Connection[D]]*subscriber[D]
 	accepter    *serviceAccepter.Accepter[D]
 }
 
-type subscriber[D any] struct {
-	connection    systemge.Connection[D]
-	readerAsync   *serviceReader.ReaderAsync[D]
-	subscriptions map[string]struct{}
-}
+const (
+	Subscribe = iota
+	Unsubscribe
+	Request
+	Response
+)
 
-type HandleMessageAsync[D any] func(
+type HandleMessageSync[D any] func(
 	data D,
 	connection systemge.Connection[D],
 ) (
-	subscription bool,
+	messageType int,
 	topic string,
 	payload D,
+	syncToken string,
 	err error,
 )
 
-func NewAsync[D any](
+func NewSync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
 	accepterRoutineConfig *configs.Routine,
@@ -44,12 +46,13 @@ func NewAsync[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
+	requestResponseManager *tools.RequestResponseManager[D],
 	propagateTimeoutNs int64,
-	handleMessage HandleMessageAsync[D],
+	handleMessage HandleMessageSync[D],
 	topics []string,
-) (*BrokerAsync[D], error) {
+) (*BrokerSync[D], error) {
 
-	broker := &BrokerAsync[D]{
+	broker := &BrokerSync[D]{
 		topics:      make(map[string]map[*subscriber[D]]struct{}),
 		subscribers: make(map[systemge.Connection[D]]*subscriber[D]),
 	}
@@ -73,12 +76,12 @@ func NewAsync[D any](
 				readerRoutineConfig,
 				handleReadsConcurrently,
 				func(data D, connection systemge.Connection[D]) {
-					subscription, topic, payload, err := handleMessage(data, connection)
+					messageType, topic, payload, syncToken, err := handleMessage(data, connection)
 					if err != nil {
 						return
 					}
 
-					if subscription {
+					if messageType == Subscribe {
 						broker.mutex.Lock()
 						defer broker.mutex.Unlock()
 
@@ -87,12 +90,27 @@ func NewAsync[D any](
 							return
 						}
 
-						if _, ok := subscriber.subscriptions[topic]; !ok {
-							subscriber.subscriptions[topic] = struct{}{}
-						} else {
-							delete(subscriber.subscriptions, topic)
+						subscriber.subscriptions[topic] = struct{}{}
+
+					} else if messageType == Unsubscribe {
+						broker.mutex.Lock()
+						defer broker.mutex.Unlock()
+
+						subscriber, ok := broker.subscribers[connection]
+						if !ok {
+							return
 						}
-					} else {
+
+						delete(subscriber.subscriptions, topic)
+					} else if messageType == Response {
+						broker.mutex.Lock()
+						defer broker.mutex.Unlock()
+
+						err := requestResponseManager.AddResponse(syncToken, payload)
+						if err != nil {
+							return
+						}
+					} else if messageType == Request {
 						broker.mutex.RLock()
 						defer broker.mutex.RUnlock()
 
@@ -100,6 +118,23 @@ func NewAsync[D any](
 						if !ok {
 							return
 						}
+
+						request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
+						if err != nil {
+							return
+						}
+						request.GetResponseChannel()
+						go func(request *tools.Request[D]) {
+							for {
+								select {
+								case response, ok := <-request.GetResponseChannel():
+									if !ok {
+										return
+									}
+									// propagate sync response
+								}
+							}
+						}(request)
 
 						for subscriber := range subscribers {
 							if subscriber.connection == connection {
