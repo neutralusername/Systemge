@@ -136,7 +136,8 @@ func (broker *BrokerSync[D]) readHandler(
 		return
 	}
 
-	if messageType == Subscribe {
+	switch messageType {
+	case Subscribe:
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
@@ -147,7 +148,7 @@ func (broker *BrokerSync[D]) readHandler(
 
 		subscriber.subscriptions[topic] = struct{}{}
 
-	} else if messageType == Unsubscribe {
+	case Unsubscribe:
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
@@ -157,7 +158,8 @@ func (broker *BrokerSync[D]) readHandler(
 		}
 
 		delete(subscriber.subscriptions, topic)
-	} else if messageType == Response {
+
+	case Response:
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
@@ -165,7 +167,8 @@ func (broker *BrokerSync[D]) readHandler(
 		if err != nil {
 			return
 		}
-	} else if messageType == Request {
+
+	case Request:
 		broker.mutex.RLock()
 		defer broker.mutex.RUnlock()
 
@@ -192,7 +195,8 @@ func (broker *BrokerSync[D]) readHandler(
 			}
 			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
 		}
-	} else {
+
+	default:
 		// unknown message type
 	}
 }
