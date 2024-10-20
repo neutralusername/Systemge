@@ -109,8 +109,6 @@ func New[D any](
 					connection.Close()
 				}
 
-				reader.GetRoutine().Stop()
-
 				publishSubscribeServer.mutex.Lock()
 				defer publishSubscribeServer.mutex.Unlock()
 
