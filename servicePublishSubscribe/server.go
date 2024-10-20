@@ -11,13 +11,15 @@ import (
 )
 
 type PublishSubscribeServer[D any] struct {
+	config   *configs.PublishSubscribeServer
+	listener systemge.Listener[D, systemge.Connection[D]]
+
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscribers            map[systemge.Connection[D]]*subscriber[D]
 	accepter               *serviceAccepter.Accepter[D]
 	requestResponseManager *tools.RequestResponseManager[D]
 	handleMessage          HandleMessage[D]
-	config                 *configs.PublishSubscribeServer
 }
 
 type subscriber[D any] struct {
@@ -55,12 +57,13 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	accepterServerConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
-	handleMessage HandleMessage[D],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	handleMessage HandleMessage[D],
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
 		config:                 publishSubscribeServerConfig,
+		listener:               listener,
 		topics:                 make(map[string]map[*subscriber[D]]struct{}),
 		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
 		requestResponseManager: requestResponseManager,
