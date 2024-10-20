@@ -10,6 +10,8 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// what if i removed topics from the broker altogether and just use it for a/sync propagation?
+
 type Broker[D any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
