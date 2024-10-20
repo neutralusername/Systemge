@@ -102,6 +102,7 @@ func NewSync[D any](
 				select {
 				case <-connection.GetCloseChannel():
 				case <-broker.accepter.GetRoutine().GetStopChannel():
+					connection.Close()
 				}
 
 				broker.mutex.Lock()
