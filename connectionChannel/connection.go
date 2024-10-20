@@ -58,7 +58,7 @@ func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *Ch
 	return connection
 }
 
-func (connection *ChannelConnection[D]) GetLifetimeout() *tools.Timeout {
+func (connection *ChannelConnection[D]) GetLifeTimeout() *tools.Timeout {
 	return connection.lifeTimeout
 }
 

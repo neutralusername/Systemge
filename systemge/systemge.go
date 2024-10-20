@@ -30,6 +30,7 @@ type Connection[D any] interface {
 	GetAddress() string
 	GetStatus() int
 	GetCloseChannel() <-chan struct{}
+	GetLifeTimeout() *tools.Timeout
 
 	Read(int64) (D, error)
 	SetReadDeadline(int64)
