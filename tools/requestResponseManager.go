@@ -99,6 +99,10 @@ func (manager *RequestResponseManager[T]) AddResponse(token string, response T) 
 	request.responseChannel <- response
 	request.responseCount++
 
+	if request.onResponse != nil {
+		go request.onResponse(request, response)
+	}
+
 	if request.responseCount >= request.responseLimit {
 		close(request.responseChannel)
 		close(request.doneChannel)
