@@ -28,7 +28,7 @@ type HandleMessageSync[D any] func(
 	data D,
 	connection systemge.Connection[D],
 ) (
-	messageType int,
+	messageType uint16,
 	topic string,
 	payload D,
 	syncToken string,
