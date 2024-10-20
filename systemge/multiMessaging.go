@@ -18,8 +18,8 @@ func MultiWrite[D any](data D, timeoutNs int64, connections ...Connection[D]) {
 	waitgroup.Wait()
 }
 
-func MultiSyncRequest[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
-	request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
+func MultiSyncRequest[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, onResponse tools.OnResponse[D], requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
+	request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs, onResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +27,8 @@ func MultiSyncRequest[D any](data D, responseLimit uint64, timeoutNs int64, sync
 	return request, nil
 }
 
-func MultiSyncRequestBlocking[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
-	request, err := MultiSyncRequest(data, responseLimit, timeoutNs, syncToken, requestResponseManager, connections...)
+func MultiSyncRequestBlocking[D any](data D, responseLimit uint64, timeoutNs int64, syncToken string, onResponse tools.OnResponse[D], requestResponseManager *tools.RequestResponseManager[D], connections ...Connection[D]) (*tools.Request[D], error) {
+	request, err := MultiSyncRequest(data, responseLimit, timeoutNs, syncToken, onResponse, requestResponseManager, connections...)
 	if err != nil {
 		return nil, err
 	}
