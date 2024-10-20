@@ -1,4 +1,4 @@
-offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
+hi offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
 
 give option to use custom marshallers (idk about implementation details yet)
 
@@ -74,3 +74,7 @@ consider/support config changes at runtime.
 add options for heartbeats to tcp and websocket.
 
 chang connection lifetime to work based on tools.timeout
+
+build more abstract version on top of servicdReader with deserializer and corresponding handler func (generics)
+
+build more abstract way to message including serializer and correaponding funcs (generics)
