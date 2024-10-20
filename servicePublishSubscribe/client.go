@@ -15,7 +15,6 @@ type Client[D any] struct {
 func NewPublishSubscribeClientTcp(
 	tcpClientConfig *configs.TcpClient,
 	tcpBufferedReaderConfig *configs.TcpBufferedReader,
-	sendTimeoutNs int64,
 ) (*Client[[]byte], error) {
 
 	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
@@ -33,7 +32,6 @@ func NewPublishSubscribeClientWebsocket(
 	tcpClientConfig *configs.TcpClient,
 	handshakeTimeoutNs int64,
 	incomingDataByteLimit uint64,
-	sendTimeoutNs int64,
 ) (*Client[[]byte], error) {
 
 	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
@@ -49,10 +47,10 @@ func NewPublishSubscribeClientWebsocket(
 
 func NewPublishSubscribeClientChannel[D any](
 	channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D],
-	sendTimeoutNs int64,
+	connectTimeoutNs int64,
 ) (*Client[D], error) {
 
-	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
+	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, connectTimeoutNs)
 	if err != nil {
 		return nil, err
 	}
