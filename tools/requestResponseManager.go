@@ -8,6 +8,8 @@ import (
 	"github.com/neutralusername/systemge/configs"
 )
 
+type OnResponse[T any] func(*Request[T], T)
+
 type RequestResponseManager[T any] struct {
 	config   *configs.RequestResponseManager
 	requests map[string]*Request[T]
@@ -19,6 +21,7 @@ type Request[T any] struct {
 	doneChannel     chan struct{}
 	responseLimit   uint64
 	responseCount   uint64
+	onResponse      OnResponse[T]
 }
 
 func NewRequestResponseManager[T any](config *configs.RequestResponseManager) *RequestResponseManager[T] {
@@ -39,7 +42,7 @@ func NewRequestResponseManager[T any](config *configs.RequestResponseManager) *R
 // If a request with the same token already exists, an error will be returned.
 // If a timeout is set, the request will be aborted after the timeout.
 // The request will be removed from the manager when the response limit is reached.
-func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit uint64, timeoutNs int64, onResponse func(*Request[T], T)) (*Request[T], error) {
+func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit uint64, timeoutNs int64, onResponse OnResponse[T]) (*Request[T], error) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -64,6 +67,7 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 		doneChannel:     make(chan struct{}),
 		responseLimit:   responseLimit,
 		responseCount:   0,
+		onResponse:      onResponse,
 	}
 	manager.requests[token] = request
 
