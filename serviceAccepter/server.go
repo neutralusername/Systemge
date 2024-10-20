@@ -66,6 +66,15 @@ func New[D any](
 					server.FailedAccepts.Add(1)
 					return
 				}
+				if accepterConfig.ConnectionLifetimeNs > 0 {
+					tools.NewTimeout(
+						accepterConfig.ConnectionLifetimeNs,
+						func() {
+							connection.Close()
+						},
+						false,
+					)
+				}
 				if !accepterConfig.HandleAcceptsConcurrently {
 					handleAccept(stopChannel, connection)
 				} else {
