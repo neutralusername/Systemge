@@ -45,17 +45,16 @@ func NewSync[D any](
 			server.FailedReads.Add(1)
 			return
 		}
+		server.SucceededReads.Add(1)
 
 		select {
 		case <-server.readRoutine.GetStopChannel():
 			connection.SetWriteDeadline(1)
 			// routine was stopped
-			server.FailedWrites.Add(1)
 			return
 
 		case <-connection.GetCloseChannel():
 			// ending routine due to connection close
-			server.FailedWrites.Add(1)
 			return
 
 		case <-helpers.ChannelCall(func() (error, error) {
@@ -77,13 +76,11 @@ func NewSync[D any](
 			case <-stopChannel:
 				connection.SetReadDeadline(1)
 				// routine was stopped
-				server.FailedReads.Add(1)
 				return
 
 			case <-connection.GetCloseChannel():
 				server.readRoutine.Stop()
 				// ending routine due to connection close
-				server.FailedReads.Add(1)
 				return
 
 			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(readerServerSyncConfig.ReadTimeoutNs) }):

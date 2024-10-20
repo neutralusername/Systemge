@@ -51,13 +51,11 @@ func New[D any](
 			case <-stopChannel:
 				listener.SetAcceptDeadline(1)
 				// routine was stopped
-				server.FailedAccepts.Add(1)
 				return
 
 			case <-listener.GetStopChannel():
 				server.acceptRoutine.Stop()
 				// listener was stopped
-				server.FailedAccepts.Add(1)
 				return
 
 			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(accepterConfig.AcceptTimeoutNs) }):
@@ -66,7 +64,6 @@ func New[D any](
 					server.FailedAccepts.Add(1)
 					return
 				}
-
 				if !accepterConfig.HandleAcceptsConcurrently {
 					handleAccept(stopChannel, connection)
 				} else {
