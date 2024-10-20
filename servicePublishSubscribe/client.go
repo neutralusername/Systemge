@@ -8,17 +8,25 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
+type Client[D any] struct {
+	connection systemge.Connection[D]
+}
+
 func NewPublishSubscribeClientTcp(
 	tcpClientConfig *configs.TcpClient,
 	tcpBufferedReaderConfig *configs.TcpBufferedReader,
 	sendTimeoutNs int64,
-) (systemge.Connection[[]byte], error) {
+) (*Client[[]byte], error) {
 
 	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	client := &Client[[]byte]{
+		connection: connection,
 	}
 
+	return client, nil
 }
 
 func NewPublishSubscribeClientWebsocket(
