@@ -178,7 +178,6 @@ func (broker *BrokerSync[D]) readHandler(
 		if err != nil {
 			return
 		}
-		request.GetResponseChannel()
 		go func(request *tools.Request[D]) {
 			for {
 				select {
