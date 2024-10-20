@@ -57,7 +57,6 @@ func New[D any](
 	accepterRoutineConfig *configs.Routine,
 	handleMessage HandleMessage[D],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
