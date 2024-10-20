@@ -20,11 +20,18 @@ type BrokerSync[D any] struct {
 	propagateTimeoutNs     int64
 }
 
+type subscriber[D any] struct {
+	connection    systemge.Connection[D]
+	readerAsync   *serviceReader.ReaderAsync[D]
+	subscriptions map[string]struct{}
+}
+
 const (
 	Subscribe = iota
 	Unsubscribe
-	Request
 	Response
+	Request
+	Propagate
 )
 
 type HandleMessageSync[D any] func(
@@ -186,6 +193,22 @@ func (broker *BrokerSync[D]) readHandler(
 		if err != nil {
 			return
 		}
+		for subscriber := range subscribers {
+			if subscriber.connection == connection {
+				continue
+			}
+			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
+		}
+
+	case Propagate:
+		broker.mutex.RLock()
+		defer broker.mutex.RUnlock()
+
+		subscribers, ok := broker.topics[topic]
+		if !ok {
+			return
+		}
+
 		for subscriber := range subscribers {
 			if subscriber.connection == connection {
 				continue
