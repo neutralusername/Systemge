@@ -36,6 +36,8 @@ const (
 	Response
 	Request
 	Propagate
+	RequestAndResponse
+	ResponseAndPropagate
 )
 
 type HandleMessage[D any] func(
