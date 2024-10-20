@@ -207,9 +207,6 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 	requester systemge.Connection[D],
 	syncToken string,
 ) {
-	publishSubscribeServer.mutex.Lock()
-	defer publishSubscribeServer.mutex.Unlock()
-
 	_, err := publishSubscribeServer.requestResponseManager.NewRequest(
 		syncToken,
 		publishSubscribeServer.config.ResponseLimit,
@@ -227,9 +224,6 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Respond(
 	syncToken string,
 	payload D,
 ) {
-	publishSubscribeServer.mutex.Lock()
-	defer publishSubscribeServer.mutex.Unlock()
-
 	if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, payload); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
 		return
 	}
