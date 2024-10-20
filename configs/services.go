@@ -14,6 +14,7 @@ type ReaderAsync struct {
 type Accepter struct {
 	AcceptTimeoutNs           int64
 	HandleAcceptsConcurrently bool
+	ConnectionLifetimeNs      int64
 }
 
 type PublishSubscribeServer struct {
