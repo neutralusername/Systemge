@@ -174,7 +174,7 @@ func (broker *BrokerSync[D]) readHandler(
 			return
 		}
 
-		request, err := broker.requestResponseManager.NewRequest(
+		_, err := broker.requestResponseManager.NewRequest(
 			syncToken,
 			responseLimit,
 			timeoutNs,
