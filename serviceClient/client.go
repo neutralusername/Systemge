@@ -23,7 +23,7 @@ import "github.com/neutralusername/systemge/systemge"
 
 func New[B any](
 	topics []string,
-	resolveFunc func(string) []systemge.Connection[B],
+	resolveFunc func(string) []systemge.Connection[B], // required to work for all connection types.
 ) {
 
 }
