@@ -168,6 +168,22 @@ func (broker *Broker[D]) readHandler(
 		}
 		delete(subscriber.subscriptions, topic)
 
+	case Propagate:
+		broker.mutex.RLock()
+		defer broker.mutex.RUnlock()
+
+		subscribers, ok := broker.topics[topic]
+		if !ok {
+			return
+		}
+
+		for subscriber := range subscribers {
+			if subscriber.connection == connection {
+				continue
+			}
+			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
+		}
+
 	case Response:
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
@@ -190,22 +206,6 @@ func (broker *Broker[D]) readHandler(
 		)
 		if err != nil {
 			return
-		}
-
-	case Propagate:
-		broker.mutex.RLock()
-		defer broker.mutex.RUnlock()
-
-		subscribers, ok := broker.topics[topic]
-		if !ok {
-			return
-		}
-
-		for subscriber := range subscribers {
-			if subscriber.connection == connection {
-				continue
-			}
-			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
 		}
 
 	default:
