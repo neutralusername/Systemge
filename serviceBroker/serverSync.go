@@ -184,14 +184,6 @@ func (broker *Broker[D]) readHandler(
 			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
 		}
 
-	case Response:
-		broker.mutex.Lock()
-		defer broker.mutex.Unlock()
-
-		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
-			return
-		}
-
 	case Request:
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
@@ -205,6 +197,14 @@ func (broker *Broker[D]) readHandler(
 			},
 		)
 		if err != nil {
+			return
+		}
+
+	case Response:
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
+
+		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
 			return
 		}
 
