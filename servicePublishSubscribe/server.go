@@ -109,7 +109,7 @@ func New[D any](
 					connection.Close()
 				}
 
-				// reader listens to connections' close channel
+				// reader listens on connections' close channel
 
 				publishSubscribeServer.mutex.Lock()
 				defer publishSubscribeServer.mutex.Unlock()
