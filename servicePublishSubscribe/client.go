@@ -46,8 +46,7 @@ func (client *Client[D]) Start() error {
 	defer client.mutex.Unlock()
 
 	for topic, connections := range client.topics {
-		resolvedConnections := client.resolveFunc(topic)
-		for _, connection_ := range resolvedConnections {
+		/* for _, connection_ := range client.resolveFunc(topic) {
 			connection := &connection[D]{
 				connection: connection_,
 				timeout: tools.NewTimeout(
@@ -59,7 +58,7 @@ func (client *Client[D]) Start() error {
 			}
 			connections[connection] = client.topicResolverIntervals[topic]
 			client.connections[connection_] = connection
-		}
+		} */
 	}
 
 	return nil
