@@ -17,9 +17,7 @@ type PublishSubscribeServer[D any] struct {
 	accepter               *serviceAccepter.Accepter[D]
 	requestResponseManager *tools.RequestResponseManager[D]
 	handleMessage          HandleMessage[D]
-	propagateTimeoutNs     int64
-	responseLimit          uint64
-	responseTimeoutNs      int64
+	config                 *configs.PublishSubscribeServer
 }
 
 type subscriber[D any] struct {
@@ -50,6 +48,8 @@ type HandleMessage[D any] func(
 )
 
 func New[D any](
+	publishSubscribeServerConfig *configs.PublishSubscribeServer,
+
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
 	accepterRoutineConfig *configs.Routine,
@@ -60,22 +60,18 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
 
-	requestResponseManager *tools.RequestResponseManager[D],
-	responseLimit uint64,
-	responseTimeoutNs int64,
-	propagateTimeoutNs int64,
 	handleMessage HandleMessage[D],
-	topics []string,
+	requestResponseManager *tools.RequestResponseManager[D],
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
+		config:                 publishSubscribeServerConfig,
 		topics:                 make(map[string]map[*subscriber[D]]struct{}),
 		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
 		requestResponseManager: requestResponseManager,
 		handleMessage:          handleMessage,
-		propagateTimeoutNs:     propagateTimeoutNs,
 	}
-	for _, topic := range topics {
+	for _, topic := range publishSubscribeServerConfig.Topics {
 		publishSubscribeServer.topics[topic] = make(map[*subscriber[D]]struct{})
 	}
 
@@ -210,7 +206,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
 		if subscriber.connection == publisher {
 			continue
 		}
-		go subscriber.connection.Write(payload, publishSubscribeServer.propagateTimeoutNs)
+		go subscriber.connection.Write(payload, publishSubscribeServer.config.PropagateTimeoutNs)
 	}
 }
 
@@ -223,10 +219,10 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 
 	_, err := publishSubscribeServer.requestResponseManager.NewRequest(
 		syncToken,
-		publishSubscribeServer.responseLimit,
-		publishSubscribeServer.responseTimeoutNs,
+		publishSubscribeServer.config.ResponseLimit,
+		publishSubscribeServer.config.RequestTimeoutNs,
 		func(request *tools.Request[D], response D) {
-			go requester.Write(response, publishSubscribeServer.propagateTimeoutNs)
+			go requester.Write(response, publishSubscribeServer.config.PropagateTimeoutNs)
 		},
 	)
 	if err != nil {

@@ -13,6 +13,13 @@ type AccepterServer struct {
 	AcceptTimeoutNs int64
 }
 
+type PublishSubscribeServer struct {
+	ResponseLimit      uint64
+	RequestTimeoutNs   int64
+	PropagateTimeoutNs int64
+	Topics             []string
+}
+
 /* type SingleRequestClient struct {
 	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*
