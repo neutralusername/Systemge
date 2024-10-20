@@ -56,11 +56,9 @@ func New[D any](
 	accepterServerConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-	handleAcceptsConcurrently bool,
 
 	readerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
-	handleReadsConcurrently bool,
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
