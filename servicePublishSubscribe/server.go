@@ -215,7 +215,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
 }
 
 func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
-	connection systemge.Connection[D],
+	requester systemge.Connection[D],
 	syncToken string,
 ) {
 	publishSubscribeServer.mutex.Lock()
@@ -226,7 +226,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 		responseLimit,
 		timeoutNs,
 		func(request *tools.Request[D], response D) {
-			go connection.Write(response, publishSubscribeServer.propagateTimeoutNs)
+			go requester.Write(response, publishSubscribeServer.propagateTimeoutNs)
 		},
 	)
 	if err != nil {
