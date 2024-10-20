@@ -20,10 +20,10 @@ type Resolver[D any] struct {
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
+	topicData map[string]D,
 	accepterConfig *configs.Accepter,
 	readerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	topicData map[string]D,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*Resolver[D], error) {
