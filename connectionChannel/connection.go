@@ -3,7 +3,6 @@ package connectionChannel
 import (
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/status"
@@ -32,6 +31,8 @@ type ChannelConnection[D any] struct {
 	readMutex   sync.RWMutex
 	readTimeout *tools.Timeout
 
+	lifeTimeout *tools.Timeout
+
 	// metrics
 
 	MessagesSent     atomic.Uint64
@@ -47,17 +48,18 @@ func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *Ch
 		sendChannel:    sendChannel,
 	}
 
-	if lifetimeNs > 0 {
-		go func() {
-			select {
-			case <-time.After(time.Duration(lifetimeNs)):
-				connection.Close()
-			case <-connection.closeChannel:
-			}
-		}()
-	}
+	connection.lifeTimeout = tools.NewTimeout(
+		lifetimeNs,
+		func() {
+			connection.Close()
+		}, false,
+	)
 
 	return connection
+}
+
+func (connection *ChannelConnection[D]) GetLifetimeout() *tools.Timeout {
+	return connection.lifeTimeout
 }
 
 func (connection *ChannelConnection[D]) GetStatus() int {

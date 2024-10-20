@@ -21,9 +21,22 @@ import "github.com/neutralusername/systemge/systemge"
 
 // (wip, missing some details)
 
-func New[B any](
-	topics []string,
-	resolveFunc func(string) []systemge.Connection[B], // required to work for all connection types.
+type Client[D any] struct {
+	topics map[string]map[systemge.Connection[D]]int64 // topic -> connections -> lifetime
+}
+
+func NewClient[D any](
+	topics map[string]int64,
+	resolveFunc func(string) []systemge.Connection[D],
+
 ) {
 
+}
+
+func (client *Client[D]) Start() error {
+	for topic, connections := range client.topics {
+		for connection := range connections {
+			// connect to the server
+		}
+	}
 }
