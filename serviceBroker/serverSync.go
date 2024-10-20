@@ -142,6 +142,8 @@ func NewSync[D any](
 							}
 							go subscriber.connection.Write(payload, propagateTimeoutNs)
 						}
+					} else {
+						// unknown message type
 					}
 				},
 			)
