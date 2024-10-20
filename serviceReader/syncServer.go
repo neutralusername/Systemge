@@ -51,10 +51,12 @@ func NewSync[D any](
 		case <-server.readRoutine.GetStopChannel():
 			connection.SetWriteDeadline(1)
 			// routine was stopped
+			server.FailedWrites.Add(1)
 			return
 
 		case <-connection.GetCloseChannel():
 			// ending routine due to connection close
+			server.FailedWrites.Add(1)
 			return
 
 		case <-helpers.ChannelCall(func() (error, error) {
