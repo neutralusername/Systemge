@@ -169,7 +169,7 @@ func (broker *Broker[D]) readHandler(
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
-		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil {
+		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic
 			return
 		}
 
