@@ -36,7 +36,7 @@ const (
 	Response
 	Request
 	Propagate
-	RequestAndResponse
+	RequestAndPropagate
 	ResponseAndPropagate
 )
 
