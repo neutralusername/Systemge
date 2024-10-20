@@ -52,7 +52,8 @@ func New[D any](receiveChannel chan D, sendChannel chan D, lifetimeNs int64) *Ch
 		lifetimeNs,
 		func() {
 			connection.Close()
-		}, false,
+		},
+		false,
 	)
 
 	return connection
