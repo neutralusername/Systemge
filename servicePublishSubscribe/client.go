@@ -1,65 +1,50 @@
 package servicePublishSubscribe
 
 import (
-	"sync"
-
+	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/connectionChannel"
+	"github.com/neutralusername/systemge/connectionTcp"
+	"github.com/neutralusername/systemge/connectionWebsocket"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
-type Client[D any] struct {
-	topicResolverIntervals map[string]int64                          // topic -> resolveInterval
-	topics                 map[string]map[*connection[D]]int64       // topic -> connections -> subscribe topic resolveInterval
-	connections            map[systemge.Connection[D]]*connection[D] // connection -> connection
+func NewPublishSubscribeClientTcp(
+	tcpClientConfig *configs.TcpClient,
+	tcpBufferedReaderConfig *configs.TcpBufferedReader,
+	sendTimeoutNs int64,
+) (systemge.Connection[[]byte], error) {
 
-	resolveFunc func(string) []systemge.Connection[D]
-
-	mutex sync.RWMutex
-}
-
-type connection[D any] struct {
-	connection systemge.Connection[D]
-	topics     map[string]struct{}
-	timeout    *tools.Timeout
-}
-
-func NewClient[D any](
-	topicResolverIntervals map[string]int64,
-	resolveFunc func(string) []systemge.Connection[D],
-	resolveOnConnectionLoss bool,
-	topicResolveInterval int64,
-) {
-	client := &Client[D]{
-		topicResolverIntervals: topicResolverIntervals,
-		topics:                 make(map[string]map[*connection[D]]int64),
-		connections:            make(map[systemge.Connection[D]]*connection[D]),
-		resolveFunc:            resolveFunc,
-	}
-	for topic, _ := range topicResolverIntervals {
-		client.topics[topic] = make(map[*connection[D]]int64)
+	connection, err := connectionTcp.EstablishConnection(tcpBufferedReaderConfig, tcpClientConfig)
+	if err != nil {
+		return err
 	}
 
 }
 
-func (client *Client[D]) Start() error {
-	client.mutex.Lock()
-	defer client.mutex.Unlock()
+func NewPublishSubscribeClientWebsocket(
+	tcpClientConfig *configs.TcpClient,
+	handshakeTimeoutNs int64,
+	incomingDataByteLimit uint64,
+	sendTimeoutNs int64,
+) error {
 
-	for topic, connections := range client.topics {
-		/* for _, connection_ := range client.resolveFunc(topic) {
-			connection := &connection[D]{
-				connection: connection_,
-				timeout: tools.NewTimeout(
-					client.topicResolverIntervals[topic],
-					func() {
-
-					},
-					false),
-			}
-			connections[connection] = client.topicResolverIntervals[topic]
-			client.connections[connection_] = connection
-		} */
+	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
+	if err != nil {
+		return err
 	}
+	defer connection.Close()
 
-	return nil
+}
+
+func AsyncMessageChanne[D any](
+	channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D],
+	sendTimeoutNs int64,
+) error {
+
+	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
+	if err != nil {
+		return err
+	}
+	defer connection.Close()
+
 }
