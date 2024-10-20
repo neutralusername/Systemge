@@ -10,6 +10,9 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// propagation based on topic including subscribe and ubsubscribe to particular topics
+// and sync request/responses are now two essentially distinct features in this system
+
 type Broker[D any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
