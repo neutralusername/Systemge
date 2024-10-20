@@ -178,17 +178,8 @@ func (broker *BrokerSync[D]) readHandler(
 		if err != nil {
 			return
 		}
-		go func(request *tools.Request[D]) {
-			for {
-				select {
-				case response, ok := <-request.GetResponseChannel():
-					if !ok {
-						return
-					}
-					// propagate sync response
-				}
-			}
-		}(request)
+
+		go broker.handleSyncResponses(request)
 
 		for subscriber := range subscribers {
 			if subscriber.connection == connection {
@@ -198,5 +189,17 @@ func (broker *BrokerSync[D]) readHandler(
 		}
 	} else {
 		// unknown message type
+	}
+}
+
+func (broker *BrokerSync[D]) handleSyncResponses(request *tools.Request[D]) {
+	for {
+		select {
+		case response, ok := <-request.GetResponseChannel():
+			if !ok {
+				return
+			}
+			// propagate sync response
+		}
 	}
 }
