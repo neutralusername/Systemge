@@ -73,7 +73,7 @@ func New[D any](
 		publishSubscribeServer.topics[topic] = make(map[*subscriber[D]]struct{})
 	}
 
-	accepter, err := serviceAccepter.NewAccepterServer(
+	accepter, err := serviceAccepter.New(
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,

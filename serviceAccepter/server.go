@@ -23,7 +23,7 @@ type Accepter[D any] struct {
 	FailedAccepts    atomic.Uint64
 }
 
-func NewAccepterServer[D any](
+func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,

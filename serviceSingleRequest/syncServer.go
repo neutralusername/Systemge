@@ -21,7 +21,7 @@ func NewSync[D any](
 
 	singleReuqestSync := &SingleRequestServer[D]{}
 
-	accepter, err := serviceAccepter.NewAccepterServer(
+	accepter, err := serviceAccepter.New(
 		listener,
 		accepterConfig,
 		routineConfig,

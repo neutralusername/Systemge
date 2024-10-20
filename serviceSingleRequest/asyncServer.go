@@ -29,7 +29,7 @@ func NewAsync[D any](
 
 	singleReuqestAsync := &SingleRequestServer[D]{}
 
-	accepter, err := serviceAccepter.NewAccepterServer(
+	accepter, err := serviceAccepter.New(
 		listener,
 		accepterConfig,
 		routineConfig,
