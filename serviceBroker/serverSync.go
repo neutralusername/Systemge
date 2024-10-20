@@ -169,8 +169,7 @@ func (broker *Broker[D]) readHandler(
 		broker.mutex.Lock()
 		defer broker.mutex.Unlock()
 
-		err := broker.requestResponseManager.AddResponse(syncToken, payload)
-		if err != nil {
+		if err := broker.requestResponseManager.AddResponse(syncToken, payload); err != nil {
 			return
 		}
 
@@ -182,6 +181,7 @@ func (broker *Broker[D]) readHandler(
 		if !ok {
 			return
 		}
+
 		_, err := broker.requestResponseManager.NewRequest(
 			syncToken,
 			responseLimit,
@@ -193,6 +193,7 @@ func (broker *Broker[D]) readHandler(
 		if err != nil {
 			return
 		}
+
 		for subscriber := range subscribers {
 			if subscriber.connection == connection {
 				continue
