@@ -11,10 +11,13 @@ import (
 )
 
 type BrokerSync[D any] struct {
-	mutex       sync.RWMutex
-	topics      map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
-	subscribers map[systemge.Connection[D]]*subscriber[D]
-	accepter    *serviceAccepter.Accepter[D]
+	mutex                  sync.RWMutex
+	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
+	subscribers            map[systemge.Connection[D]]*subscriber[D]
+	accepter               *serviceAccepter.Accepter[D]
+	requestResponseManager *tools.RequestResponseManager[D]
+	handleMessage          HandleMessageSync[D]
+	propagateTimeoutNs     int64
 }
 
 const (
@@ -53,8 +56,11 @@ func NewSync[D any](
 ) (*BrokerSync[D], error) {
 
 	broker := &BrokerSync[D]{
-		topics:      make(map[string]map[*subscriber[D]]struct{}),
-		subscribers: make(map[systemge.Connection[D]]*subscriber[D]),
+		topics:                 make(map[string]map[*subscriber[D]]struct{}),
+		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
+		requestResponseManager: requestResponseManager,
+		handleMessage:          handleMessage,
+		propagateTimeoutNs:     propagateTimeoutNs,
 	}
 	for _, topic := range topics {
 		broker.topics[topic] = make(map[*subscriber[D]]struct{})
@@ -75,77 +81,7 @@ func NewSync[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				func(data D, connection systemge.Connection[D]) {
-					messageType, topic, payload, syncToken, err := handleMessage(data, connection)
-					if err != nil {
-						return
-					}
-
-					if messageType == Subscribe {
-						broker.mutex.Lock()
-						defer broker.mutex.Unlock()
-
-						subscriber, ok := broker.subscribers[connection]
-						if !ok {
-							return
-						}
-
-						subscriber.subscriptions[topic] = struct{}{}
-
-					} else if messageType == Unsubscribe {
-						broker.mutex.Lock()
-						defer broker.mutex.Unlock()
-
-						subscriber, ok := broker.subscribers[connection]
-						if !ok {
-							return
-						}
-
-						delete(subscriber.subscriptions, topic)
-					} else if messageType == Response {
-						broker.mutex.Lock()
-						defer broker.mutex.Unlock()
-
-						err := requestResponseManager.AddResponse(syncToken, payload)
-						if err != nil {
-							return
-						}
-					} else if messageType == Request {
-						broker.mutex.RLock()
-						defer broker.mutex.RUnlock()
-
-						subscribers, ok := broker.topics[topic]
-						if !ok {
-							return
-						}
-
-						request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
-						if err != nil {
-							return
-						}
-						request.GetResponseChannel()
-						go func(request *tools.Request[D]) {
-							for {
-								select {
-								case response, ok := <-request.GetResponseChannel():
-									if !ok {
-										return
-									}
-									// propagate sync response
-								}
-							}
-						}(request)
-
-						for subscriber := range subscribers {
-							if subscriber.connection == connection {
-								continue
-							}
-							go subscriber.connection.Write(payload, propagateTimeoutNs)
-						}
-					} else {
-						// unknown message type
-					}
-				},
+				broker.readerRoutine,
 			)
 			if err != nil {
 				return err
@@ -189,4 +125,79 @@ func NewSync[D any](
 
 	broker.accepter = accepter
 	return broker, nil
+}
+
+func (broker *BrokerSync[D]) readRoutine(
+	data D,
+	connection systemge.Connection[D],
+) {
+	messageType, topic, payload, syncToken, err := broker.handleMessage(data, connection)
+	if err != nil {
+		return
+	}
+
+	if messageType == Subscribe {
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
+
+		subscriber, ok := broker.subscribers[connection]
+		if !ok {
+			return
+		}
+
+		subscriber.subscriptions[topic] = struct{}{}
+
+	} else if messageType == Unsubscribe {
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
+
+		subscriber, ok := broker.subscribers[connection]
+		if !ok {
+			return
+		}
+
+		delete(subscriber.subscriptions, topic)
+	} else if messageType == Response {
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
+
+		err := broker.requestResponseManager.AddResponse(syncToken, payload)
+		if err != nil {
+			return
+		}
+	} else if messageType == Request {
+		broker.mutex.RLock()
+		defer broker.mutex.RUnlock()
+
+		subscribers, ok := broker.topics[topic]
+		if !ok {
+			return
+		}
+
+		request, err := broker.requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
+		if err != nil {
+			return
+		}
+		request.GetResponseChannel()
+		go func(request *tools.Request[D]) {
+			for {
+				select {
+				case response, ok := <-request.GetResponseChannel():
+					if !ok {
+						return
+					}
+					// propagate sync response
+				}
+			}
+		}(request)
+
+		for subscriber := range subscribers {
+			if subscriber.connection == connection {
+				continue
+			}
+			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
+		}
+	} else {
+		// unknown message type
+	}
 }
