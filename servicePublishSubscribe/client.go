@@ -36,7 +36,7 @@ func NewPublishSubscribeClientWebsocket(
 
 }
 
-func AsyncMessageChanne[D any](
+func NewPublishSubscribeClientChannel[D any](
 	channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D],
 	sendTimeoutNs int64,
 ) error {
