@@ -1,4 +1,4 @@
-package serviceBroker
+package servicePublishSubscribe
 
 import (
 	"sync"
@@ -11,9 +11,10 @@ import (
 )
 
 // propagation based on topic including subscribe and ubsubscribe to particular topics
-// and sync request/responses are now two essentially distinct features in this system
+// and sync request/responses
+// are now two essentially distinct features in this system
 
-type Broker[D any] struct {
+type PublishSubscribeServer[D any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscribers            map[systemge.Connection[D]]*subscriber[D]
@@ -63,9 +64,9 @@ func New[D any](
 	propagateTimeoutNs int64,
 	handleMessage HandleMessage[D],
 	topics []string,
-) (*Broker[D], error) {
+) (*PublishSubscribeServer[D], error) {
 
-	broker := &Broker[D]{
+	publishSubscribeServer := &PublishSubscribeServer[D]{
 		topics:                 make(map[string]map[*subscriber[D]]struct{}),
 		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
 		requestResponseManager: requestResponseManager,
@@ -73,7 +74,7 @@ func New[D any](
 		propagateTimeoutNs:     propagateTimeoutNs,
 	}
 	for _, topic := range topics {
-		broker.topics[topic] = make(map[*subscriber[D]]struct{})
+		publishSubscribeServer.topics[topic] = make(map[*subscriber[D]]struct{})
 	}
 
 	accepter, err := serviceAccepter.NewAccepterServer(
@@ -91,7 +92,7 @@ func New[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				handleReadsConcurrently,
-				broker.readHandler,
+				publishSubscribeServer.readHandler,
 			)
 			if err != nil {
 				return err
@@ -103,26 +104,26 @@ func New[D any](
 				subscriptions: make(map[string]struct{}),
 			}
 
-			broker.mutex.Lock()
-			defer broker.mutex.Unlock()
+			publishSubscribeServer.mutex.Lock()
+			defer publishSubscribeServer.mutex.Unlock()
 
-			broker.subscribers[connection] = subscriber
+			publishSubscribeServer.subscribers[connection] = subscriber
 
 			go func() {
 				select {
 				case <-connection.GetCloseChannel():
-				case <-broker.accepter.GetRoutine().GetStopChannel():
+				case <-publishSubscribeServer.accepter.GetRoutine().GetStopChannel():
 					connection.Close()
 				}
 
-				broker.mutex.Lock()
-				defer broker.mutex.Unlock()
+				publishSubscribeServer.mutex.Lock()
+				defer publishSubscribeServer.mutex.Unlock()
 
-				subscriber := broker.subscribers[connection]
-				delete(broker.subscribers, connection)
+				subscriber := publishSubscribeServer.subscribers[connection]
+				delete(publishSubscribeServer.subscribers, connection)
 
 				for topic := range subscriber.subscriptions {
-					subscribers := broker.topics[topic]
+					subscribers := publishSubscribeServer.topics[topic]
 					delete(subscribers, subscriber)
 				}
 			}()
@@ -134,45 +135,45 @@ func New[D any](
 		return nil, err
 	}
 
-	broker.accepter = accepter
-	return broker, nil
+	publishSubscribeServer.accepter = accepter
+	return publishSubscribeServer, nil
 }
 
-func (broker *Broker[D]) readHandler(
+func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 	data D,
 	connection systemge.Connection[D],
 ) {
-	messageType, topic, payload, syncToken, err := broker.handleMessage(data, connection)
+	messageType, topic, payload, syncToken, err := publishSubscribeServer.handleMessage(data, connection)
 	if err != nil {
 		return
 	}
 
 	switch messageType {
 	case Subscribe:
-		broker.mutex.Lock()
-		defer broker.mutex.Unlock()
+		publishSubscribeServer.mutex.Lock()
+		defer publishSubscribeServer.mutex.Unlock()
 
-		subscriber, ok := broker.subscribers[connection]
+		subscriber, ok := publishSubscribeServer.subscribers[connection]
 		if !ok {
 			return
 		}
 		subscriber.subscriptions[topic] = struct{}{}
 
 	case Unsubscribe:
-		broker.mutex.Lock()
-		defer broker.mutex.Unlock()
+		publishSubscribeServer.mutex.Lock()
+		defer publishSubscribeServer.mutex.Unlock()
 
-		subscriber, ok := broker.subscribers[connection]
+		subscriber, ok := publishSubscribeServer.subscribers[connection]
 		if !ok {
 			return
 		}
 		delete(subscriber.subscriptions, topic)
 
 	case Propagate:
-		broker.mutex.RLock()
-		defer broker.mutex.RUnlock()
+		publishSubscribeServer.mutex.RLock()
+		defer publishSubscribeServer.mutex.RUnlock()
 
-		subscribers, ok := broker.topics[topic]
+		subscribers, ok := publishSubscribeServer.topics[topic]
 		if !ok {
 			return
 		}
@@ -181,19 +182,19 @@ func (broker *Broker[D]) readHandler(
 			if subscriber.connection == connection {
 				continue
 			}
-			go subscriber.connection.Write(payload, broker.propagateTimeoutNs)
+			go subscriber.connection.Write(payload, publishSubscribeServer.propagateTimeoutNs)
 		}
 
 	case Request:
-		broker.mutex.Lock()
-		defer broker.mutex.Unlock()
+		publishSubscribeServer.mutex.Lock()
+		defer publishSubscribeServer.mutex.Unlock()
 
-		_, err := broker.requestResponseManager.NewRequest(
+		_, err := publishSubscribeServer.requestResponseManager.NewRequest(
 			syncToken,
 			responseLimit,
 			timeoutNs,
 			func(request *tools.Request[D], response D) {
-				go connection.Write(response, broker.propagateTimeoutNs)
+				go connection.Write(response, publishSubscribeServer.propagateTimeoutNs)
 			},
 		)
 		if err != nil {
@@ -201,10 +202,10 @@ func (broker *Broker[D]) readHandler(
 		}
 
 	case Response:
-		broker.mutex.Lock()
-		defer broker.mutex.Unlock()
+		publishSubscribeServer.mutex.Lock()
+		defer publishSubscribeServer.mutex.Unlock()
 
-		if err := broker.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
+		if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, data); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
 			return
 		}
 
