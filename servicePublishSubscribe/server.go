@@ -79,7 +79,7 @@ func New[D any](
 				return nil
 			}
 
-			readerRoutine, err := serviceReader.NewAsync(
+			reader, err := serviceReader.NewAsync(
 				connection,
 				readerAsyncConfig,
 				readerRoutineConfig,
@@ -91,7 +91,7 @@ func New[D any](
 
 			subscriber := &subscriber[D]{
 				connection:    connection,
-				readerAsync:   readerRoutine,
+				readerAsync:   reader,
 				subscriptions: make(map[string]struct{}),
 			}
 
@@ -103,6 +103,7 @@ func New[D any](
 			go func() {
 				select {
 				case <-connection.GetCloseChannel():
+					reader.GetRoutine().Stop()
 				case <-publishSubscribeServer.accepter.GetRoutine().GetStopChannel():
 					connection.Close()
 				}
@@ -146,6 +147,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 
 		subscriber, ok := publishSubscribeServer.subscribers[connection]
 		if !ok {
+
 			return
 		}
 		subscriber.subscriptions[topic] = struct{}{}
@@ -192,6 +194,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
 
 	subscribers, ok := publishSubscribeServer.topics[topic]
 	if !ok {
+		// do smthg with the error
 		return
 	}
 
@@ -207,15 +210,15 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 	requester systemge.Connection[D],
 	syncToken string,
 ) {
-	_, err := publishSubscribeServer.requestResponseManager.NewRequest(
+	if _, err := publishSubscribeServer.requestResponseManager.NewRequest(
 		syncToken,
 		publishSubscribeServer.config.ResponseLimit,
 		publishSubscribeServer.config.RequestTimeoutNs,
 		func(request *tools.Request[D], response D) {
 			go requester.Write(response, publishSubscribeServer.config.PropagateTimeoutNs)
 		},
-	)
-	if err != nil {
+	); err != nil {
+		// do smthg with the error
 		return
 	}
 }
@@ -225,6 +228,7 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Respond(
 	payload D,
 ) {
 	if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, payload); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
+		// do smthg with the error
 		return
 	}
 }
