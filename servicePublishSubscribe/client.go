@@ -34,23 +34,31 @@ func NewPublishSubscribeClientWebsocket(
 	handshakeTimeoutNs int64,
 	incomingDataByteLimit uint64,
 	sendTimeoutNs int64,
-) error {
+) (*Client[[]byte], error) {
 
 	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs, incomingDataByteLimit)
 	if err != nil {
 		return err
 	}
+	client := &Client[[]byte]{
+		connection: connection,
+	}
 
+	return client, nil
 }
 
 func NewPublishSubscribeClientChannel[D any](
 	channelListenerConnectionReuqest chan<- *connectionChannel.ConnectionRequest[D],
 	sendTimeoutNs int64,
-) error {
+) (*Client[D], error) {
 
 	connection, err := connectionChannel.EstablishConnection(channelListenerConnectionReuqest, sendTimeoutNs)
 	if err != nil {
 		return err
 	}
+	client := &Client[D]{
+		connection: connection,
+	}
 
+	return client, nil
 }
