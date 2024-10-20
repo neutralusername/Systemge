@@ -29,9 +29,8 @@ type ReaderSync[D any] struct {
 
 func NewSync[D any](
 	connection systemge.Connection[D],
-	readerServerSyncConfig *configs.ReaderServerSync,
+	readerServerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	handleReadsConcurrently bool,
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 ) (*ReaderSync[D], error) {
 
@@ -93,7 +92,7 @@ func NewSync[D any](
 					server.FailedReads.Add(1)
 					return
 				}
-				if !handleReadsConcurrently {
+				if !readerServerSyncConfig.HandleReadsConcurrently {
 					handleRead(stopChannel, data, connection)
 				} else {
 					go handleRead(stopChannel, data, connection)

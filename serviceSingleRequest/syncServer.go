@@ -12,10 +12,9 @@ import (
 
 func NewSync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
-	accepterConfig *configs.AccepterServer,
-	readerConfig *configs.ReaderServerSync,
+	accepterConfig *configs.Accepter,
+	readerConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 ) (*SingleRequestServer[D], error) {
@@ -26,7 +25,6 @@ func NewSync[D any](
 		listener,
 		accepterConfig,
 		routineConfig,
-		handleRequestsConcurrently,
 		func(connection systemge.Connection[D]) error {
 			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error

@@ -25,9 +25,8 @@ type Accepter[D any] struct {
 
 func NewAccepterServer[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
-	accepterConfig *configs.AccepterServer,
+	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,
-	handleAcceptsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 ) (*Accepter[D], error) {
 
@@ -68,7 +67,7 @@ func NewAccepterServer[D any](
 					return
 				}
 
-				if !handleAcceptsConcurrently {
+				if !accepterConfig.HandleAcceptsConcurrently {
 					handleAccept(stopChannel, connection)
 				} else {
 					go handleAccept(stopChannel, connection)

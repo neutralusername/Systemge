@@ -26,9 +26,8 @@ type ReaderAsync[D any] struct {
 
 func NewAsync[D any](
 	connection systemge.Connection[D],
-	readerServerAsyncConfig *configs.ReaderServerAsync,
+	readerServerAsyncConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
-	handleReadsConcurrently bool,
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*ReaderAsync[D], error) {
 
@@ -59,7 +58,7 @@ func NewAsync[D any](
 				}
 				server.SucceededReads.Add(1)
 
-				if !handleReadsConcurrently {
+				if !readerServerAsyncConfig.HandleReadsConcurrently {
 					server.ReadHandler(data, connection)
 				} else {
 					go server.ReadHandler(data, connection)

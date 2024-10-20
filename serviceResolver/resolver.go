@@ -20,11 +20,10 @@ type Resolver[D any] struct {
 
 func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
-	accepterConfig *configs.AccepterServer,
-	readerConfig *configs.ReaderServerSync,
+	accepterConfig *configs.Accepter,
+	readerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
 	topicData map[string]D,
-	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*Resolver[D], error) {
@@ -35,9 +34,8 @@ func New[D any](
 	singleRequestServer, err := serviceSingleRequest.NewSync(
 		listener,
 		accepterConfig,
-		readerConfig,
+		readerSyncConfig,
 		routineConfig,
-		handleRequestsConcurrently,
 		acceptHandler,
 		func(incomingData D, connection systemge.Connection[D]) (D, error) {
 			topic, err := deserializeTopic(incomingData, connection)

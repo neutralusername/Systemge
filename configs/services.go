@@ -1,16 +1,19 @@
 package configs
 
-type ReaderServerSync struct {
-	ReadTimeoutNs  int64
-	WriteTimeoutNs int64
+type ReaderSync struct {
+	ReadTimeoutNs           int64
+	WriteTimeoutNs          int64
+	HandleReadsConcurrently bool
 }
 
-type ReaderServerAsync struct {
-	ReadTimeoutNs int64
+type ReaderAsync struct {
+	ReadTimeoutNs           int64
+	HandleReadsConcurrently bool
 }
 
-type AccepterServer struct {
-	AcceptTimeoutNs int64
+type Accepter struct {
+	AcceptTimeoutNs           int64
+	HandleAcceptsConcurrently bool
 }
 
 type PublishSubscribeServer struct {

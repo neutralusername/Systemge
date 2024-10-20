@@ -53,15 +53,14 @@ func New[D any](
 	requestResponseManager *tools.RequestResponseManager[D],
 
 	listener systemge.Listener[D, systemge.Connection[D]],
-	accepterServerConfig *configs.AccepterServer,
+	accepterServerConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	handleAcceptsConcurrently bool,
 
-	readerServerAsyncConfig *configs.ReaderServerAsync,
+	readerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
 	handleReadsConcurrently bool,
-
 ) (*PublishSubscribeServer[D], error) {
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
@@ -79,7 +78,6 @@ func New[D any](
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,
-		handleAcceptsConcurrently,
 		func(connection systemge.Connection[D]) error {
 			if err := acceptHandler(connection); err != nil {
 				return nil
@@ -87,9 +85,8 @@ func New[D any](
 
 			readerRoutine, err := serviceReader.NewAsync(
 				connection,
-				readerServerAsyncConfig,
+				readerAsyncConfig,
 				readerRoutineConfig,
-				handleReadsConcurrently,
 				publishSubscribeServer.readHandler,
 			)
 			if err != nil {

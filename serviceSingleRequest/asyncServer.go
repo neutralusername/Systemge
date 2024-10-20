@@ -20,10 +20,9 @@ func (s *SingleRequestServer[D]) GetAccepter() *serviceAccepter.Accepter[D] {
 
 func NewAsync[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
-	accepterConfig *configs.AccepterServer,
-	readerConfig *configs.ReaderServerAsync,
+	accepterConfig *configs.Accepter,
+	readerConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
-	handleRequestsConcurrently bool,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*serviceAccepter.Accepter[D], error) {
@@ -34,7 +33,6 @@ func NewAsync[D any](
 		listener,
 		accepterConfig,
 		routineConfig,
-		handleRequestsConcurrently,
 		func(connection systemge.Connection[D]) error {
 			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error
