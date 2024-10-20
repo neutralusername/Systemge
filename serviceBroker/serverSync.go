@@ -10,13 +10,13 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type BrokerSync[D any] struct {
+type Broker[D any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
 	subscribers            map[systemge.Connection[D]]*subscriber[D]
 	accepter               *serviceAccepter.Accepter[D]
 	requestResponseManager *tools.RequestResponseManager[D]
-	handleMessage          HandleMessageSync[D]
+	handleMessage          HandleMessage[D]
 	propagateTimeoutNs     int64
 }
 
@@ -34,7 +34,7 @@ const (
 	Propagate
 )
 
-type HandleMessageSync[D any] func(
+type HandleMessage[D any] func(
 	data D,
 	connection systemge.Connection[D],
 ) (
@@ -45,7 +45,7 @@ type HandleMessageSync[D any] func(
 	err error,
 )
 
-func NewSync[D any](
+func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterServerConfig *configs.AccepterServer,
 	accepterRoutineConfig *configs.Routine,
@@ -58,11 +58,11 @@ func NewSync[D any](
 
 	requestResponseManager *tools.RequestResponseManager[D],
 	propagateTimeoutNs int64,
-	handleMessage HandleMessageSync[D],
+	handleMessage HandleMessage[D],
 	topics []string,
-) (*BrokerSync[D], error) {
+) (*Broker[D], error) {
 
-	broker := &BrokerSync[D]{
+	broker := &Broker[D]{
 		topics:                 make(map[string]map[*subscriber[D]]struct{}),
 		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
 		requestResponseManager: requestResponseManager,
@@ -135,7 +135,7 @@ func NewSync[D any](
 	return broker, nil
 }
 
-func (broker *BrokerSync[D]) readHandler(
+func (broker *Broker[D]) readHandler(
 	data D,
 	connection systemge.Connection[D],
 ) {
