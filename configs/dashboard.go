@@ -1,7 +1,6 @@
 package configs
 
-import "encoding/json"
-
+/*
 type DashboardServer struct {
 	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
 	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
@@ -54,3 +53,4 @@ func UnmarshalDashboardClient(data string) *DashboardClient {
 	}
 	return &dashboard
 }
+*/
