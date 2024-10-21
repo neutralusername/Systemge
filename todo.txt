@@ -80,3 +80,5 @@ build more abstract way to message including serializer and correaponding funcs 
 build integrate onClose handlers for connections 
 
 add more abstraction in general after gathering some experience implementing samples
+
+consider adding object abstraction (serialize/deserialize) to connections
