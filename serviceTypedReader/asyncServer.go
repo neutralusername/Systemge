@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func NewTypedReaderAsync[D any, O any](
+func NewAsync[D any, O any](
 	connection systemge.Connection[D],
 	readerServerAsyncConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,

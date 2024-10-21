@@ -38,7 +38,7 @@ func NewSync[D any](
 		ReadHandler: readHandler,
 	}
 
-	handleRead := func(stopChannel <-chan struct{}, object D, connection systemge.Connection[D]) {
+	handleRead := func(object D, connection systemge.Connection[D]) {
 		result, err := server.ReadHandler(object, connection)
 		if err != nil {
 			// do smthg with the error
@@ -94,9 +94,9 @@ func NewSync[D any](
 					return
 				}
 				if !readerServerSyncConfig.HandleReadsConcurrently {
-					handleRead(stopChannel, data, connection)
+					handleRead(data, connection)
 				} else {
-					go handleRead(stopChannel, data, connection)
+					go handleRead(data, connection)
 				}
 			}
 		},
