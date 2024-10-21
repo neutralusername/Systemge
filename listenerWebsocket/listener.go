@@ -61,7 +61,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		upgradeRequests:          make(chan (<-chan *upgraderResponse)),
 		incomingMessageByteLimit: incomingMessageByteLimit,
 	}
-	listener.httpServer = httpServer.New(listener.name+"_httpServer",
+	httpServer, err := httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
@@ -70,6 +70,10 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+	listener.httpServer = httpServer
 
 	return listener, nil
 }
