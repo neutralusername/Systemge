@@ -15,17 +15,17 @@ type IMessage interface {
 }
 
 type Message struct {
-	topic     string
-	syncToken string
-	response  bool
-	payload   string
+	topic      string
+	syncToken  string
+	isResponse bool
+	payload    string
 }
 
 type messageData struct {
-	Topic     string `json:"topic"`
-	SyncToken string `json:"syncToken"`
-	Response  bool   `json:"response"`
-	Payload   string `json:"payload"`
+	Topic      string `json:"topic"`
+	SyncToken  string `json:"syncToken"`
+	IsResponse bool   `json:"isResponse"`
+	Payload    string `json:"payload"`
 }
 
 const TOPIC_SUCCESS = "success"
@@ -56,34 +56,15 @@ func (message *Message) GetPayload() string {
 }
 
 func (message *Message) IsResponse() bool {
-	return message.response
+	return message.isResponse
 }
 
-func NewMessage(topic, payload, syncToken string) *Message {
+func NewMessage(topic, payload, syncToken string, isRepsonse bool) *Message {
 	return &Message{
-		topic:     topic,
-		syncToken: syncToken,
-		payload:   payload,
-	}
-}
-
-func (message *Message) NewResponse(success bool, payload string) *Message {
-	if message.IsResponse() {
-		panic("Cannot create a response to a response")
-	}
-	if success {
-		return &Message{
-			topic:     TOPIC_SUCCESS,
-			syncToken: message.syncToken,
-			payload:   payload,
-			response:  true,
-		}
-	}
-	return &Message{
-		topic:     TOPIC_FAILURE,
-		syncToken: message.syncToken,
-		payload:   payload,
-		response:  true,
+		topic:      topic,
+		syncToken:  syncToken,
+		payload:    payload,
+		isResponse: isRepsonse,
 	}
 }
 
@@ -107,10 +88,10 @@ func (message *Message) NewSuccessResponse(payload string) *Message {
 		panic("Cannot create a response to a response")
 	}
 	return &Message{
-		topic:     TOPIC_SUCCESS,
-		syncToken: message.syncToken,
-		payload:   payload,
-		response:  true,
+		topic:      TOPIC_SUCCESS,
+		syncToken:  message.syncToken,
+		payload:    payload,
+		isResponse: true,
 	}
 }
 
@@ -119,19 +100,19 @@ func (message *Message) NewFailureResponse(payload string) *Message {
 		panic("Cannot create a response to a response")
 	}
 	return &Message{
-		topic:     TOPIC_FAILURE,
-		syncToken: message.syncToken,
-		payload:   payload,
-		response:  true,
+		topic:      TOPIC_FAILURE,
+		syncToken:  message.syncToken,
+		payload:    payload,
+		isResponse: true,
 	}
 }
 
 func (message *Message) Serialize() []byte {
 	messageData := messageData{
-		Topic:     message.topic,
-		SyncToken: message.syncToken,
-		Payload:   message.payload,
-		Response:  message.response,
+		Topic:      message.topic,
+		SyncToken:  message.syncToken,
+		Payload:    message.payload,
+		IsResponse: message.isResponse,
 	}
 	bytes, err := json.Marshal(messageData)
 	if err != nil {
@@ -147,10 +128,10 @@ func DeserializeMessage(bytes []byte) (*Message, error) {
 		return nil, err
 	}
 	return &Message{
-		topic:     messageData.Topic,
-		syncToken: messageData.SyncToken,
-		payload:   messageData.Payload,
-		response:  messageData.Response,
+		topic:      messageData.Topic,
+		syncToken:  messageData.SyncToken,
+		payload:    messageData.Payload,
+		isResponse: messageData.IsResponse,
 	}, nil
 }
 
@@ -168,10 +149,10 @@ func DeserializeMessages(bytes []byte) ([]*Message, error) {
 	messages := make([]*Message, len(messageData))
 	for i, data := range messageData {
 		messages[i] = &Message{
-			topic:     data.Topic,
-			syncToken: data.SyncToken,
-			payload:   data.Payload,
-			response:  data.Response,
+			topic:      data.Topic,
+			syncToken:  data.SyncToken,
+			payload:    data.Payload,
+			isResponse: data.Response,
 		}
 	}
 	return messages, nil
