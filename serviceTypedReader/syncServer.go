@@ -8,11 +8,11 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func NewTypedReaderSync[D any, O any](
+func NewSync[D any, O any](
 	connection systemge.Connection[D],
 	readerServerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	readHandler tools.ReadHandler[O, systemge.Connection[D]],
+	readHandler tools.ReadHandlerWithResult[O, systemge.Connection[D]],
 	deserializer func(D) (O, error),
 	serializer func(O) (D, error),
 ) (*serviceReader.ReaderSync[D], error) {
@@ -26,7 +26,13 @@ func NewTypedReaderSync[D any, O any](
 			if err != nil {
 				return helpers.GetNilValue(data), err
 			}
-			data, err = serializer(object)
+
+			o, err := readHandler(object, connection)
+			if err != nil {
+				return helpers.GetNilValue(data), err
+			}
+
+			data, err = serializer(o)
 			if err != nil {
 				return helpers.GetNilValue(data), err
 			}
