@@ -7,13 +7,14 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func NewTypesReaderAsync[D any, O any](
+func NewTypedReaderAsync[D any, O any](
 	connection systemge.Connection[D],
 	readerServerAsyncConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
 	readHandler tools.ReadHandler[O, systemge.Connection[D]],
 	deserializer func(D) (O, error),
 ) (*serviceReader.ReaderAsync[D], error) {
+
 	reader, err := serviceReader.NewAsync(
 		connection,
 		readerServerAsyncConfig,

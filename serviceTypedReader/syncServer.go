@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func NewTypesReaderSync[D any, O any](
+func NewTypedReaderSync[D any, O any](
 	connection systemge.Connection[D],
 	readerServerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
@@ -16,6 +16,7 @@ func NewTypesReaderSync[D any, O any](
 	deserializer func(D) (O, error),
 	serializer func(O) (D, error),
 ) (*serviceReader.ReaderSync[D], error) {
+
 	reader, err := serviceReader.NewSync(
 		connection,
 		readerServerSyncConfig,
