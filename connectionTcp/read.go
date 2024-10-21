@@ -24,5 +24,9 @@ func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
 }
 
 func (client *TcpConnection) SetReadDeadline(timeoutNs int64) {
+	if timeoutNs == 0 {
+		client.netConn.SetReadDeadline(time.Time{})
+		return
+	}
 	client.netConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutNs) * time.Nanosecond))
 }
