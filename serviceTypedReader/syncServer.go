@@ -27,12 +27,12 @@ func NewSync[D any, O any](
 				return helpers.GetNilValue(data), err
 			}
 
-			o, err := readHandler(object, connection)
+			resultObject, err := readHandler(object, connection)
 			if err != nil {
 				return helpers.GetNilValue(data), err
 			}
 
-			data, err = serializer(o)
+			data, err = serializer(resultObject)
 			if err != nil {
 				return helpers.GetNilValue(data), err
 			}
