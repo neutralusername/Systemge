@@ -15,7 +15,6 @@ func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	if err != nil {
 
 		if helpers.IsWebsocketConnClosedErr(err) {
-			println("test")
 			connection.Close()
 		}
 		return nil, err
