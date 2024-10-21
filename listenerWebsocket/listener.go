@@ -53,6 +53,13 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
+	if config.Upgrader == nil {
+		config.Upgrader = &websocket.Upgrader{
+			ReadBufferSize:  4096,
+			WriteBufferSize: 4096,
+		}
+	}
+
 	listener := &WebsocketListener{
 		name:                     name,
 		config:                   config,
