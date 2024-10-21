@@ -13,6 +13,7 @@ func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	connection.SetReadDeadline(timeoutNs)
 	_, data, err := connection.websocketConn.ReadMessage()
 	if err != nil {
+
 		if helpers.IsWebsocketConnClosedErr(err) {
 			connection.Close()
 		}
@@ -23,8 +24,12 @@ func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	return data, nil
 }
 
-func (connection *WebsocketConnection) SetReadDeadline(timeoutMs int64) {
-	connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+func (connection *WebsocketConnection) SetReadDeadline(timeoutNs int64) {
+	if timeoutNs == 0 {
+		connection.websocketConn.SetReadDeadline(time.Time{})
+		return
+	}
+	connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutNs) * time.Nanosecond))
 }
 
 func (connection *WebsocketConnection) SetReadLimit(maxBytes int64) {

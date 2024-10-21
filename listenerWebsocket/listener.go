@@ -57,6 +57,9 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  4096,
 			WriteBufferSize: 4096,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
 		}
 	}
 
