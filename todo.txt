@@ -86,3 +86,5 @@ consider adding object abstraction (serialize/deserialize) to connections
 (could also directly take lifeTimeout/on close handler)
 
 goal: add abstractions to make changes between tcp and channel communication as seamless as possible
+
+(after 300 hours coding over 1 month without executing once, and 5 hours of debugging, the fundamentals are working again.)
