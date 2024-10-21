@@ -1,6 +1,7 @@
 package httpServer
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -36,12 +37,12 @@ type HTTPServer struct {
 	RequestCounter atomic.Uint64
 }
 
-func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) *HTTPServer {
+func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) (*HTTPServer, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, errors.New("config is nil")
 	}
 	if config.TcpServerConfig == nil {
-		panic("config.TcpListenerConfig is nil")
+		return nil, errors.New("config.TcpServerConfig is nil")
 	}
 	server := &HTTPServer{
 		name:           name,
@@ -57,7 +58,7 @@ func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler,
 		file := helpers.OpenFileAppend(config.HttpErrorLogPath)
 		server.httpServer.ErrorLog = log.New(file, "[Error: \""+server.GetName()+"\"] ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
-	return server
+	return server, nil
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
