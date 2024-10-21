@@ -7,7 +7,7 @@ type Semaphore[T any] struct {
 }
 
 func (semaphore *Semaphore[T]) AvailableAcquires() int {
-	return (cap(semaphore.channel)) - (len(semaphore.channel))
+	return len(semaphore.channel)
 }
 
 func NewSemaphore[T any](maxAvailableAcquires int, initialItems []T) (*Semaphore[T], error) {
