@@ -1,4 +1,4 @@
-offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
+hi offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
 
 give option to use custom marshallers (idk about implementation details yet)
 
@@ -74,3 +74,17 @@ consider/support config changes at runtime.
 add options for heartbeats to tcp and websocket.
 
 chang connection lifetime to work based on tools.timeout
+
+build more abstract way to message including serializer and correaponding funcs (generics)
+
+build integrate onClose handlers for connections 
+
+add more abstraction in general after gathering some experience implementing samples
+
+consider adding object abstraction (serialize/deserialize) to connections
+(maybe a more abstract connection type [O] on top of the low level connections based on [D])
+(could also directly take lifeTimeout/on close handler)
+
+goal: add abstractions to make changes between tcp and channel communication as seamless as possible
+
+(after 300 hours coding over 1 month without executing once, and 5 hours of debugging, the fundamentals are working again.)

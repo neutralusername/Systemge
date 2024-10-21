@@ -17,6 +17,7 @@ func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection
 		listener.timeout.Trigger()
 		listener.timeout = nil
 	}()
+
 	select {
 	case <-listener.stopChannel:
 		listener.ClientsFailed.Add(1)

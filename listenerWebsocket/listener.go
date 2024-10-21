@@ -53,6 +53,16 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
+	if config.Upgrader == nil {
+		config.Upgrader = &websocket.Upgrader{
+			ReadBufferSize:  4096,
+			WriteBufferSize: 4096,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+	}
+
 	listener := &WebsocketListener{
 		name:                     name,
 		config:                   config,
@@ -61,7 +71,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 		upgradeRequests:          make(chan (<-chan *upgraderResponse)),
 		incomingMessageByteLimit: incomingMessageByteLimit,
 	}
-	listener.httpServer = httpServer.New(listener.name+"_httpServer",
+	httpServer, err := httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
@@ -70,6 +80,10 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+	listener.httpServer = httpServer
 
 	return listener, nil
 }

@@ -35,7 +35,7 @@ func New[D any](
 		AcceptHandler: acceptHandler,
 	}
 
-	handleAccept := func(stopChannel <-chan struct{}, connection systemge.Connection[D]) {
+	handleAccept := func(connection systemge.Connection[D]) {
 		if err := server.AcceptHandler(connection); err != nil {
 			connection.Close()
 			// do smthg with the error
@@ -76,9 +76,9 @@ func New[D any](
 					)
 				}
 				if !accepterConfig.HandleAcceptsConcurrently {
-					handleAccept(stopChannel, connection)
+					handleAccept(connection)
 				} else {
-					go handleAccept(stopChannel, connection)
+					go handleAccept(connection)
 				}
 			}
 		},

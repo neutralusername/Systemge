@@ -33,10 +33,9 @@ type ChannelListener[D any] struct {
 
 func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], error) {
 	listener := &ChannelListener[D]{
-		name:              name,
-		status:            status.Stopped,
-		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan *connectionChannel.ConnectionRequest[D]),
+		name:       name,
+		status:     status.Stopped,
+		instanceId: tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return listener, nil

@@ -24,11 +24,12 @@ type Routine struct {
 }
 
 func NewRoutine(routineFunc routineFunc, config *configs.Routine) *Routine {
-	semaphore, err := NewSemaphore[struct{}](config.MaxConcurrentHandlers, make([]struct{}, config.MaxConcurrentHandlers))
+	semaphore, err := NewSemaphore(config.MaxConcurrentHandlers, make([]struct{}, config.MaxConcurrentHandlers))
 	if err != nil {
-		return nil
+		panic(err)
 	}
 	return &Routine{
+		config:      config,
 		status:      0,
 		routineFunc: routineFunc,
 		semaphore:   semaphore,
@@ -110,10 +111,9 @@ func (routine *Routine) routine() {
 			}
 
 			var done chan struct{} = make(chan struct{})
-			stopChannel := routine.stopChannel
 
 			go func() {
-				routine.routineFunc(stopChannel)
+				routine.routineFunc(routine.stopChannel)
 				close(done)
 			}()
 
@@ -121,7 +121,7 @@ func (routine *Routine) routine() {
 			case <-done:
 			case <-deadline:
 			}
-			close(stopChannel)
+
 			routine.semaphore.Signal(struct{}{})
 			routine.waitgroup.Done()
 		}

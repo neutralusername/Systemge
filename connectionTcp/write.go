@@ -43,5 +43,9 @@ func (client *TcpConnection) Write(data []byte, timeoutNs int64) error {
 }
 
 func (client *TcpConnection) SetWriteDeadline(timeoutNs int64) {
+	if timeoutNs == 0 {
+		client.netConn.SetWriteDeadline(time.Time{})
+		return
+	}
 	client.netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutNs) * time.Nanosecond))
 }

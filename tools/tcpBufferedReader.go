@@ -3,7 +3,6 @@ package tools
 import (
 	"errors"
 	"net"
-	"time"
 
 	"github.com/neutralusername/systemge/configs"
 )
@@ -50,13 +49,12 @@ func (messageReceiver *TcpBufferedReader) Read() ([]byte, int, error) {
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
 
-		messageReceiver.netConn.SetReadDeadline(time.Now().Add(time.Duration(messageReceiver.config.ReadTimeoutNs) * time.Nanosecond))
 		buffer := make([]byte, messageReceiver.config.BufferBytes)
 		newBytesReceived, err := messageReceiver.netConn.Read(buffer)
 		if err != nil {
 			return nil, newBytesRead, err
 		}
 		newBytesRead += newBytesReceived
-		messageReceiver.buffer = buffer
+		messageReceiver.buffer = buffer[:newBytesReceived]
 	}
 }

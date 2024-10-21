@@ -47,5 +47,10 @@ func (listener *TcpListener) SetAcceptDeadline(timeoutNs int64) {
 		return
 	}
 	tcpListener := l.(*net.TCPListener)
+
+	if timeoutNs == 0 {
+		tcpListener.SetDeadline(time.Time{})
+		return
+	}
 	tcpListener.SetDeadline(time.Now().Add(time.Duration(timeoutNs)))
 }

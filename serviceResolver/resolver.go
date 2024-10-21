@@ -42,9 +42,11 @@ func New[D any](
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err
 			}
+
 			resolver.mutex.RLock()
 			outgoingData, ok := topicData[topic]
 			resolver.mutex.RUnlock()
+
 			if !ok {
 				return helpers.GetNilValue(incomingData), errors.New("topic not found")
 			}

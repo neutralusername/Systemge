@@ -25,5 +25,9 @@ func (connection *WebsocketConnection) Write(data []byte, timeoutNs int64) error
 }
 
 func (connection *WebsocketConnection) SetWriteDeadline(timeoutNs int64) {
+	if timeoutNs == 0 {
+		connection.websocketConn.SetWriteDeadline(time.Time{})
+		return
+	}
 	connection.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutNs) * time.Nanosecond))
 }
