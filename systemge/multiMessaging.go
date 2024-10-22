@@ -6,6 +6,20 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+func MultiWriteTyped[D any, O any](data O, serializer tools.Serializer[D, O], timeoutNs int64, connections ...Connection[D]) {
+	waitgroup := sync.WaitGroup{}
+	dataSerialized, _ := serializer(data)
+	for _, connection := range connections {
+		waitgroup.Add(1)
+		go func(connection Connection[D]) {
+			defer waitgroup.Done()
+
+			connection.Write(dataSerialized, timeoutNs)
+		}(connection)
+	}
+	waitgroup.Wait()
+}
+
 func MultiWrite[D any](data D, timeoutNs int64, connections ...Connection[D]) {
 	waitgroup := sync.WaitGroup{}
 	for _, connection := range connections {
