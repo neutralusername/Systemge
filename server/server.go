@@ -26,21 +26,21 @@ func New[D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
 	accepterConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*Server[D], error) {
 	server := &Server[D]{
 		listener:              listener,
 		accepterConfig:        accepterConfig,
 		accepterRoutineConfig: accepterRoutineConfig,
-		AcceptHandler:         acceptHandler,
 
 		readerServerAsyncConfig: readerServerAsyncConfig,
 		readerRoutineConfig:     readerRoutineConfig,
-		ReadHandler:             readHandler,
+
+		AcceptHandler: acceptHandler,
+		ReadHandler:   readHandler,
 	}
 
 	accepter, err := serviceAccepter.New(
