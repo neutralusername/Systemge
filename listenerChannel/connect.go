@@ -8,7 +8,11 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection[D any](connChann chan<- *connectionChannel.ConnectionRequest[D], timeoutNs int64) (systemge.Connection[D], error) {
+func Connect[D any](
+	connChann chan<- *connectionChannel.ConnectionRequest[D],
+	timeoutNs int64,
+) (systemge.Connection[D], error) {
+
 	connectionRequest := &connectionChannel.ConnectionRequest[D]{
 		SendToListener:      make(chan D),
 		ReceiveFromListener: make(chan D),

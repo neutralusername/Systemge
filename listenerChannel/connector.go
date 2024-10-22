@@ -18,5 +18,5 @@ func NewConnector[D any](
 }
 
 func (connector *connector[D]) Connect(timeoutNs int64) (systemge.Connection[D], error) {
-	return EstablishConnection(connector.connChann, timeoutNs)
+	return Connect(connector.connChann, timeoutNs)
 }

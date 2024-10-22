@@ -16,7 +16,7 @@ import (
 )
 
 // wip
-func EstablishConnection(
+func Connect(
 	tcpClientConfig *configs.TcpClient,
 	incomingDataByteLimit uint64,
 	timeoutNs int64,

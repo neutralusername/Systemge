@@ -13,7 +13,12 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *configs.TcpClient, timeoutNs int64) (systemge.Connection[[]byte], error) {
+func Connect(
+	config *configs.TcpBufferedReader,
+	tcpClientConfig *configs.TcpClient,
+	timeoutNs int64,
+) (systemge.Connection[[]byte], error) {
+
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

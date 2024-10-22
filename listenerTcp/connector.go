@@ -21,5 +21,5 @@ func NewConnector(
 }
 
 func (connector *connector) Connect(timeoutNs int64) (systemge.Connection[[]byte], error) {
-	return EstablishConnection(connector.tcpBufferedReaderConfig, connector.tcpClientConfig, timeoutNs)
+	return Connect(connector.tcpBufferedReaderConfig, connector.tcpClientConfig, timeoutNs)
 }
