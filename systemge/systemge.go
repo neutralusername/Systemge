@@ -20,7 +20,7 @@ type Listener[D any, C Connection[D]] interface {
 	GetStatus() int
 	GetStopChannel() <-chan struct{}
 
-	Accept(timeoutNs int64) (C, error)
+	Accept(int64) (C, error)
 	SetAcceptDeadline(int64)
 
 	GetDefaultCommands() tools.CommandHandlers
