@@ -84,5 +84,3 @@ add more abstraction in general after gathering some experience implementing sam
 consider adding object abstraction (serialize/deserialize) to connections
 (maybe a more abstract connection type [O] on top of the low level connections based on [D])
 (could also directly take lifeTimeout/on close handler)
-
-goal: add abstractions to make changes between tcp and channel communication as seamless as possible
