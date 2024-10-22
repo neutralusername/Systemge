@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type basicServer[D any] struct {
+type server[D any] struct {
 	listener              systemge.Listener[D, systemge.Connection[D]]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
