@@ -28,10 +28,11 @@ func New[O any, D any](
 		return nil, errors.New("deserializer is nil")
 	}
 
-	typedConnection := &typedConnection[O, D]{}
-	typedConnection.Connection = connection
-	typedConnection.deserializer = deserializer
-	typedConnection.serializer = serializer
+	typedConnection := &typedConnection[O, D]{
+		Connection:   connection,
+		deserializer: deserializer,
+		serializer:   serializer,
+	}
 	return typedConnection, nil
 }
 
