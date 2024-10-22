@@ -78,3 +78,5 @@ build integrate onClose handlers for connections
 add more abstraction in general after gathering some experience implementing samples
 
 add abstraction for listener to be able to accept typedConnections
+
+add a "multiConnection" or something along those lines, that allows for more efficient typed messaging (right now, writing the same message to typed Connections would require serialize for every operation )
