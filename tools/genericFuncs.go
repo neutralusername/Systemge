@@ -3,7 +3,7 @@ package tools
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/systemge/configs"
 )
 
 type Serializer[D any, O any] func(object O) (D, error)
@@ -63,7 +63,7 @@ type ObtainTokensFromBytes[D any] func(D) uint64
 
 func NewTokenBucketRateLimitHandler[D any, C any](
 	obtainTokensFromBytes ObtainTokensFromBytes[D],
-	tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter,
+	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 ) ReadHandlerWithError[D, C] {
 
 	tokenBucketRateLimiter := NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
