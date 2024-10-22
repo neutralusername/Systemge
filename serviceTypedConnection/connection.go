@@ -4,11 +4,10 @@ import (
 	"errors"
 
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
 type typedConnection[O any, D any] struct {
-	connection   systemge.Connection[D]
+	systemge.Connection[D]
 	deserializer func(D) (O, error)
 	serializer   func(O) (D, error)
 }
@@ -29,36 +28,15 @@ func New[O any, D any](
 		return nil, errors.New("deserializer is nil")
 	}
 
-	typedConnection := &typedConnection[O, D]{
-		connection:   connection,
-		serializer:   serializer,
-		deserializer: deserializer,
-	}
+	typedConnection := &typedConnection[O, D]{}
+	typedConnection.Connection = connection
+	typedConnection.deserializer = deserializer
+	typedConnection.serializer = serializer
 	return typedConnection, nil
 }
 
-func (c *typedConnection[O, D]) Close() error {
-	return c.connection.Close()
-}
-
-func (c *typedConnection[O, D]) GetInstanceId() string {
-	return c.connection.GetInstanceId()
-}
-
-func (c *typedConnection[O, D]) GetAddress() string {
-	return c.connection.GetAddress()
-}
-
-func (c *typedConnection[O, D]) GetStatus() int {
-	return c.connection.GetStatus()
-}
-
-func (c *typedConnection[O, D]) GetCloseChannel() <-chan struct{} {
-	return c.connection.GetCloseChannel()
-}
-
 func (c *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
-	data, err := c.connection.Read(timeoutNs)
+	data, err := c.Connection.Read(timeoutNs)
 	if err != nil {
 		var nilValue O
 		return nilValue, err
@@ -66,30 +44,10 @@ func (c *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
 	return c.deserializer(data)
 }
 
-func (c *typedConnection[O, D]) SetReadDeadline(timeoutNs int64) {
-	c.connection.SetReadDeadline(timeoutNs)
-}
-
 func (c *typedConnection[O, D]) Write(data O, timeoutNs int64) error {
 	serializedData, err := c.serializer(data)
 	if err != nil {
 		return err
 	}
-	return c.connection.Write(serializedData, timeoutNs)
-}
-
-func (c *typedConnection[O, D]) SetWriteDeadline(timeoutNs int64) {
-	c.connection.SetWriteDeadline(timeoutNs)
-}
-
-func (c *typedConnection[O, D]) GetDefaultCommands() tools.CommandHandlers {
-	return c.connection.GetDefaultCommands()
-}
-
-func (c *typedConnection[O, D]) GetMetrics() tools.MetricsTypes {
-	return c.connection.GetMetrics()
-}
-
-func (c *typedConnection[O, D]) CheckMetrics() tools.MetricsTypes {
-	return c.connection.CheckMetrics()
+	return c.Connection.Write(serializedData, timeoutNs)
 }
