@@ -4,6 +4,9 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type Server[D any] interface {
+}
+
 type Connector[D any, C Connection[D]] interface {
 	Connect(int64) (C, error)
 }

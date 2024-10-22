@@ -6,9 +6,6 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Server[D any] interface {
-}
-
 type basicServer[D any] struct {
 	listener              systemge.Listener[D, systemge.Connection[D]]
 	accepterConfig        *configs.Accepter
@@ -22,6 +19,6 @@ type basicServer[D any] struct {
 
 func New[D any](
 // args
-) Server[D] {
+) systemge.Server[D] {
 
 }
