@@ -30,6 +30,9 @@ func NewRoutine(routineFunc routineFunc, config *configs.Routine) (*Routine, err
 	if routineFunc == nil {
 		return nil, errors.New("routineFunc is nil")
 	}
+	if config.MaxConcurrentHandlers <= 0 {
+		return nil, errors.New("MaxConcurrentHandlers must be greater than 0")
+	}
 
 	semaphore, err := NewSemaphore(config.MaxConcurrentHandlers, make([]struct{}, config.MaxConcurrentHandlers))
 	if err != nil {
