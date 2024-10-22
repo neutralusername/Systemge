@@ -19,3 +19,9 @@ type basicServer[D any] struct {
 	readerRoutineConfig     *configs.Routine
 	readHandler             tools.ReadHandler[D, systemge.Connection[D]]
 }
+
+func New[D any](
+// args
+) Server[D] {
+
+}
