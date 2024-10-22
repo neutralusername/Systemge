@@ -31,7 +31,7 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (systemge.Server[D], error) {
-	s := &server[D]{
+	server := &server[D]{
 		listener:              listener,
 		accepterConfig:        accepterConfig,
 		accepterRoutineConfig: accepterRoutineConfig,
@@ -46,17 +46,17 @@ func New[D any](
 		listener,
 		accepterConfig,
 		accepterRoutineConfig,
-		func(c systemge.Connection[D]) error {
-			if err := s.acceptHandler(c); err != nil {
+		func(connection systemge.Connection[D]) error {
+			if err := server.acceptHandler(connection); err != nil {
 				return err
 			}
 
 			reader, err := serviceReader.NewAsync[D](
-				c,
+				connection,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				func(d D, c systemge.Connection[D]) {
-					s.readHandler(d, c)
+					server.readHandler(d, c)
 				},
 			)
 			if err != nil {
@@ -73,9 +73,9 @@ func New[D any](
 		return nil, err
 	}
 
-	s.accepter = accepter
+	server.accepter = accepter
 
-	return s, nil
+	return server, nil
 }
 
 func (s *server[D]) GetReadHandler() tools.ReadHandler[D, systemge.Connection[D]] {
