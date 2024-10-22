@@ -5,12 +5,8 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type sessionServer[D any] struct {
-}
-
 func New[D any](
 	sessionManager *tools.SessionManager,
-	server systemge.Server[D],
-) systemge.Server[D] {
+) func(connection systemge.Connection[D]) error {
 
 }
