@@ -10,7 +10,7 @@ type sessionServer[D any] struct {
 
 func New[D any](
 	sessionManager *tools.SessionManager,
-	server *server.Server[D],
+	server server.Server[D],
 ) server.Server[D] {
 
 }
