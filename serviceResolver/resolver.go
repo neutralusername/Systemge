@@ -28,6 +28,10 @@ func New[D any](
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*Resolver[D], error) {
 
+	if deserializeTopic == nil {
+		return nil, errors.New("deserializeTopic is nil")
+	}
+
 	resolver := &Resolver[D]{
 		topicData: topicData,
 	}
