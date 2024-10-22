@@ -47,7 +47,6 @@ func New[D any](
 		accepterConfig,
 		accepterRoutineConfig,
 		func(c systemge.Connection[D]) error {
-
 			if err := s.acceptHandler(c); err != nil {
 				return err
 			}
@@ -56,7 +55,9 @@ func New[D any](
 				c,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
-				s.readHandler,
+				func(d D, c systemge.Connection[D]) {
+					s.readHandler(d, c)
+				},
 			)
 			if err != nil {
 				return err
