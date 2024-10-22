@@ -36,19 +36,19 @@ func New[O any, D any](
 	return typedConnection, nil
 }
 
-func (c *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
-	data, err := c.Connection.Read(timeoutNs)
+func (typedConnection *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
+	data, err := typedConnection.Connection.Read(timeoutNs)
 	if err != nil {
 		var nilValue O
 		return nilValue, err
 	}
-	return c.deserializer(data)
+	return typedConnection.deserializer(data)
 }
 
-func (c *typedConnection[O, D]) Write(data O, timeoutNs int64) error {
-	serializedData, err := c.serializer(data)
+func (typedConnection *typedConnection[O, D]) Write(object O, timeoutNs int64) error {
+	serializedData, err := typedConnection.serializer(object)
 	if err != nil {
 		return err
 	}
-	return c.Connection.Write(serializedData, timeoutNs)
+	return typedConnection.Connection.Write(serializedData, timeoutNs)
 }
