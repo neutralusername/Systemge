@@ -46,8 +46,8 @@ func (listener *TcpListener) GetConnector() systemge.Connector[[]byte, systemge.
 	connector := &connector{
 		tcpBufferedReaderConfig: listener.tcpBufferedReaderConfig,
 		tcpClientConfig: &configs.TcpClient{
-			Address: listener.config.Domain + ":" + helpers.Uint16ToString(listener.config.Port),
-			Domain:  listener.config.Domain,
+			Port:   listener.config.Port,
+			Domain: listener.config.Domain,
 		},
 	}
 	if listener.config.TlsCertPath != "" {
@@ -58,7 +58,7 @@ func (listener *TcpListener) GetConnector() systemge.Connector[[]byte, systemge.
 
 func NewTcpClient(config *configs.TcpClient, timeoutNs int64) (net.Conn, error) {
 	if config.TlsCert == "" {
-		return net.Dial("tcp", config.Address)
+		return net.Dial("tcp", config.Domain+":"+helpers.Uint16ToString(config.Port))
 	}
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(config.TlsCert)) {
@@ -73,5 +73,5 @@ func NewTcpClient(config *configs.TcpClient, timeoutNs int64) (net.Conn, error) 
 			ServerName: config.Domain,
 		},
 	}
-	return dialer.Dial("tcp", config.Address)
+	return dialer.Dial("tcp", config.Domain+":"+helpers.Uint16ToString(config.Port))
 }

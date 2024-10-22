@@ -50,7 +50,7 @@ func EstablishConnection(
 		scheme = "wss"
 	}
 
-	url := fmt.Sprintf("%s://%s", scheme, tcpClientConfig.Address)
+	url := fmt.Sprintf("%s://%s", scheme, tcpClientConfig.Domain+":"+helpers.Uint16ToString(tcpClientConfig.Port))
 
 	headers := http.Header{}
 
@@ -78,7 +78,7 @@ func (connector *connector) Connect(timeoutNs int64) (systemge.Connection[[]byte
 func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
 	return &connector{
 		tcpClientConfig: &configs.TcpClient{
-			Address: listener.config.TcpListenerConfig.Domain + ":" + helpers.Uint16ToString(listener.config.TcpListenerConfig.Port),
+			Port:    listener.config.TcpListenerConfig.Port,
 			TlsCert: helpers.GetFileContent(listener.config.TcpListenerConfig.TlsCertPath),
 			Domain:  listener.config.TcpListenerConfig.Domain,
 		},
