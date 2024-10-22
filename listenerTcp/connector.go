@@ -5,6 +5,11 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
+type connector struct {
+	tcpBufferedReaderConfig *configs.TcpBufferedReader
+	tcpClientConfig         *configs.TcpClient
+}
+
 func NewConnector(
 	tcpBufferedReaderConfig *configs.TcpBufferedReader,
 	tcpClientConfig *configs.TcpClient,
@@ -13,11 +18,6 @@ func NewConnector(
 		tcpBufferedReaderConfig: tcpBufferedReaderConfig,
 		tcpClientConfig:         tcpClientConfig,
 	}
-}
-
-type connector struct {
-	tcpBufferedReaderConfig *configs.TcpBufferedReader
-	tcpClientConfig         *configs.TcpClient
 }
 
 func (connector *connector) Connect(timeoutNs int64) (systemge.Connection[[]byte], error) {
