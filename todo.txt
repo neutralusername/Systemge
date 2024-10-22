@@ -81,7 +81,7 @@ add a "multiConnection" or something along those lines, that allows for more eff
 
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
 
-handlers todo:
+"server modules":
 
 (accept)control
 accept session
@@ -93,3 +93,5 @@ read queue
 writer
 
 heartbeat
+
+refactor singleRequest, resolver, publishSubscribe to be server modules
