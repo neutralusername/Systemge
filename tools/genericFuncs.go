@@ -1,11 +1,5 @@
 package tools
 
-import (
-	"errors"
-
-	"github.com/neutralusername/systemge/configs"
-)
-
 type Serializer[D any, O any] func(object O) (D, error)
 type Deserializer[D any, O any] func(data D) (O, error)
 
@@ -18,6 +12,7 @@ type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
 
 type ReadHandlerWithError[D any, C any] func(D, C) error
 
+/*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedReadHandler[D any, C any](handlers ...ReadHandlerWithError[D, C]) ReadHandlerWithError[D, C] {
 	return func(data D, caller C) error {
@@ -118,7 +113,9 @@ func NewControlledAcceptHandler[C any](
 		}
 		return nil
 	}
-} /*
+} */
+
+/*
 
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
 	return func(websocketServer *WebsocketServer[O], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
