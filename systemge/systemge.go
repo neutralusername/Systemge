@@ -5,6 +5,10 @@ import (
 )
 
 type Server[D any] interface {
+	GetReadHandler() tools.ReadHandler[D, Connection[D]]
+	GetAcceptHandler() tools.AcceptHandlerWithError[Connection[D]]
+	SetReadHandler(tools.ReadHandler[D, Connection[D]])
+	SetAcceptHandler(tools.AcceptHandlerWithError[Connection[D]])
 }
 
 type Connector[D any, C Connection[D]] interface {
