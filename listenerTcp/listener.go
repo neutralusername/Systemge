@@ -8,6 +8,7 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -47,6 +48,20 @@ func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs
 	}
 
 	return server, nil
+}
+
+func (listener *TcpListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+	connector := &connector{
+		tcpBufferedReaderConfig: listener.tcpBufferedReaderConfig,
+		tcpClientConfig: &configs.TcpClient{
+			Port:   listener.config.Port,
+			Domain: listener.config.Domain,
+		},
+	}
+	if listener.config.TlsCertPath != "" {
+		connector.tcpClientConfig.TlsCert = helpers.GetFileContent(listener.config.TlsCertPath)
+	}
+	return connector
 }
 
 func (listener *TcpListener) SetTcpBufferedReaderConfig(tcpBufferedReaderConfig *configs.TcpBufferedReader) {

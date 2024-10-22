@@ -33,29 +33,6 @@ func EstablishConnection(config *configs.TcpBufferedReader, tcpClientConfig *con
 	return connection, nil
 }
 
-type connector struct {
-	tcpBufferedReaderConfig *configs.TcpBufferedReader
-	tcpClientConfig         *configs.TcpClient
-}
-
-func (connector *connector) Connect(timeoutNs int64) (systemge.Connection[[]byte], error) {
-	return EstablishConnection(connector.tcpBufferedReaderConfig, connector.tcpClientConfig, timeoutNs)
-}
-
-func (listener *TcpListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
-	connector := &connector{
-		tcpBufferedReaderConfig: listener.tcpBufferedReaderConfig,
-		tcpClientConfig: &configs.TcpClient{
-			Port:   listener.config.Port,
-			Domain: listener.config.Domain,
-		},
-	}
-	if listener.config.TlsCertPath != "" {
-		connector.tcpClientConfig.TlsCert = helpers.GetFileContent(listener.config.TlsCertPath)
-	}
-	return connector
-}
-
 func NewTcpClient(config *configs.TcpClient, timeoutNs int64) (net.Conn, error) {
 	if config.TlsCert == "" {
 		return net.Dial("tcp", config.Domain+":"+helpers.Uint16ToString(config.Port))

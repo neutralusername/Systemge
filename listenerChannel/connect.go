@@ -24,17 +24,3 @@ func EstablishConnection[D any](connChann chan<- *connectionChannel.ConnectionRe
 		return nil, errors.New("timeout")
 	}
 }
-
-type connector[D any] struct {
-	connChann chan *connectionChannel.ConnectionRequest[D]
-}
-
-func (connector *connector[D]) Connect(timeoutNs int64) (systemge.Connection[D], error) {
-	return EstablishConnection(connector.connChann, timeoutNs)
-}
-
-func (listener *ChannelListener[D]) GetConnector() systemge.Connector[D, systemge.Connection[D]] {
-	return &connector[D]{
-		connChann: listener.connectionChannel,
-	}
-}

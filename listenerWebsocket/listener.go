@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/httpServer"
 	"github.com/neutralusername/systemge/status"
 	"github.com/neutralusername/systemge/systemge"
@@ -86,6 +87,17 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	listener.httpServer = httpServer
 
 	return listener, nil
+}
+
+func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+	return &connector{
+		tcpClientConfig: &configs.TcpClient{
+			Port:    listener.config.TcpListenerConfig.Port,
+			TlsCert: helpers.GetFileContent(listener.config.TcpListenerConfig.TlsCertPath),
+			Domain:  listener.config.TcpListenerConfig.Domain,
+		},
+		incomingDataByteLimit: listener.incomingMessageByteLimit,
+	}
 }
 
 func (listener *WebsocketListener) GetStopChannel() <-chan struct{} {

@@ -41,6 +41,12 @@ func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], erro
 	return listener, nil
 }
 
+func (listener *ChannelListener[D]) GetConnector() systemge.Connector[D, systemge.Connection[D]] {
+	return &connector[D]{
+		connChann: listener.connectionChannel,
+	}
+}
+
 func (listener *ChannelListener[D]) GetStopChannel() <-chan struct{} {
 	return listener.stopChannel
 }

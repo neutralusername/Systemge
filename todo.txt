@@ -63,8 +63,8 @@ consider systemge listener and connection utilizing grpc (figure out what the be
 
 add tool to support clustering/load balancing
 
-right now this is not officially supported and works for some fields, but not for others.
 consider/support config changes at runtime.
+right now this is not officially supported and works for some fields, but not for others.
 
 (generalize this and use it for broker client somehow)
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))

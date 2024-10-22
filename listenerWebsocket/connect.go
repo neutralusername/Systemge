@@ -65,23 +65,3 @@ func EstablishConnection(
 
 	return connectionWebsocket.New(conn, incomingDataByteLimit)
 }
-
-type connector struct {
-	tcpClientConfig       *configs.TcpClient
-	incomingDataByteLimit uint64
-}
-
-func (connector *connector) Connect(timeoutNs int64) (systemge.Connection[[]byte], error) {
-	return EstablishConnection(connector.tcpClientConfig, connector.incomingDataByteLimit, timeoutNs)
-}
-
-func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
-	return &connector{
-		tcpClientConfig: &configs.TcpClient{
-			Port:    listener.config.TcpListenerConfig.Port,
-			TlsCert: helpers.GetFileContent(listener.config.TcpListenerConfig.TlsCertPath),
-			Domain:  listener.config.TcpListenerConfig.Domain,
-		},
-		incomingDataByteLimit: listener.incomingMessageByteLimit,
-	}
-}
