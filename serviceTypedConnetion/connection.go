@@ -1,6 +1,8 @@
 package serviceTypedConnection
 
 import (
+	"errors"
+
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -11,7 +13,22 @@ type typedConnection[O any, D any] struct {
 	deserializer func(O) (D, error)
 }
 
-func New[O any, D any](connection systemge.Connection[D]) (systemge.Connection[O], error) {
+func New[O any, D any](
+	connection systemge.Connection[D],
+	serializer func(D) (O, error),
+	deserializer func(O) (D, error),
+) (systemge.Connection[O], error) {
+
+	if connection == nil {
+		return nil, errors.New("connection is nil")
+	}
+	if serializer == nil {
+		return nil, errors.New("serializer is nil")
+	}
+	if deserializer == nil {
+		return nil, errors.New("deserializer is nil")
+	}
+
 	typedConnection := &typedConnection[O, D]{
 		connection: connection,
 	}
