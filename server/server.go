@@ -12,11 +12,12 @@ type Server[D any] struct {
 	listener              systemge.Listener[D, systemge.Connection[D]]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
-	acceptHandler         tools.AcceptHandlerWithError[systemge.Connection[D]]
 
 	readerServerAsyncConfig *configs.ReaderAsync
 	readerRoutineConfig     *configs.Routine
-	readHandler             tools.ReadHandler[D, systemge.Connection[D]]
+
+	ReadHandler   tools.ReadHandler[D, systemge.Connection[D]]
+	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
 
 	accepter *serviceAccepter.Accepter[D]
 }
@@ -35,11 +36,11 @@ func New[D any](
 		listener:              listener,
 		accepterConfig:        accepterConfig,
 		accepterRoutineConfig: accepterRoutineConfig,
-		acceptHandler:         acceptHandler,
+		AcceptHandler:         acceptHandler,
 
 		readerServerAsyncConfig: readerServerAsyncConfig,
 		readerRoutineConfig:     readerRoutineConfig,
-		readHandler:             readHandler,
+		ReadHandler:             readHandler,
 	}
 
 	accepter, err := serviceAccepter.New(
@@ -47,7 +48,7 @@ func New[D any](
 		accepterConfig,
 		accepterRoutineConfig,
 		func(connection systemge.Connection[D]) error {
-			if err := server.acceptHandler(connection); err != nil {
+			if err := server.AcceptHandler(connection); err != nil {
 				return err
 			}
 
@@ -56,7 +57,7 @@ func New[D any](
 				readerServerAsyncConfig,
 				readerRoutineConfig,
 				func(d D, c systemge.Connection[D]) {
-					server.readHandler(d, c)
+					server.ReadHandler(d, c)
 				},
 			)
 			if err != nil {
@@ -80,20 +81,4 @@ func New[D any](
 
 func (s *Server[D]) GetAccepter() *serviceAccepter.Accepter[D] {
 	return s.accepter
-}
-
-func (s *Server[D]) GetReadHandler() tools.ReadHandler[D, systemge.Connection[D]] {
-	return s.readHandler
-}
-
-func (s *Server[D]) GetAcceptHandler() tools.AcceptHandlerWithError[systemge.Connection[D]] {
-	return s.acceptHandler
-}
-
-func (s *Server[D]) SetAcceptHandler(acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]) {
-	s.acceptHandler = acceptHandler
-}
-
-func (s *Server[D]) SetReadHandler(readHandler tools.ReadHandler[D, systemge.Connection[D]]) {
-	s.readHandler = readHandler
 }
