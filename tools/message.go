@@ -108,17 +108,18 @@ func (message *Message) NewFailureResponse(payload string) *Message {
 }
 
 func (message *Message) Serialize() []byte {
+	data, _ := SerializeMessage(message)
+	return data
+}
+
+func SerializeMessage(message *Message) ([]byte, error) {
 	messageData := messageData{
 		Topic:      message.topic,
 		SyncToken:  message.syncToken,
 		Payload:    message.payload,
 		IsResponse: message.isResponse,
 	}
-	bytes, err := json.Marshal(messageData)
-	if err != nil {
-		return nil
-	}
-	return bytes
+	return json.Marshal(messageData)
 }
 
 func DeserializeMessage(bytes []byte) (*Message, error) {
