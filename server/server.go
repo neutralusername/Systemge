@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type server[D any] struct {
+type Server[D any] struct {
 	listener              systemge.Listener[D, systemge.Connection[D]]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
@@ -30,8 +30,8 @@ func New[D any](
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
-) (systemge.Server[D], error) {
-	server := &server[D]{
+) (*Server[D], error) {
+	server := &Server[D]{
 		listener:              listener,
 		accepterConfig:        accepterConfig,
 		accepterRoutineConfig: accepterRoutineConfig,
@@ -42,7 +42,7 @@ func New[D any](
 		readHandler:             readHandler,
 	}
 
-	accepter, err := serviceAccepter.New[D](
+	accepter, err := serviceAccepter.New(
 		listener,
 		accepterConfig,
 		accepterRoutineConfig,
@@ -78,18 +78,22 @@ func New[D any](
 	return server, nil
 }
 
-func (s *server[D]) GetReadHandler() tools.ReadHandler[D, systemge.Connection[D]] {
+func (s *Server[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+	return s.accepter
+}
+
+func (s *Server[D]) GetReadHandler() tools.ReadHandler[D, systemge.Connection[D]] {
 	return s.readHandler
 }
 
-func (s *server[D]) GetAcceptHandler() tools.AcceptHandlerWithError[systemge.Connection[D]] {
+func (s *Server[D]) GetAcceptHandler() tools.AcceptHandlerWithError[systemge.Connection[D]] {
 	return s.acceptHandler
 }
 
-func (s *server[D]) SetAcceptHandler(acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]) {
+func (s *Server[D]) SetAcceptHandler(acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]) {
 	s.acceptHandler = acceptHandler
 }
 
-func (s *server[D]) SetReadHandler(readHandler tools.ReadHandler[D, systemge.Connection[D]]) {
+func (s *Server[D]) SetReadHandler(readHandler tools.ReadHandler[D, systemge.Connection[D]]) {
 	s.readHandler = readHandler
 }
