@@ -19,6 +19,16 @@ func NewSync[D any](
 	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
 ) (*SingleRequestServer[D], error) {
 
+	if readHandler == nil {
+		return nil, errors.New("readerHandler is nil")
+	}
+	if acceptHandler == nil {
+		return nil, errors.New("acceptHandler is nil")
+	}
+	if readerConfig == nil {
+		return nil, errors.New("readerConfig is nil")
+	}
+
 	singleReuqestSync := &SingleRequestServer[D]{}
 
 	accepter, err := serviceAccepter.New(
