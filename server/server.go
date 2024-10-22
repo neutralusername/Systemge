@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/serviceAccepter"
+	"github.com/neutralusername/systemge/serviceReader"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -46,7 +47,25 @@ func New[D any](
 		accepterConfig,
 		accepterRoutineConfig,
 		func(c systemge.Connection[D]) error {
-			return s.acceptHandler(c)
+
+			if err := s.acceptHandler(c); err != nil {
+				return err
+			}
+
+			reader, err := serviceReader.NewAsync[D](
+				c,
+				readerServerAsyncConfig,
+				readerRoutineConfig,
+				s.readHandler,
+			)
+			if err != nil {
+				return err
+			}
+			if err := reader.GetRoutine().Start(); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	)
 	if err != nil {
