@@ -76,3 +76,5 @@ add options for heartbeats to tcp and websocket.
 build integrate onClose handlers for connections 
 
 add more abstraction in general after gathering some experience implementing samples
+
+add abstraction for listener to be able to accept typedConnections
