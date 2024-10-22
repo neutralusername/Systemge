@@ -5,40 +5,40 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type typedConnection[O any] struct {
-	connection   systemge.Connection[[]byte]
-	serializer   func([]byte) (O, error)
-	deserializer func(O) ([]byte, error)
+type typedConnection[O any, D any] struct {
+	connection   systemge.Connection[D]
+	serializer   func(D) (O, error)
+	deserializer func(O) (D, error)
 }
 
-func New[O any](connection systemge.Connection[[]byte]) (systemge.Connection[O], error) {
-	typedConnection := &typedConnection[O]{
+func New[O any, D any](connection systemge.Connection[D]) (systemge.Connection[O], error) {
+	typedConnection := &typedConnection[O, D]{
 		connection: connection,
 	}
 	return typedConnection, nil
 }
 
-func (c *typedConnection[O]) Close() error {
+func (c *typedConnection[O, D]) Close() error {
 	return c.connection.Close()
 }
 
-func (c *typedConnection[O]) GetInstanceId() string {
+func (c *typedConnection[O, D]) GetInstanceId() string {
 	return c.connection.GetInstanceId()
 }
 
-func (c *typedConnection[O]) GetAddress() string {
+func (c *typedConnection[O, D]) GetAddress() string {
 	return c.connection.GetAddress()
 }
 
-func (c *typedConnection[O]) GetStatus() int {
+func (c *typedConnection[O, D]) GetStatus() int {
 	return c.connection.GetStatus()
 }
 
-func (c *typedConnection[O]) GetCloseChannel() <-chan struct{} {
+func (c *typedConnection[O, D]) GetCloseChannel() <-chan struct{} {
 	return c.connection.GetCloseChannel()
 }
 
-func (c *typedConnection[O]) Read(timeoutNs int64) (O, error) {
+func (c *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
 	data, err := c.connection.Read(timeoutNs)
 	if err != nil {
 		var nilValue O
@@ -47,11 +47,11 @@ func (c *typedConnection[O]) Read(timeoutNs int64) (O, error) {
 	return c.serializer(data)
 }
 
-func (c *typedConnection[O]) SetReadDeadline(timeoutNs int64) {
+func (c *typedConnection[O, D]) SetReadDeadline(timeoutNs int64) {
 	c.connection.SetReadDeadline(timeoutNs)
 }
 
-func (c *typedConnection[O]) Write(data O, timeoutNs int64) error {
+func (c *typedConnection[O, D]) Write(data O, timeoutNs int64) error {
 	serializedData, err := c.deserializer(data)
 	if err != nil {
 		return err
@@ -59,18 +59,18 @@ func (c *typedConnection[O]) Write(data O, timeoutNs int64) error {
 	return c.connection.Write(serializedData, timeoutNs)
 }
 
-func (c *typedConnection[O]) SetWriteDeadline(timeoutNs int64) {
+func (c *typedConnection[O, D]) SetWriteDeadline(timeoutNs int64) {
 	c.connection.SetWriteDeadline(timeoutNs)
 }
 
-func (c *typedConnection[O]) GetDefaultCommands() tools.CommandHandlers {
+func (c *typedConnection[O, D]) GetDefaultCommands() tools.CommandHandlers {
 	return c.connection.GetDefaultCommands()
 }
 
-func (c *typedConnection[O]) GetMetrics() tools.MetricsTypes {
+func (c *typedConnection[O, D]) GetMetrics() tools.MetricsTypes {
 	return c.connection.GetMetrics()
 }
 
-func (c *typedConnection[O]) CheckMetrics() tools.MetricsTypes {
+func (c *typedConnection[O, D]) CheckMetrics() tools.MetricsTypes {
 	return c.connection.CheckMetrics()
 }
