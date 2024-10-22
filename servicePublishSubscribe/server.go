@@ -1,6 +1,7 @@
 package servicePublishSubscribe
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/systemge/configs"
@@ -60,6 +61,25 @@ func New[D any](
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 	handleMessage HandleMessage[D],
 ) (*PublishSubscribeServer[D], error) {
+
+	if requestResponseManager == nil { // change this so it may optionally be nil
+		return nil, errors.New("requestResponseManager is nil")
+	}
+	if acceptHandler == nil {
+		return nil, errors.New("acceptHandler is nil")
+	}
+	if readerAsyncConfig == nil {
+		return nil, errors.New("readerAsyncConfig is nil")
+	}
+	if readerRoutineConfig == nil {
+		return nil, errors.New("readerRoutineConfig is nil")
+	}
+	if publishSubscribeServerConfig == nil {
+		return nil, errors.New("publishSubscribeServerConfig is nil")
+	}
+	if handleMessage == nil {
+		return nil, errors.New("handleMessage is nil")
+	}
 
 	publishSubscribeServer := &PublishSubscribeServer[D]{
 		config:                 publishSubscribeServerConfig,

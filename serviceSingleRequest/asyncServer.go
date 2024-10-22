@@ -27,6 +27,16 @@ func NewAsync[D any](
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*serviceAccepter.Accepter[D], error) {
 
+	if readHandler == nil {
+		return nil, errors.New("readerHandler is nil")
+	}
+	if acceptHandler == nil {
+		return nil, errors.New("acceptHandler is nil")
+	}
+	if readerConfig == nil {
+		return nil, errors.New("readerConfig is nil")
+	}
+
 	singleReuqestAsync := &SingleRequestServer[D]{}
 
 	accepter, err := serviceAccepter.New(
@@ -63,7 +73,6 @@ func NewAsync[D any](
 	if err != nil {
 		return nil, err
 	}
-
 	singleReuqestAsync.accepter = accepter
 
 	return accepter, nil

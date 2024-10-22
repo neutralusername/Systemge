@@ -23,17 +23,28 @@ type Routine struct {
 	semaphore   *Semaphore[struct{}]
 }
 
-func NewRoutine(routineFunc routineFunc, config *configs.Routine) *Routine {
+func NewRoutine(routineFunc routineFunc, config *configs.Routine) (*Routine, error) {
+	if config == nil {
+		return nil, errors.New("config is nil")
+	}
+	if routineFunc == nil {
+		return nil, errors.New("routineFunc is nil")
+	}
+	if config.MaxConcurrentHandlers <= 0 {
+		return nil, errors.New("MaxConcurrentHandlers must be greater than 0")
+	}
+
 	semaphore, err := NewSemaphore(config.MaxConcurrentHandlers, make([]struct{}, config.MaxConcurrentHandlers))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
 	return &Routine{
 		config:      config,
 		status:      0,
 		routineFunc: routineFunc,
 		semaphore:   semaphore,
-	}
+	}, nil
 }
 
 func (routine *Routine) GetStopChannel() <-chan struct{} {

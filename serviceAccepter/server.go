@@ -2,6 +2,7 @@ package serviceAccepter
 
 import (
 	"encoding/json"
+	"errors"
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
@@ -30,6 +31,19 @@ func New[D any](
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
 ) (*Accepter[D], error) {
 
+	if listener == nil {
+		return nil, errors.New("listener is nil")
+	}
+	if accepterConfig == nil {
+		return nil, errors.New("accepterConfig is nil")
+	}
+	if routineConfig == nil {
+		return nil, errors.New("routineConfig is nil")
+	}
+	if acceptHandler == nil {
+		return nil, errors.New("acceptHandler is nil")
+	}
+
 	server := &Accepter[D]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
@@ -45,7 +59,7 @@ func New[D any](
 		server.SucceededAccepts.Add(1)
 	}
 
-	server.acceptRoutine = tools.NewRoutine(
+	acceptRoutine, err := tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
@@ -84,6 +98,12 @@ func New[D any](
 		},
 		routineConfig,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	server.acceptRoutine = acceptRoutine
+
 	return server, nil
 }
 
