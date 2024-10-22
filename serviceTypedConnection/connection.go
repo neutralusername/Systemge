@@ -30,7 +30,9 @@ func New[O any, D any](
 	}
 
 	typedConnection := &typedConnection[O, D]{
-		connection: connection,
+		connection:   connection,
+		serializer:   serializer,
+		deserializer: deserializer,
 	}
 	return typedConnection, nil
 }
