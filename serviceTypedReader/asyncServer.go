@@ -1,6 +1,8 @@
 package serviceTypedReader
 
 import (
+	"errors"
+
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/serviceReader"
 	"github.com/neutralusername/systemge/systemge"
@@ -14,6 +16,13 @@ func NewAsync[D any, O any](
 	readHandler tools.ReadHandler[O, systemge.Connection[D]],
 	deserializer func(D) (O, error),
 ) (*serviceReader.ReaderAsync[D], error) {
+
+	if deserializer == nil {
+		return nil, errors.New("deserializer is nil")
+	}
+	if readHandler == nil {
+		return nil, errors.New("readHandler is nil")
+	}
 
 	return serviceReader.NewAsync(
 		connection,

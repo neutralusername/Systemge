@@ -1,6 +1,8 @@
 package serviceTypedReader
 
 import (
+	"errors"
+
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/serviceReader"
@@ -16,6 +18,16 @@ func NewSync[D any, O any](
 	deserializer func(D) (O, error),
 	serializer func(O) (D, error),
 ) (*serviceReader.ReaderSync[D], error) {
+
+	if deserializer == nil {
+		return nil, errors.New("deserializer is nil")
+	}
+	if serializer == nil {
+		return nil, errors.New("serializer is nil")
+	}
+	if readHandler == nil {
+		return nil, errors.New("readHandler is nil")
+	}
 
 	return serviceReader.NewSync(
 		connection,
