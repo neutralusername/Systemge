@@ -9,14 +9,14 @@ import (
 
 type typedConnection[O any, D any] struct {
 	connection   systemge.Connection[D]
-	serializer   func(D) (O, error)
-	deserializer func(O) (D, error)
+	deserializer func(D) (O, error)
+	serializer   func(O) (D, error)
 }
 
 func New[O any, D any](
 	connection systemge.Connection[D],
-	serializer func(D) (O, error),
-	deserializer func(O) (D, error),
+	deserializer func(D) (O, error),
+	serializer func(O) (D, error),
 ) (systemge.Connection[O], error) {
 
 	if connection == nil {
@@ -63,7 +63,7 @@ func (c *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
 		var nilValue O
 		return nilValue, err
 	}
-	return c.serializer(data)
+	return c.deserializer(data)
 }
 
 func (c *typedConnection[O, D]) SetReadDeadline(timeoutNs int64) {
@@ -71,7 +71,7 @@ func (c *typedConnection[O, D]) SetReadDeadline(timeoutNs int64) {
 }
 
 func (c *typedConnection[O, D]) Write(data O, timeoutNs int64) error {
-	serializedData, err := c.deserializer(data)
+	serializedData, err := c.serializer(data)
 	if err != nil {
 		return err
 	}

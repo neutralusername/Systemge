@@ -15,8 +15,8 @@ func New[D any, O any](
 	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[O]],
-	serializer func(D) (O, error),
-	deserializer func(O) (D, error),
+	deserializer func(D) (O, error),
+	serializer func(O) (D, error),
 ) (*serviceAccepter.Accepter[D], error) {
 
 	if serializer == nil {
@@ -36,8 +36,8 @@ func New[D any, O any](
 		func(connection systemge.Connection[D]) error {
 			typedConnection, err := serviceTypedConnection.New[O, D](
 				connection,
-				serializer,
 				deserializer,
+				serializer,
 			)
 			if err != nil {
 				return err
