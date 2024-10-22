@@ -1,5 +1,13 @@
 package tools
 
+import (
+	"errors"
+	"net"
+
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Tools"
+)
+
 type Serializer[D any, O any] func(object O) (D, error)
 type Deserializer[D any, O any] func(data D) (O, error)
 
@@ -12,7 +20,6 @@ type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
 
 type ReadHandlerWithError[D any, C any] func(D, C) error
 
-/*
 type ByteHandler[D any, C any] func(D, C) error
 type ObjectDeserializer[D any, O any, C any] func(D, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
@@ -101,9 +108,8 @@ func NewTokenBucketRateLimitHandler[D any, C any](obtainTokensFromBytes ObtainTo
 		return nil
 	}
 }
-*/
 
-/* // executes all handlers in order, return error if any handler returns an error
+// executes all handlers in order, return error if any handler returns an error
 func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler[C] {
 	return func(caller C) {
 		for _, handler := range handlers {
@@ -112,9 +118,8 @@ func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler
 			}
 		}
 	}
-} */
+}
 
-/*
 type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeout uint32)
 
 func NewQueueAcceptHandler[C any](
@@ -148,9 +153,8 @@ func NewControlledAcceptHandler[C any](
 		}
 		return nil
 	}
-} */
+}
 
-/*
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
 	return func(websocketServer *WebsocketServer[O], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
@@ -251,7 +255,6 @@ func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList,
 		return identity, nil
 	}
 }
-*/
 
 /*
 
