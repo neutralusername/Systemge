@@ -1,4 +1,4 @@
-package service
+package server
 
 import (
 	"github.com/neutralusername/systemge/configs"
@@ -6,7 +6,10 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type service[D any] struct {
+type Server[D any] interface {
+}
+
+type basicServer[D any] struct {
 	listener              systemge.Listener[D, systemge.Connection[D]]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
