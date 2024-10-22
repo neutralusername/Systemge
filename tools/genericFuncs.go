@@ -2,10 +2,8 @@ package tools
 
 import (
 	"errors"
-	"net"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Serializer[D any, O any] func(object O) (D, error)
@@ -20,87 +18,54 @@ type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
 
 type ReadHandlerWithError[D any, C any] func(D, C) error
 
-type ByteHandler[D any, C any] func(D, C) error
-type ObjectDeserializer[D any, O any, C any] func(D, C) (O, error)
-type ObjectHandler[O any, C any] func(O, C) error
+// executes all handlers in order, return error if any handler returns an error
+func NewChainedReadHandler[D any, C any](handlers ...ReadHandlerWithError[D, C]) ReadHandlerWithError[D, C] {
+	return func(data D, caller C) error {
+		for _, handler := range handlers {
+			if err := handler(data, caller); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+type ObtainReadHandlerEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeoutNs int64)
 
 type ReadHandlerQueueWrapper[O any, C any] struct {
 	object O
 	caller C
 }
 
-func NewDefaultReadHandler[D any, O any, C any](
-	byteHandler ByteHandler[D, C],
-	deserializer ObjectDeserializer[D, O, C],
-	objectHandler ObjectHandler[O, C],
-) ReadHandler[D, C] {
-	return func(bytes D, caller C) {
-
-		err := byteHandler(bytes, caller)
-		if err != nil {
-			return
-		}
-
-		object, err := deserializer(bytes, caller)
-		if err != nil {
-			return
-		}
-
-		objectHandler(object, caller)
-	}
-}
-
-// executes all handlers in order, return error if any handler returns an error
-func NewObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
-	return func(object O, caller C) error {
-		for _, handler := range handlers {
-			if err := handler(object, caller); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
-
-type ObtainReadHandlerEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeout uint32)
-
-func NewQueueObjectHandler[O any, C any](
-	priorityTokenQueue *PriorityTokenQueue[*ReadHandlerQueueWrapper[O, C]],
-	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[O, C],
-) ObjectHandler[O, C] {
-	return func(object O, caller C) error {
-		token, priority, timeoutMs := obtainEnqueueConfigs(object, caller)
-		queueWrapper := &ReadHandlerQueueWrapper[O, C]{
+func NewQueueObjectHandler[D any, C any](
+	priorityTokenQueue *PriorityTokenQueue[*ReadHandlerQueueWrapper[D, C]],
+	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[D, C],
+) ReadHandlerWithError[D, C] {
+	return func(object D, caller C) error {
+		token, priority, timeoutNs := obtainEnqueueConfigs(object, caller)
+		queueWrapper := &ReadHandlerQueueWrapper[D, C]{
 			object,
 			caller,
 		}
-		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutMs)
+		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutNs)
 	}
 }
 
 type ObjectValidator[O any, C any] func(O, C) error
 
-func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) ObjectHandler[O, C] {
+func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) ReadHandlerWithError[O, C] {
 	return func(object O, caller C) error {
 		return validator(object, caller)
 	}
 }
 
-// executes all handlers in order, return error if any handler returns an error
-func NewByteHandler[D any, C any](handlers ...ByteHandler[D, C]) ByteHandler[D, C] {
-	return func(bytes D, caller C) error {
-		for _, handler := range handlers {
-			if err := handler(bytes, caller); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
-
 type ObtainTokensFromBytes[D any] func(D) uint64
 
-func NewTokenBucketRateLimitHandler[D any, C any](obtainTokensFromBytes ObtainTokensFromBytes[D], tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter) ByteHandler[D, C] {
+func NewTokenBucketRateLimitHandler[D any, C any](
+	obtainTokensFromBytes ObtainTokensFromBytes[D],
+	tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter,
+) ReadHandlerWithError[D, C] {
+
 	tokenBucketRateLimiter := NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
 	return func(bytes D, caller C) error {
 		tokens := obtainTokensFromBytes(bytes)
@@ -110,7 +75,7 @@ func NewTokenBucketRateLimitHandler[D any, C any](obtainTokensFromBytes ObtainTo
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler[C] {
+func NewChainedAcceptHandler[C any](handlers ...AcceptHandlerWithError[C]) AcceptHandler[C] {
 	return func(caller C) {
 		for _, handler := range handlers {
 			if err := handler(caller); err != nil {
@@ -120,15 +85,15 @@ func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler
 	}
 }
 
-type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeout uint32)
+type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeoutNs int64)
 
 func NewQueueAcceptHandler[C any](
 	priorityTokenQueue *PriorityTokenQueue[C],
 	obtainEnqueueConfigs ObtainAcceptHandlerEnqueueConfigs[C],
-) InternalAcceptHandler[C] {
+) AcceptHandlerWithError[C] {
 	return func(caller C) error {
-		token, priority, timeoutMs := obtainEnqueueConfigs(caller)
-		return priorityTokenQueue.Push(token, caller, priority, timeoutMs)
+		token, priority, timeoutNs := obtainEnqueueConfigs(caller)
+		return priorityTokenQueue.Push(token, caller, priority, timeoutNs)
 	}
 }
 
@@ -139,7 +104,7 @@ func NewControlledAcceptHandler[C any](
 	blacklist *AccessControlList,
 	whitelist *AccessControlList,
 	obtainIp ObtainIp[C],
-) InternalAcceptHandler[C] {
+) AcceptHandlerWithError[C] {
 	return func(caller C) error {
 		ip := obtainIp(caller)
 		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
@@ -153,7 +118,7 @@ func NewControlledAcceptHandler[C any](
 		}
 		return nil
 	}
-}
+} /*
 
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
 	return func(websocketServer *WebsocketServer[O], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
@@ -254,7 +219,7 @@ func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList,
 
 		return identity, nil
 	}
-}
+} */
 
 /*
 
