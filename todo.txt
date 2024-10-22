@@ -73,10 +73,6 @@ consider/support config changes at runtime.
 
 add options for heartbeats to tcp and websocket.
 
-chang connection lifetime to work based on tools.timeout
-
-build more abstract way to message including serializer and correaponding funcs (generics)
-
 build integrate onClose handlers for connections 
 
 add more abstraction in general after gathering some experience implementing samples
