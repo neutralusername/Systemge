@@ -1,10 +1,10 @@
-package serviceTypedListener
+package typedListener
 
 import (
 	"errors"
 
-	"github.com/neutralusername/systemge/serviceTypedConnection"
 	"github.com/neutralusername/systemge/systemge"
+	"github.com/neutralusername/systemge/typedConnection"
 )
 
 type typedListener[O any, D any] struct {
@@ -43,7 +43,7 @@ func (typedListener *typedListener[O, D]) Accept(timeoutNs int64) (systemge.Conn
 		return nil, err
 	}
 
-	return serviceTypedConnection.New(
+	return typedConnection.New(
 		connection,
 		typedListener.deserializer,
 		typedListener.serializer,
@@ -70,7 +70,7 @@ func (connector *connector[O, D]) Connect(timeout int64) (systemge.Connection[O]
 		return nil, err
 	}
 
-	return serviceTypedConnection.New(
+	return typedConnection.New(
 		connection,
 		connector.deserializer,
 		connector.serializer,

@@ -1,4 +1,4 @@
-package serverSession
+package serverAcceptSession
 
 import (
 	"github.com/neutralusername/systemge/systemge"

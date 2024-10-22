@@ -18,7 +18,15 @@ type server[D any] struct {
 }
 
 func New[D any](
-// args
+	listener systemge.Listener[D, systemge.Connection[D]],
+	accepterConfig *configs.Accepter,
+	accepterRoutineConfig *configs.Routine,
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+
+	readerServerAsyncConfig *configs.ReaderAsync,
+	readerRoutineConfig *configs.Routine,
+	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) systemge.Server[D] {
+	//s := &server[D]{
 
 }

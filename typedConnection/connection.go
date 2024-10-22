@@ -1,4 +1,4 @@
-package serviceTypedConnection
+package typedConnection
 
 import (
 	"errors"
