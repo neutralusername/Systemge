@@ -76,3 +76,21 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 	return &systemgeClient
 }
 */
+
+/* type SystemgeConnectionAttempt struct {
+	MaxServerNameLength   int    `json:"maxServerNameLength"`      // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
+	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+	RetryIntervalMs       uint32 `json:"connectionAttemptDelayMs"` // default: 0 == no delay (the delay between reconnection attempts)
+
+	TcpClientConfig         *TcpClient         `json:"tcpClientConfig"`             // *required*
+	TcpBufferedReaderConfig *TcpBufferedReader `json:"tcpSystemgeConnectionConfig"` // *required*
+}
+
+func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt {
+	var systemgeClient SystemgeConnectionAttempt
+	err := json.Unmarshal([]byte(data), &systemgeClient)
+	if err != nil {
+		return nil
+	}
+	return &systemgeClient
+} */

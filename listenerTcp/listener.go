@@ -1,7 +1,6 @@
 package listenerTcp
 
 import (
-	"crypto/tls"
 	"errors"
 	"net"
 	"sync"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/constants"
-	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -40,9 +38,6 @@ type TcpListener struct {
 func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
-	}
-	if config.TcpServerConfig == nil {
-		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpListener{
 		name:                    name,
@@ -80,23 +75,4 @@ func (listener *TcpListener) GetAddress() string {
 
 func (listener *TcpListener) GetStopChannel() <-chan struct{} {
 	return listener.stopChannel
-}
-
-func NewTcpListener(port uint16) (net.Listener, error) {
-	listener, err := net.Listen("tcp", ":"+helpers.Uint16ToString(port))
-	if err != nil {
-		return nil, err
-	}
-	return listener, nil
-}
-
-func NewTlsListener(listener net.Listener, tlsCertPath, tlsKeyPath string) (net.Listener, error) {
-	cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-	return tls.NewListener(listener, tlsConfig), nil
 }

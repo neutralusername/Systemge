@@ -27,15 +27,15 @@ func (server *HTTPServer) Start() error {
 		ReadHeaderTimeout: time.Duration(server.config.ReadHeaderTimeoutMs) * time.Millisecond,
 		WriteTimeout:      time.Duration(server.config.WriteTimeoutMs) * time.Millisecond,
 
-		Addr:    ":" + helpers.IntToString(int(server.config.TcpServerConfig.Port)),
+		Addr:    ":" + helpers.IntToString(int(server.config.TcpListenerConfig.Port)),
 		Handler: server.mux,
 	}
 
 	errorChannel := make(chan error)
 	ended := false
 	go func() {
-		if server.config.TcpServerConfig.TlsCertPath != "" && server.config.TcpServerConfig.TlsKeyPath != "" {
-			err := server.httpServer.ListenAndServeTLS(server.config.TcpServerConfig.TlsCertPath, server.config.TcpServerConfig.TlsKeyPath)
+		if server.config.TcpListenerConfig.TlsCertPath != "" && server.config.TcpListenerConfig.TlsKeyPath != "" {
+			err := server.httpServer.ListenAndServeTLS(server.config.TcpListenerConfig.TlsCertPath, server.config.TcpListenerConfig.TlsKeyPath)
 			if err != nil {
 				if !ended {
 					errorChannel <- err

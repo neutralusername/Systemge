@@ -50,7 +50,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
-	if config.TcpServerConfig == nil {
+	if config.TcpListenerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	if config.Upgrader == nil {
@@ -73,7 +73,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	}
 	httpServer, err := httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{
-			TcpServerConfig: listener.config.TcpServerConfig,
+			TcpListenerConfig: listener.config.TcpListenerConfig,
 		},
 		httpWrapperHandler,
 		map[string]http.HandlerFunc{

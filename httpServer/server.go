@@ -41,7 +41,7 @@ func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler,
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
-	if config.TcpServerConfig == nil {
+	if config.TcpListenerConfig == nil {
 		return nil, errors.New("config.TcpServerConfig is nil")
 	}
 	server := &HTTPServer{

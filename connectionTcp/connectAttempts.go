@@ -1,15 +1,6 @@
 package connectionTcp
 
-import (
-	"errors"
-	"sync"
-	"time"
-
-	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/systemge"
-)
-
-type ConnectionAttempt struct {
+/* type ConnectionAttempt struct {
 	config             *configs.SystemgeConnectionAttempt
 	systemgeConnection systemge.Connection[[]byte]
 
@@ -100,3 +91,4 @@ func (connectionAttempt *ConnectionAttempt) GetResultBlocking() systemge.Connect
 	<-connectionAttempt.ongoing
 	return connectionAttempt.systemgeConnection
 }
+*/

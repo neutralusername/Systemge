@@ -3,7 +3,7 @@ package configs
 import "encoding/json"
 
 type HTTPServer struct {
-	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
+	TcpListenerConfig *TcpListener `json:"tcpServerConfig"` // *required*
 
 	HttpErrorLogPath string `json:"httpErrorPath"` // *optional* (logged to standard output if empty)
 

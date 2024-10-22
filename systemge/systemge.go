@@ -4,9 +4,15 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type Connector[D any, C Connection[D]] interface {
+	Connect(int64) (C, error)
+}
+
 type Listener[D any, C Connection[D]] interface {
 	Start() error
 	Stop() error
+
+	GetConnector() Connector[D, C]
 
 	GetInstanceId() string
 	GetSessionId() string
