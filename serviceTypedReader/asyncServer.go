@@ -15,7 +15,7 @@ func NewAsync[D any, O any](
 	deserializer func(D) (O, error),
 ) (*serviceReader.ReaderAsync[D], error) {
 
-	reader, err := serviceReader.NewAsync(
+	return serviceReader.NewAsync(
 		connection,
 		readerServerAsyncConfig,
 		routineConfig,
@@ -27,5 +27,4 @@ func NewAsync[D any, O any](
 			readHandler(object, connection)
 		},
 	)
-	return reader, err
 }

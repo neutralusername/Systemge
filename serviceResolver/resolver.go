@@ -31,6 +31,7 @@ func New[D any](
 	resolver := &Resolver[D]{
 		topicData: topicData,
 	}
+
 	singleRequestServer, err := serviceSingleRequest.NewSync(
 		listener,
 		accepterConfig,
@@ -56,6 +57,7 @@ func New[D any](
 	if err != nil {
 		return nil, err
 	}
+
 	resolver.singleRequest = singleRequestServer
 	return resolver, nil
 }

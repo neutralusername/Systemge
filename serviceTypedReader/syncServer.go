@@ -17,7 +17,7 @@ func NewSync[D any, O any](
 	serializer func(O) (D, error),
 ) (*serviceReader.ReaderSync[D], error) {
 
-	reader, err := serviceReader.NewSync(
+	return serviceReader.NewSync(
 		connection,
 		readerServerSyncConfig,
 		routineConfig,
@@ -39,5 +39,4 @@ func NewSync[D any, O any](
 			return data, nil
 		},
 	)
-	return reader, err
 }

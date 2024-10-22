@@ -6,8 +6,8 @@ import (
 
 type QueueConsumerFunc[T any] func(T)
 
-func NewQueueConsumer[T any](config *configs.Routine, queue IQueueConsumer[T], handler QueueConsumerFunc[T]) *Routine {
-	routine := NewRoutine(
+func NewQueueConsumer[T any](config *configs.Routine, queue IQueueConsumer[T], handler QueueConsumerFunc[T]) (*Routine, error) {
+	return NewRoutine(
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
@@ -18,5 +18,4 @@ func NewQueueConsumer[T any](config *configs.Routine, queue IQueueConsumer[T], h
 		},
 		config,
 	)
-	return routine
 }

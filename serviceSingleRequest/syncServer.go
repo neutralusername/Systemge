@@ -76,11 +76,9 @@ func NewSync[D any](
 			}
 		},
 	)
-
 	if err != nil {
 		return nil, err
 	}
-
 	singleReuqestSync.accepter = accepter
 
 	return singleReuqestSync, nil

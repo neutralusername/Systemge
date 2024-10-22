@@ -63,7 +63,6 @@ func NewAsync[D any](
 	if err != nil {
 		return nil, err
 	}
-
 	singleReuqestAsync.accepter = accepter
 
 	return accepter, nil

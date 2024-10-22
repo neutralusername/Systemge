@@ -2,6 +2,7 @@ package serviceReader
 
 import (
 	"encoding/json"
+	"errors"
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
@@ -31,11 +32,24 @@ func NewAsync[D any](
 	readHandler tools.ReadHandler[D, systemge.Connection[D]],
 ) (*ReaderAsync[D], error) {
 
+	if connection == nil {
+		return nil, errors.New("connection is nil")
+	}
+	if readerServerAsyncConfig == nil {
+		return nil, errors.New("readerServerAsyncConfig is nil")
+	}
+	if routineConfig == nil {
+		return nil, errors.New("routineConfig is nil")
+	}
+	if readHandler == nil {
+		return nil, errors.New("readHandler is nil")
+	}
+
 	server := &ReaderAsync[D]{
 		ReadHandler: readHandler,
 	}
 
-	server.readRoutine = tools.NewRoutine(
+	routine, err := tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
 			select {
 			case <-stopChannel:
@@ -67,6 +81,10 @@ func NewAsync[D any](
 		},
 		routineConfig,
 	)
+	if err != nil {
+		return nil, err
+	}
+	server.readRoutine = routine
 
 	return server, nil
 }
