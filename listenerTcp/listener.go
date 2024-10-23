@@ -28,7 +28,8 @@ type TcpListener struct {
 
 	tcpListener net.Listener
 	tlsListener net.Listener
-	mutex       sync.Mutex
+
+	mutex sync.Mutex
 
 	// metrics
 
