@@ -13,8 +13,8 @@ func NewAccessControllHandler[T any](
 	blacklist *tools.AccessControlList,
 	whitelist *tools.AccessControlList,
 ) systemge.AcceptHandlerWithError[T] {
-	return func(caller systemge.Connection[T]) error {
-		ip, _, err := net.SplitHostPort(caller.GetAddress())
+	return func(connection systemge.Connection[T]) error {
+		ip, _, err := net.SplitHostPort(connection.GetAddress())
 		if err != nil {
 			return err
 		}
