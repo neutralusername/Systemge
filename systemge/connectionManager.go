@@ -18,7 +18,7 @@ type ConnectionManager[D any] struct {
 	connections  map[Connection[D]]string
 }
 
-func NewSessionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) (*ConnectionManager[D], error) {
+func NewConnectionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) (*ConnectionManager[D], error) {
 	if sessionIdLength < 1 {
 		return nil, errors.New("sessionIdLength must be greater than 0")
 	}
