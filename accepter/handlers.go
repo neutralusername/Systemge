@@ -234,8 +234,7 @@ func AcceptConnectionIdentityHandler[T any](
 ) systemge.AcceptHandlerWithError[T] {
 	if removeOnClose {
 		return func(connection systemge.Connection[T]) error {
-			err := connectionManager.AddId(getId(connection), connection)
-			if err != nil {
+			if err := connectionManager.AddId(getId(connection), connection); err != nil {
 				return err
 			}
 			go func() {
