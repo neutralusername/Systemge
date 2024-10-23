@@ -226,6 +226,28 @@ func AcceptConnectionHandler[T any](
 	}
 }
 
+// adds connection to connection manager and removes it when connection is closed
+func AcceptConnectionIdentityHandler[T any](
+	connectionManager *systemge.ConnectionManager[T],
+	removeOnClose bool,
+	getIdentity func(connection systemge.Connection[T]) string,
+) systemge.AcceptHandlerWithError[T] {
+	if removeOnClose {
+		return func(connection systemge.Connection[T]) error {
+			_, err := connectionManager.Add(connection)
+			go func() {
+				<-connection.GetCloseChannel()
+				connectionManager.Remove(connection)
+			}()
+			return err
+		}
+	} else {
+		return func(connection systemge.Connection[T]) error {
+			return connectionManager.AddId(getIdentity(connection), connection)
+		}
+	}
+}
+
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
