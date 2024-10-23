@@ -9,78 +9,78 @@ import (
 )
 
 type ConnectionManager[D any] struct {
-	sessionIdLength   uint32
-	sessionIdAlphabet string
-	sessionCap        int
+	idLength      uint32
+	idAlphabet    string
+	connectionCap int
 
-	sessionMutex sync.RWMutex
-	sessions     map[string]Connection[D]
-	connections  map[Connection[D]]string
+	mutex       sync.RWMutex
+	ids         map[string]Connection[D]
+	connections map[Connection[D]]string
 }
 
-func NewConnectionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) (*ConnectionManager[D], error) {
-	if sessionIdLength < 1 {
-		return nil, errors.New("sessionIdLength must be greater than 0")
+func NewConnectionManager[D any](idLength uint32, idAlphabet string) (*ConnectionManager[D], error) {
+	if idLength < 1 {
+		return nil, errors.New("idLength must be greater than 0")
 	}
-	if len(sessionIdAlphabet) < 2 {
-		return nil, errors.New("sessionIdAlphabet must contain at least 2 characters")
+	if len(idAlphabet) < 2 {
+		return nil, errors.New("idAlphabet must contain at least 2 characters")
 	}
 
 	return &ConnectionManager[D]{
-		sessionIdLength:   sessionIdLength,
-		sessionIdAlphabet: sessionIdAlphabet,
-		sessionCap:        int(math.Pow(float64(len(sessionIdAlphabet)), float64(sessionIdLength)) * 0.9),
+		idLength:      idLength,
+		idAlphabet:    idAlphabet,
+		connectionCap: int(math.Pow(float64(len(idAlphabet)), float64(idLength)) * 0.9),
 
-		sessions:    make(map[string]Connection[D]),
+		ids:         make(map[string]Connection[D]),
 		connections: make(map[Connection[D]]string),
 	}, nil
 }
 
-func (manager *ConnectionManager[D]) CreateSession(connection Connection[D]) (string, error) {
-	if len(manager.sessions) >= manager.sessionCap {
-		manager.sessionMutex.Unlock()
-		return "", errors.New("maximum number of sessions reached")
+func (manager *ConnectionManager[D]) AddConnection(connection Connection[D]) (string, error) {
+	if len(manager.connections) >= manager.connectionCap {
+		manager.mutex.Unlock()
+		return "", errors.New("maximum number of connections reached")
 	}
 
-	id := tools.GenerateRandomString(manager.sessionIdLength, manager.sessionIdAlphabet)
+	id := tools.GenerateRandomString(manager.idLength, manager.idAlphabet)
 	for {
-		if _, ok := manager.sessions[id]; !ok {
+		if _, ok := manager.ids[id]; !ok {
 			break
 		}
-		id = tools.GenerateRandomString(manager.sessionIdLength, manager.sessionIdAlphabet)
+		id = tools.GenerateRandomString(manager.idLength, manager.idAlphabet)
 	}
 
-	manager.sessions[id] = connection
+	manager.ids[id] = connection
 	manager.connections[connection] = id
-	manager.sessionMutex.Unlock()
+	manager.mutex.Unlock()
 
 	return id, nil
 }
 
-func (manager *ConnectionManager[D]) RemoveSession(sessionId string) error {
-	manager.sessionMutex.Lock()
-	defer manager.sessionMutex.Unlock()
-	connection, ok := manager.sessions[sessionId]
+func (manager *ConnectionManager[D]) RemoveConnection(id string) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+	connection, ok := manager.ids[id]
 	if !ok {
-		return errors.New("session not found")
+		return errors.New("connection not found")
 	}
-	delete(manager.sessions, sessionId)
+	delete(manager.ids, id)
 	delete(manager.connections, connection)
 	return nil
 }
 
 func (manager *ConnectionManager[D]) GetConnection(id string) Connection[D] {
-	manager.sessionMutex.RLock()
-	defer manager.sessionMutex.RUnlock()
-	if session, ok := manager.sessions[id]; ok {
-		return session
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+	if connection, ok := manager.ids[id]; ok {
+		return connection
 	}
 	return nil
 }
 
 func (manager *ConnectionManager[D]) GetId(connection Connection[D]) string {
-	manager.sessionMutex.RLock()
-	defer manager.sessionMutex.RUnlock()
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
 	if id, ok := manager.connections[connection]; ok {
 		return id
 	}
