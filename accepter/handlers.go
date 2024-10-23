@@ -171,6 +171,39 @@ func NewSingleReadAsyncHandler[T any](
 	}
 }
 
+func NewSingleReadSyncHandler[T any](
+	readerConfig *configs.ReaderSync,
+	readHandler systemge.ReadHandlerWithResult[T],
+	stopChannel <-chan struct{},
+) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		select {
+		case <-stopChannel:
+			connection.SetReadDeadline(1)
+			// routine was stopped
+			return errors.New("routine was stopped")
+
+		case <-connection.GetCloseChannel():
+			// ending routine due to connection close
+			return errors.New("connection was closed")
+
+		case data, ok := <-helpers.ChannelCall(func() (T, error) { return connection.Read(readerConfig.ReadTimeoutNs) }):
+			if !ok {
+				// do smthg with the error
+				return errors.New("error reading data")
+			}
+			result, err := readHandler(data, connection)
+			connection.Close()
+			if err != nil {
+				return err
+			}
+			connection.Write(result, readerConfig.WriteTimeoutNs)
+
+			return nil
+		}
+	}
+}
+
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
