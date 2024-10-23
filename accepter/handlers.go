@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net"
 
+	"github.com/neutralusername/systemge/configs"
+	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -138,6 +140,34 @@ func NewPasswordHandler[T any](
 			return errors.New("wrong password")
 		}
 		return nil
+	}
+}
+
+func NewSingleReadAsyncHandler[T any](
+	readerConfig *configs.ReaderAsync,
+	readHandler systemge.ReadHandler[T],
+	stopChannel <-chan struct{},
+) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		select {
+		case <-stopChannel:
+			connection.SetReadDeadline(1)
+			// routine was stopped
+			return errors.New("routine was stopped")
+
+		case <-connection.GetCloseChannel():
+			// ending routine due to connection close
+			return errors.New("connection was closed")
+
+		case data, ok := <-helpers.ChannelCall(func() (T, error) { return connection.Read(readerConfig.ReadTimeoutNs) }):
+			if !ok {
+				// do smthg with the error
+				return errors.New("error reading data")
+			}
+			readHandler(data, connection)
+			connection.Close()
+			return nil
+		}
 	}
 }
 
