@@ -97,4 +97,6 @@ writer
 
 heartbeat
 
-refactor singleRequest, resolver, publishSubscribe into server modules
+(accept) singleRequest
+(accept) resolver (on top of single request probably)
+publishSubscribe
