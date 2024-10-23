@@ -228,7 +228,7 @@ func AcceptConnectionHandler[T any](
 
 // adds connection to connection manager and removes it when connection is closed.
 // could be used multiple times with different managers and getId functions (userId, groupId, etc.)
-func AcceptConnectionIdentityHandler[T any](
+func AcceptConnectionIdHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
 	getId func(connection systemge.Connection[T]) string,
