@@ -87,8 +87,10 @@ add a "multiConnection" or something along those lines, that allows for more eff
 accept session
 accept queue
 
+
 (read)control
 read queue
+read messageHandlers
 
 writer
 
