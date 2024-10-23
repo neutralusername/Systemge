@@ -141,15 +141,6 @@ func NewPasswordHandler[T any](
 	}
 }
 
-func NewSendPasswordHandler[T any](
-	getPassword func(connection systemge.Connection[T]) T,
-	timeoutNs int64,
-) systemge.AcceptHandlerWithError[T] {
-	return func(connection systemge.Connection[T]) error {
-		return connection.Write(getPassword(connection), timeoutNs)
-	}
-}
-
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
