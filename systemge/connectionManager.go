@@ -14,5 +14,5 @@ func (connectionManager *ConnectionManager[D]) Write(data D, timeoutNs int64, co
 }
 
 func (connectionManager *ConnectionManager[D]) WriteId(data D, timeoutNs int64, ids ...string) {
-	MultiWrite(data, timeoutNs, connectionManager.GetBulk()...)
+	MultiWrite(data, timeoutNs, connectionManager.GetBulk(ids...)...)
 }
