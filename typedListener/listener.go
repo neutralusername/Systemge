@@ -9,14 +9,14 @@ import (
 
 type typedListener[O any, D any] struct {
 	systemge.Listener[D, systemge.Connection[D]]
-	deserializer func(D) (O, error)
 	serializer   func(O) (D, error)
+	deserializer func(D) (O, error)
 }
 
 func New[O any, D any](
 	listener systemge.Listener[D, systemge.Connection[D]],
-	deserializer func(D) (O, error),
 	serializer func(O) (D, error),
+	deserializer func(D) (O, error),
 ) (systemge.Listener[O, systemge.Connection[O]], error) {
 
 	if listener == nil {
@@ -31,8 +31,8 @@ func New[O any, D any](
 
 	typedListener := &typedListener[O, D]{
 		Listener:     listener,
-		deserializer: deserializer,
 		serializer:   serializer,
+		deserializer: deserializer,
 	}
 	return typedListener, nil
 }
