@@ -142,13 +142,11 @@ func NewAuthenticationHandler[T any](
 		if currentPassword == "" {
 			return nil
 		}
-
 		if requestMessage, ok := requestMessage(connection); ok {
 			if err := connection.Write(requestMessage, writeTimeoutNs); err != nil {
 				return err
 			}
 		}
-
 		data, err := connection.Read(readTimeoutNs)
 		if err != nil {
 			return err
