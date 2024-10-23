@@ -130,7 +130,7 @@ func NewAccessControlHandler[T any](
 	}
 }
 
-func NewAuthHandler[T any](
+func NewAuthenticationHandler[T any](
 	getCurrentPassword func(connection systemge.Connection[T]) string,
 	unmarshalPassword func(password T) (string, error),
 	requestMessage T,
