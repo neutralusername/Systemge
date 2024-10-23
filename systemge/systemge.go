@@ -48,3 +48,5 @@ type Connection[D any] interface {
 	GetMetrics() tools.MetricsTypes
 	CheckMetrics() tools.MetricsTypes
 }
+
+type ConnectionManager[D any, C Connection[D]] *tools.ObjectManager[C]
