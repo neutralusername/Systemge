@@ -6,6 +6,29 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+func NewByteRateLimitHandler(
+	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
+) systemge.ReadHandlerWithError[[]byte] {
+
+	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
+	return func(data []byte, caller systemge.Connection[[]byte]) error {
+		tokenBucketRateLimiter.Consume(uint64(len(data)))
+		return nil
+	}
+}
+
+func NewMessageRateLimiterHandler[T any](
+	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
+) systemge.ReadHandlerWithError[T] {
+
+	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
+	return func(data T, caller systemge.Connection[T]) error {
+		tokenBucketRateLimiter.Consume(1)
+		return nil
+	}
+}
+
+/*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
 	return func(data T, caller systemge.Connection[T]) error {
@@ -48,16 +71,4 @@ func NewValidationObjectHandler[T any](validator ObjectValidator[T]) systemge.Re
 }
 
 type ObtainTokensFromBytes[T any] func(T) uint64
-
-func NewTokenBucketRateLimitHandler[T any](
-	obtainTokensFromBytes ObtainTokensFromBytes[T],
-	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
-) systemge.ReadHandlerWithError[T] {
-
-	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
-	return func(bytes T, caller systemge.Connection[T]) error {
-		tokens := obtainTokensFromBytes(bytes)
-		tokenBucketRateLimiter.Consume(tokens)
-		return nil
-	}
-}
+*/
