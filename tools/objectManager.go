@@ -8,17 +8,17 @@ import (
 
 // todo: think of an effective way to layer these like (session -> identity -> groups)
 
-type ObjectManager[O comparable] struct {
+type ObjectManager[T comparable] struct {
 	idLength   uint32
 	idAlphabet string
 	cap        int
 
-	ids     map[string]O
-	objects map[O]string
+	ids     map[string]T
+	objects map[T]string
 	mutex   sync.RWMutex
 }
 
-func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*ObjectManager[O], error) {
+func NewObjectManager[T comparable](idLength uint32, idAlphabet string) (*ObjectManager[T], error) {
 	if idLength < 1 {
 		return nil, errors.New("idLength must be greater than 0")
 	}
@@ -26,20 +26,20 @@ func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*Object
 		return nil, errors.New("idAlphabet must contain at least 2 characters")
 	}
 
-	return &ObjectManager[O]{
+	return &ObjectManager[T]{
 		idLength:   idLength,
 		idAlphabet: idAlphabet,
 		cap:        int(math.Pow(float64(len(idAlphabet)), float64(idLength)) * 0.9),
 
-		ids:     make(map[string]O),
-		objects: make(map[O]string),
+		ids:     make(map[string]T),
+		objects: make(map[T]string),
 	}, nil
 }
 
 // assigns unique id to object and stores it in the manager.
 // id / object can be resolved by the other.
 // returns id and error
-func (manager *ObjectManager[D]) Add(object D) (string, error) {
+func (manager *ObjectManager[T]) Add(object T) (string, error) {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -57,7 +57,7 @@ func (manager *ObjectManager[D]) Add(object D) (string, error) {
 	return id, nil
 }
 
-func (manager *ObjectManager[D]) AddId(id string, object D) error {
+func (manager *ObjectManager[T]) AddId(id string, object T) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -71,7 +71,7 @@ func (manager *ObjectManager[D]) AddId(id string, object D) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) RemoveId(id string) error {
+func (manager *ObjectManager[T]) RemoveId(id string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -86,7 +86,7 @@ func (manager *ObjectManager[D]) RemoveId(id string) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) Remove(object D) error {
+func (manager *ObjectManager[T]) Remove(object T) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -100,7 +100,7 @@ func (manager *ObjectManager[D]) Remove(object D) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) Get(id string) D {
+func (manager *ObjectManager[T]) Get(id string) T {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -108,11 +108,11 @@ func (manager *ObjectManager[D]) Get(id string) D {
 		return object
 	}
 
-	var nilValue D
+	var nilValue T
 	return nilValue
 }
 
-func (manager *ObjectManager[D]) GetId(object D) string {
+func (manager *ObjectManager[T]) GetId(object T) string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -123,18 +123,18 @@ func (manager *ObjectManager[D]) GetId(object D) string {
 	return ""
 }
 
-func (manager *ObjectManager[D]) GetBulk(ids ...string) []D {
+func (manager *ObjectManager[T]) GetBulk(ids ...string) []T {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
 	if len(ids) == 0 {
-		objects := make([]D, 0, len(manager.ids))
+		objects := make([]T, 0, len(manager.ids))
 		for _, object := range manager.ids {
 			objects = append(objects, object)
 		}
 		return objects
 	} else {
-		objects := make([]D, 0, len(ids))
+		objects := make([]T, 0, len(ids))
 		for _, id := range ids {
 			if object, ok := manager.ids[id]; ok {
 				objects = append(objects, object)
@@ -144,7 +144,7 @@ func (manager *ObjectManager[D]) GetBulk(ids ...string) []D {
 	}
 }
 
-func (manager *ObjectManager[D]) GetBulkId(objects ...D) []string {
+func (manager *ObjectManager[T]) GetBulkId(objects ...T) []string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -165,7 +165,7 @@ func (manager *ObjectManager[D]) GetBulkId(objects ...D) []string {
 	}
 }
 
-func (manager *ObjectManager[D]) IdExists(id string) bool {
+func (manager *ObjectManager[T]) IdExists(id string) bool {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -173,7 +173,7 @@ func (manager *ObjectManager[D]) IdExists(id string) bool {
 	return ok
 }
 
-func (manager *ObjectManager[D]) ObjectExists(object D) bool {
+func (manager *ObjectManager[T]) ObjectExists(object T) bool {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -181,7 +181,7 @@ func (manager *ObjectManager[D]) ObjectExists(object D) bool {
 	return ok
 }
 
-func (manager *ObjectManager[D]) ReplaceObject(oldObject, newObject D) error {
+func (manager *ObjectManager[T]) ReplaceObject(oldObject, newObject T) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -197,7 +197,7 @@ func (manager *ObjectManager[D]) ReplaceObject(oldObject, newObject D) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) ReplaceId(oldId, newId string) error {
+func (manager *ObjectManager[T]) ReplaceId(oldId, newId string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -213,21 +213,21 @@ func (manager *ObjectManager[D]) ReplaceId(oldId, newId string) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) GetLength() int {
+func (manager *ObjectManager[T]) GetLength() int {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
 	return len(manager.ids)
 }
 
-func (manager *ObjectManager[D]) GetCapacity() int {
+func (manager *ObjectManager[T]) GetCapacity() int {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
 	return manager.cap
 }
 
-func (manager *ObjectManager[D]) GetRemainingCapacity() int {
+func (manager *ObjectManager[T]) GetRemainingCapacity() int {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 

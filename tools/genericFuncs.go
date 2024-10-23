@@ -1,12 +1,12 @@
 package tools
 
-type Serializer[D any, O any] func(object O) (D, error)
-type Deserializer[D any, O any] func(data D) (O, error)
+type Serializer[T any, O any] func(object O) (T, error)
+type Deserializer[T any, O any] func(data T) (O, error)
 
 /*
 // executes all handlers in order, return error if any handler returns an error
-func NewChainedReadHandler[D any, C any](handlers ...ReadHandlerWithError[D, C]) ReadHandlerWithError[D, C] {
-	return func(data D, caller C) error {
+func NewChainedReadHandler[T any, C any](handlers ...ReadHandlerWithError[T, C]) ReadHandlerWithError[T, C] {
+	return func(data T, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(data, caller); err != nil {
 				return err
@@ -23,13 +23,13 @@ type ReadHandlerQueueWrapper[O any, C any] struct {
 	caller C
 }
 
-func NewQueueObjectHandler[D any, C any](
-	priorityTokenQueue *PriorityTokenQueue[*ReadHandlerQueueWrapper[D, C]],
-	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[D, C],
-) ReadHandlerWithError[D, C] {
-	return func(object D, caller C) error {
+func NewQueueObjectHandler[T any, C any](
+	priorityTokenQueue *PriorityTokenQueue[*ReadHandlerQueueWrapper[T, C]],
+	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T, C],
+) ReadHandlerWithError[T, C] {
+	return func(object T, caller C) error {
 		token, priority, timeoutNs := obtainEnqueueConfigs(object, caller)
-		queueWrapper := &ReadHandlerQueueWrapper[D, C]{
+		queueWrapper := &ReadHandlerQueueWrapper[T, C]{
 			object,
 			caller,
 		}
@@ -45,15 +45,15 @@ func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) R
 	}
 }
 
-type ObtainTokensFromBytes[D any] func(D) uint64
+type ObtainTokensFromBytes[T any] func(T) uint64
 
-func NewTokenBucketRateLimitHandler[D any, C any](
-	obtainTokensFromBytes ObtainTokensFromBytes[D],
+func NewTokenBucketRateLimitHandler[T any, C any](
+	obtainTokensFromBytes ObtainTokensFromBytes[T],
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
-) ReadHandlerWithError[D, C] {
+) ReadHandlerWithError[T, C] {
 
 	tokenBucketRateLimiter := NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
-	return func(bytes D, caller C) error {
+	return func(bytes T, caller C) error {
 		tokens := obtainTokensFromBytes(bytes)
 		tokenBucketRateLimiter.Consume(tokens)
 		return nil
