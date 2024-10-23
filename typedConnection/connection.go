@@ -45,8 +45,8 @@ func (typedConnection *typedConnection[T, O]) Read(timeoutNs int64) (O, error) {
 	return typedConnection.deserializer(data)
 }
 
-func (typedConnection *typedConnection[T, O]) Write(object O, timeoutNs int64) error {
-	serializedData, err := typedConnection.serializer(object)
+func (typedConnection *typedConnection[T, O]) Write(data O, timeoutNs int64) error {
+	serializedData, err := typedConnection.serializer(data)
 	if err != nil {
 		return err
 	}

@@ -52,8 +52,8 @@ func NewSync[T any](
 		ReadHandler: readHandler,
 	}
 
-	handleRead := func(object T, connection systemge.Connection[T]) {
-		result, err := server.ReadHandler(object, connection)
+	handleRead := func(data T, connection systemge.Connection[T]) {
+		result, err := server.ReadHandler(data, connection)
 		if err != nil {
 			// do smthg with the error
 			server.FailedReads.Add(1)

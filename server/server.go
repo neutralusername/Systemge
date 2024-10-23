@@ -55,8 +55,8 @@ func New[T any](
 				connection,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
-				func(d T, c systemge.Connection[T]) {
-					server.ReadHandler(d, c)
+				func(data T, connection systemge.Connection[T]) {
+					server.ReadHandler(data, connection)
 				},
 			)
 			if err != nil {
@@ -78,6 +78,6 @@ func New[T any](
 	return server, nil
 }
 
-func (s *Server[T]) GetAccepter() *serviceAccepter.Accepter[T] {
-	return s.accepter
+func (server *Server[T]) GetAccepter() *serviceAccepter.Accepter[T] {
+	return server.accepter
 }
