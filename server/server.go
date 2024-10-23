@@ -7,30 +7,30 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-type Server[D any] struct {
-	listener              systemge.Listener[D]
+type Server[T any] struct {
+	listener              systemge.Listener[T]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
 
 	readerServerAsyncConfig *configs.ReaderAsync
 	readerRoutineConfig     *configs.Routine
 
-	ReadHandler   systemge.ReadHandler[D]
-	AcceptHandler systemge.AcceptHandlerWithError[D]
+	ReadHandler   systemge.ReadHandler[T]
+	AcceptHandler systemge.AcceptHandlerWithError[T]
 
-	accepter *serviceAccepter.Accepter[D]
+	accepter *serviceAccepter.Accepter[T]
 }
 
-func New[D any](
-	listener systemge.Listener[D],
+func New[T any](
+	listener systemge.Listener[T],
 	accepterConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[D],
-	readHandler systemge.ReadHandler[D],
-) (*Server[D], error) {
-	server := &Server[D]{
+	acceptHandler systemge.AcceptHandlerWithError[T],
+	readHandler systemge.ReadHandler[T],
+) (*Server[T], error) {
+	server := &Server[T]{
 		listener:              listener,
 		accepterConfig:        accepterConfig,
 		accepterRoutineConfig: accepterRoutineConfig,
@@ -46,16 +46,16 @@ func New[D any](
 		listener,
 		accepterConfig,
 		accepterRoutineConfig,
-		func(connection systemge.Connection[D]) error {
+		func(connection systemge.Connection[T]) error {
 			if err := server.AcceptHandler(connection); err != nil {
 				return err
 			}
 
-			reader, err := serviceReader.NewAsync[D](
+			reader, err := serviceReader.NewAsync[T](
 				connection,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
-				func(d D, c systemge.Connection[D]) {
+				func(d T, c systemge.Connection[T]) {
 					server.ReadHandler(d, c)
 				},
 			)
@@ -78,6 +78,6 @@ func New[D any](
 	return server, nil
 }
 
-func (s *Server[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+func (s *Server[T]) GetAccepter() *serviceAccepter.Accepter[T] {
 	return s.accepter
 }

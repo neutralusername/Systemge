@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type ChannelListener[D any] struct {
+type ChannelListener[T any] struct {
 	name string
 
 	instanceId string
@@ -21,7 +21,7 @@ type ChannelListener[D any] struct {
 	status      int
 	stopChannel chan struct{}
 
-	connectionChannel chan *connectionChannel.ConnectionRequest[D]
+	connectionChannel chan *connectionChannel.ConnectionRequest[T]
 	timeout           *tools.Timeout
 	mutex             sync.Mutex
 
@@ -31,8 +31,8 @@ type ChannelListener[D any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[D any](name string) (systemge.Listener[D], error) {
-	listener := &ChannelListener[D]{
+func New[T any](name string) (systemge.Listener[T], error) {
+	listener := &ChannelListener[T]{
 		name:       name,
 		status:     status.Stopped,
 		instanceId: tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
@@ -41,28 +41,28 @@ func New[D any](name string) (systemge.Listener[D], error) {
 	return listener, nil
 }
 
-func (listener *ChannelListener[D]) GetConnector() systemge.Connector[D] {
-	return &connector[D]{
+func (listener *ChannelListener[T]) GetConnector() systemge.Connector[T] {
+	return &connector[T]{
 		connChann: listener.connectionChannel,
 	}
 }
 
-func (listener *ChannelListener[D]) GetStopChannel() <-chan struct{} {
+func (listener *ChannelListener[T]) GetStopChannel() <-chan struct{} {
 	return listener.stopChannel
 }
 
-func (listener *ChannelListener[D]) GetInstanceId() string {
+func (listener *ChannelListener[T]) GetInstanceId() string {
 	return listener.instanceId
 }
 
-func (listener *ChannelListener[D]) GetSessionId() string {
+func (listener *ChannelListener[T]) GetSessionId() string {
 	return listener.sessionId
 }
 
-func (listener *ChannelListener[D]) GetStatus() int {
+func (listener *ChannelListener[T]) GetStatus() int {
 	return listener.status
 }
 
-func (server *ChannelListener[D]) GetName() string {
+func (server *ChannelListener[T]) GetName() string {
 	return server.name
 }

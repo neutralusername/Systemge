@@ -6,16 +6,16 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-type typedConnection[O any, D any] struct {
-	systemge.Connection[D]
-	deserializer func(D) (O, error)
-	serializer   func(O) (D, error)
+type typedConnection[T any, O any] struct {
+	systemge.Connection[T]
+	deserializer func(T) (O, error)
+	serializer   func(O) (T, error)
 }
 
-func New[O any, D any](
-	connection systemge.Connection[D],
-	deserializer func(D) (O, error),
-	serializer func(O) (D, error),
+func New[T any, O any](
+	connection systemge.Connection[T],
+	deserializer func(T) (O, error),
+	serializer func(O) (T, error),
 ) (systemge.Connection[O], error) {
 
 	if connection == nil {
@@ -28,7 +28,7 @@ func New[O any, D any](
 		return nil, errors.New("deserializer is nil")
 	}
 
-	typedConnection := &typedConnection[O, D]{
+	typedConnection := &typedConnection[T, O]{
 		Connection:   connection,
 		deserializer: deserializer,
 		serializer:   serializer,
@@ -36,7 +36,7 @@ func New[O any, D any](
 	return typedConnection, nil
 }
 
-func (typedConnection *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
+func (typedConnection *typedConnection[T, O]) Read(timeoutNs int64) (O, error) {
 	data, err := typedConnection.Connection.Read(timeoutNs)
 	if err != nil {
 		var nilValue O
@@ -45,7 +45,7 @@ func (typedConnection *typedConnection[O, D]) Read(timeoutNs int64) (O, error) {
 	return typedConnection.deserializer(data)
 }
 
-func (typedConnection *typedConnection[O, D]) Write(object O, timeoutNs int64) error {
+func (typedConnection *typedConnection[T, O]) Write(object O, timeoutNs int64) error {
 	serializedData, err := typedConnection.serializer(object)
 	if err != nil {
 		return err

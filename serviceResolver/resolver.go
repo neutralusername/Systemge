@@ -10,28 +10,28 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-type Resolver[D any] struct {
+type Resolver[T any] struct {
 	mutex         sync.RWMutex
-	topicData     map[string]D
-	singleRequest *serviceSingleRequest.SingleRequestServer[D]
+	topicData     map[string]T
+	singleRequest *serviceSingleRequest.SingleRequestServer[T]
 	// commands
 }
 
-func New[D any](
-	listener systemge.Listener[D],
-	topicData map[string]D,
+func New[T any](
+	listener systemge.Listener[T],
+	topicData map[string]T,
 	accepterConfig *configs.Accepter,
 	readerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[D],
-	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
-) (*Resolver[D], error) {
+	acceptHandler systemge.AcceptHandlerWithError[T],
+	deserializeTopic func(T, systemge.Connection[T]) (string, error), // responsible for retrieving the topic
+) (*Resolver[T], error) {
 
 	if deserializeTopic == nil {
 		return nil, errors.New("deserializeTopic is nil")
 	}
 
-	resolver := &Resolver[D]{
+	resolver := &Resolver[T]{
 		topicData: topicData,
 	}
 
@@ -41,7 +41,7 @@ func New[D any](
 		readerSyncConfig,
 		routineConfig,
 		acceptHandler,
-		func(incomingData D, connection systemge.Connection[D]) (D, error) {
+		func(incomingData T, connection systemge.Connection[T]) (T, error) {
 			topic, err := deserializeTopic(incomingData, connection)
 			if err != nil {
 				return helpers.GetNilValue(incomingData), err
@@ -65,24 +65,24 @@ func New[D any](
 	return resolver, nil
 }
 
-func (r *Resolver[D]) GetSingleRequest() *serviceSingleRequest.SingleRequestServer[D] {
+func (r *Resolver[T]) GetSingleRequest() *serviceSingleRequest.SingleRequestServer[T] {
 	return r.singleRequest
 }
 
-func (r *Resolver[D]) SetTopicData(topic string, data D) {
+func (r *Resolver[T]) SetTopicData(topic string, data T) {
 	r.mutex.Lock()
 	r.topicData[topic] = data
 	r.mutex.Unlock()
 }
 
-func (r *Resolver[D]) GetTopicData(topic string) (D, bool) {
+func (r *Resolver[T]) GetTopicData(topic string) (T, bool) {
 	r.mutex.RLock()
 	data, ok := r.topicData[topic]
 	r.mutex.RUnlock()
 	return data, ok
 }
 
-func (r *Resolver[D]) DeleteTopicData(topic string) {
+func (r *Resolver[T]) DeleteTopicData(topic string) {
 	r.mutex.Lock()
 	delete(r.topicData, topic)
 	r.mutex.Unlock()

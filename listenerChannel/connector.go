@@ -5,18 +5,18 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-type connector[D any] struct {
-	connChann chan *connectionChannel.ConnectionRequest[D]
+type connector[T any] struct {
+	connChann chan *connectionChannel.ConnectionRequest[T]
 }
 
-func NewConnector[D any](
-	connChann chan *connectionChannel.ConnectionRequest[D],
-) systemge.Connector[D] {
-	return &connector[D]{
+func NewConnector[T any](
+	connChann chan *connectionChannel.ConnectionRequest[T],
+) systemge.Connector[T] {
+	return &connector[T]{
 		connChann: connChann,
 	}
 }
 
-func (connector *connector[D]) Connect(timeoutNs int64) (systemge.Connection[D], error) {
+func (connector *connector[T]) Connect(timeoutNs int64) (systemge.Connection[T], error) {
 	return Connect(connector.connChann, timeoutNs)
 }

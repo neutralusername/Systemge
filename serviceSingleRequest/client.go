@@ -4,19 +4,19 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func AsyncMessage[D any](connection systemge.Connection[D], data D, sendTimeoutNs int64) error {
+func AsyncMessage[T any](connection systemge.Connection[T], data T, sendTimeoutNs int64) error {
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func SyncRequest[D any](connection systemge.Connection[D], data D, sendTimeoutNs, readTimeoutNs int64) (D, error) {
+func SyncRequest[T any](connection systemge.Connection[T], data T, sendTimeoutNs, readTimeoutNs int64) (T, error) {
 	err := connection.Write(data, sendTimeoutNs)
 	if err != nil {
-		var nilValue D
+		var nilValue T
 		return nilValue, err
 	}
 	response, err := connection.Read(readTimeoutNs)
 	if err != nil {
-		var nilValue D
+		var nilValue T
 		return nilValue, err
 	}
 	return response, nil

@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (connection *ChannelConnection[D]) Read(timeoutNs int64) (D, error) {
+func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
@@ -26,13 +26,13 @@ func (connection *ChannelConnection[D]) Read(timeoutNs int64) (D, error) {
 
 		case <-connection.readTimeout.GetIsExpiredChannel():
 			connection.readTimeout = nil
-			var nilValue D
+			var nilValue T
 			return nilValue, errors.New("timeout")
 		}
 	}
 }
 
-func (connection *ChannelConnection[D]) SetReadDeadline(timeoutNs int64) {
+func (connection *ChannelConnection[T]) SetReadDeadline(timeoutNs int64) {
 	if readTimeout := connection.readTimeout; readTimeout != nil {
 		readTimeout.Refresh(timeoutNs)
 	}

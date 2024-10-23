@@ -11,21 +11,21 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type PublishSubscribeServer[D any] struct {
+type PublishSubscribeServer[T any] struct {
 	config   *configs.PublishSubscribeServer
-	listener systemge.Listener[D]
+	listener systemge.Listener[T]
 
 	mutex                  sync.RWMutex
-	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
-	subscribers            map[systemge.Connection[D]]*subscriber[D]
-	accepter               *serviceAccepter.Accepter[D]
-	requestResponseManager *tools.RequestResponseManager[D]
-	handleMessage          HandleMessage[D]
+	topics                 map[string]map[*subscriber[T]]struct{} // topic -> connection -> struct{}
+	subscribers            map[systemge.Connection[T]]*subscriber[T]
+	accepter               *serviceAccepter.Accepter[T]
+	requestResponseManager *tools.RequestResponseManager[T]
+	handleMessage          HandleMessage[T]
 }
 
-type subscriber[D any] struct {
-	connection    systemge.Connection[D]
-	readerAsync   *serviceReader.ReaderAsync[D]
+type subscriber[T any] struct {
+	connection    systemge.Connection[T]
+	readerAsync   *serviceReader.ReaderAsync[T]
 	subscriptions map[string]struct{}
 }
 
@@ -39,28 +39,28 @@ const (
 	RespondAndPropagate
 )
 
-type HandleMessage[D any] func(
-	data D,
-	connection systemge.Connection[D],
+type HandleMessage[T any] func(
+	data T,
+	connection systemge.Connection[T],
 ) (
 	messageType uint16,
 	topic string,
-	payload D,
+	payload T,
 	syncToken string,
 	err error,
 )
 
-func New[D any](
-	listener systemge.Listener[D],
-	requestResponseManager *tools.RequestResponseManager[D],
+func New[T any](
+	listener systemge.Listener[T],
+	requestResponseManager *tools.RequestResponseManager[T],
 	publishSubscribeServerConfig *configs.PublishSubscribeServer,
 	readerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
 	accepterServerConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[D],
-	handleMessage HandleMessage[D],
-) (*PublishSubscribeServer[D], error) {
+	acceptHandler systemge.AcceptHandlerWithError[T],
+	handleMessage HandleMessage[T],
+) (*PublishSubscribeServer[T], error) {
 
 	if requestResponseManager == nil { // change this so it may optionally be nil
 		return nil, errors.New("requestResponseManager is nil")
@@ -81,23 +81,23 @@ func New[D any](
 		return nil, errors.New("handleMessage is nil")
 	}
 
-	publishSubscribeServer := &PublishSubscribeServer[D]{
+	publishSubscribeServer := &PublishSubscribeServer[T]{
 		config:                 publishSubscribeServerConfig,
 		listener:               listener,
-		topics:                 make(map[string]map[*subscriber[D]]struct{}),
-		subscribers:            make(map[systemge.Connection[D]]*subscriber[D]),
+		topics:                 make(map[string]map[*subscriber[T]]struct{}),
+		subscribers:            make(map[systemge.Connection[T]]*subscriber[T]),
 		requestResponseManager: requestResponseManager,
 		handleMessage:          handleMessage,
 	}
 	for _, topic := range publishSubscribeServerConfig.Topics {
-		publishSubscribeServer.topics[topic] = make(map[*subscriber[D]]struct{})
+		publishSubscribeServer.topics[topic] = make(map[*subscriber[T]]struct{})
 	}
 
 	accepter, err := serviceAccepter.New(
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,
-		func(connection systemge.Connection[D]) error {
+		func(connection systemge.Connection[T]) error {
 			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error
 				return nil
@@ -114,7 +114,7 @@ func New[D any](
 				return err
 			}
 
-			subscriber := &subscriber[D]{
+			subscriber := &subscriber[T]{
 				connection:    connection,
 				readerAsync:   reader,
 				subscriptions: make(map[string]struct{}),
@@ -158,9 +158,9 @@ func New[D any](
 	return publishSubscribeServer, nil
 }
 
-func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
-	data D,
-	connection systemge.Connection[D],
+func (publishSubscribeServer *PublishSubscribeServer[T]) readHandler(
+	data T,
+	connection systemge.Connection[T],
 ) {
 	messageType, topic, payload, syncToken, err := publishSubscribeServer.handleMessage(data, connection)
 	if err != nil {
@@ -213,10 +213,10 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) readHandler(
 	}
 }
 
-func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
-	publisher systemge.Connection[D],
+func (publishSubscribeServer *PublishSubscribeServer[T]) Propagate(
+	publisher systemge.Connection[T],
 	topic string,
-	payload D,
+	payload T,
 ) {
 	publishSubscribeServer.mutex.RLock()
 	defer publishSubscribeServer.mutex.RUnlock()
@@ -235,15 +235,15 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Propagate(
 	}
 }
 
-func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
-	requester systemge.Connection[D],
+func (publishSubscribeServer *PublishSubscribeServer[T]) Request(
+	requester systemge.Connection[T],
 	syncToken string,
 ) {
 	if _, err := publishSubscribeServer.requestResponseManager.NewRequest(
 		syncToken,
 		publishSubscribeServer.config.ResponseLimit,
 		publishSubscribeServer.config.RequestTimeoutNs,
-		func(request *tools.Request[D], response D) {
+		func(request *tools.Request[T], response T) {
 			go requester.Write(response, publishSubscribeServer.config.PropagateTimeoutNs)
 		},
 	); err != nil {
@@ -252,9 +252,9 @@ func (publishSubscribeServer *PublishSubscribeServer[D]) Request(
 	}
 }
 
-func (publishSubscribeServer *PublishSubscribeServer[D]) Respond(
+func (publishSubscribeServer *PublishSubscribeServer[T]) Respond(
 	syncToken string,
-	payload D,
+	payload T,
 ) {
 	if err := publishSubscribeServer.requestResponseManager.AddResponse(syncToken, payload); err != nil { // currently has the side effect, that responses to requests may have any topic. might as well be a feature
 		// do smthg with the error

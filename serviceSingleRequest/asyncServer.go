@@ -9,22 +9,22 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-type SingleRequestServer[D any] struct {
-	accepter *serviceAccepter.Accepter[D]
+type SingleRequestServer[T any] struct {
+	accepter *serviceAccepter.Accepter[T]
 }
 
-func (s *SingleRequestServer[D]) GetAccepter() *serviceAccepter.Accepter[D] {
+func (s *SingleRequestServer[T]) GetAccepter() *serviceAccepter.Accepter[T] {
 	return s.accepter
 }
 
-func NewAsync[D any](
-	listener systemge.Listener[D],
+func NewAsync[T any](
+	listener systemge.Listener[T],
 	accepterConfig *configs.Accepter,
 	readerConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[D],
-	readHandler systemge.ReadHandler[D],
-) (*serviceAccepter.Accepter[D], error) {
+	acceptHandler systemge.AcceptHandlerWithError[T],
+	readHandler systemge.ReadHandler[T],
+) (*serviceAccepter.Accepter[T], error) {
 
 	if readHandler == nil {
 		return nil, errors.New("readerHandler is nil")
@@ -36,13 +36,13 @@ func NewAsync[D any](
 		return nil, errors.New("readerConfig is nil")
 	}
 
-	singleReuqestAsync := &SingleRequestServer[D]{}
+	singleReuqestAsync := &SingleRequestServer[T]{}
 
 	accepter, err := serviceAccepter.New(
 		listener,
 		accepterConfig,
 		routineConfig,
-		func(connection systemge.Connection[D]) error {
+		func(connection systemge.Connection[T]) error {
 			if err := acceptHandler(connection); err != nil {
 				// do smthg with the error
 				return err
@@ -58,7 +58,7 @@ func NewAsync[D any](
 				// ending routine due to connection close
 				return errors.New("connection was closed")
 
-			case data, ok := <-helpers.ChannelCall(func() (D, error) { return connection.Read(readerConfig.ReadTimeoutNs) }):
+			case data, ok := <-helpers.ChannelCall(func() (T, error) { return connection.Read(readerConfig.ReadTimeoutNs) }):
 				if !ok {
 					// do smthg with the error
 					return errors.New("error reading data")

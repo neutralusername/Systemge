@@ -8,14 +8,14 @@ import (
 	"github.com/neutralusername/systemge/systemge"
 )
 
-func Connect[D any](
-	connChann chan<- *connectionChannel.ConnectionRequest[D],
+func Connect[T any](
+	connChann chan<- *connectionChannel.ConnectionRequest[T],
 	timeoutNs int64,
-) (systemge.Connection[D], error) {
+) (systemge.Connection[T], error) {
 
-	connectionRequest := &connectionChannel.ConnectionRequest[D]{
-		SendToListener:      make(chan D),
-		ReceiveFromListener: make(chan D),
+	connectionRequest := &connectionChannel.ConnectionRequest[T]{
+		SendToListener:      make(chan T),
+		ReceiveFromListener: make(chan T),
 	}
 	var deadline <-chan time.Time
 	if timeoutNs > 0 {

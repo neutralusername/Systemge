@@ -7,16 +7,16 @@ import (
 	"github.com/neutralusername/systemge/typedConnection"
 )
 
-type typedListener[O any, D any] struct {
-	systemge.Listener[D]
-	serializer   func(O) (D, error)
-	deserializer func(D) (O, error)
+type typedListener[T any, O any] struct {
+	systemge.Listener[T]
+	serializer   func(O) (T, error)
+	deserializer func(T) (O, error)
 }
 
-func New[O any, D any](
-	listener systemge.Listener[D],
-	serializer func(O) (D, error),
-	deserializer func(D) (O, error),
+func New[T any, O any](
+	listener systemge.Listener[T],
+	serializer func(O) (T, error),
+	deserializer func(T) (O, error),
 ) (systemge.Listener[O], error) {
 
 	if listener == nil {
@@ -29,7 +29,7 @@ func New[O any, D any](
 		return nil, errors.New("deserializer is nil")
 	}
 
-	typedListener := &typedListener[O, D]{
+	typedListener := &typedListener[T, O]{
 		Listener:     listener,
 		serializer:   serializer,
 		deserializer: deserializer,
@@ -37,7 +37,7 @@ func New[O any, D any](
 	return typedListener, nil
 }
 
-func (typedListener *typedListener[O, D]) Accept(timeoutNs int64) (systemge.Connection[O], error) {
+func (typedListener *typedListener[T, O]) Accept(timeoutNs int64) (systemge.Connection[O], error) {
 	connection, err := typedListener.Listener.Accept(timeoutNs)
 	if err != nil {
 		return nil, err
@@ -50,21 +50,21 @@ func (typedListener *typedListener[O, D]) Accept(timeoutNs int64) (systemge.Conn
 	)
 }
 
-type connector[O any, D any] struct {
-	systemge.Connector[D]
-	deserializer func(D) (O, error)
-	serializer   func(O) (D, error)
+type connector[T any, O any] struct {
+	systemge.Connector[T]
+	deserializer func(T) (O, error)
+	serializer   func(O) (T, error)
 }
 
-func (typedListener *typedListener[O, D]) GetConnector() systemge.Connector[O] {
-	return &connector[O, D]{
+func (typedListener *typedListener[T, O]) GetConnector() systemge.Connector[O] {
+	return &connector[T, O]{
 		typedListener.Listener.GetConnector(),
 		typedListener.deserializer,
 		typedListener.serializer,
 	}
 }
 
-func (connector *connector[O, D]) Connect(timeout int64) (systemge.Connection[O], error) {
+func (connector *connector[T, O]) Connect(timeout int64) (systemge.Connection[O], error) {
 	connection, err := connector.Connector.Connect(timeout)
 	if err != nil {
 		return nil, err

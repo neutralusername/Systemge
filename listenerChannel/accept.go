@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection[D], error) {
+func (listener *ChannelListener[T]) Accept(timeoutNs int64) (systemge.Connection[T], error) {
 	listener.mutex.Lock()
 	defer listener.mutex.Unlock()
 
@@ -33,7 +33,7 @@ func (listener *ChannelListener[D]) Accept(timeoutNs int64) (systemge.Connection
 	}
 }
 
-func (listener *ChannelListener[D]) SetAcceptDeadline(timeoutNs int64) {
+func (listener *ChannelListener[T]) SetAcceptDeadline(timeoutNs int64) {
 	if timeout := listener.timeout; timeout != nil {
 		timeout.Refresh(timeoutNs)
 	}

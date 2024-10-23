@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (listener *ChannelListener[D]) Start() error {
+func (listener *ChannelListener[T]) Start() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
@@ -19,7 +19,7 @@ func (listener *ChannelListener[D]) Start() error {
 	listener.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
 	listener.status = status.Pending
 	listener.stopChannel = make(chan struct{})
-	listener.connectionChannel = make(chan *connectionChannel.ConnectionRequest[D])
+	listener.connectionChannel = make(chan *connectionChannel.ConnectionRequest[T])
 
 	listener.status = status.Started
 

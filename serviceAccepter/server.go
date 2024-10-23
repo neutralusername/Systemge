@@ -12,11 +12,11 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Accepter[D any] struct {
-	listener      systemge.Listener[D]
+type Accepter[T any] struct {
+	listener      systemge.Listener[T]
 	acceptRoutine *tools.Routine
 
-	AcceptHandler systemge.AcceptHandlerWithError[D]
+	AcceptHandler systemge.AcceptHandlerWithError[T]
 
 	// metrics
 
@@ -24,12 +24,12 @@ type Accepter[D any] struct {
 	FailedAccepts    atomic.Uint64
 }
 
-func New[D any](
-	listener systemge.Listener[D],
+func New[T any](
+	listener systemge.Listener[T],
 	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[D],
-) (*Accepter[D], error) {
+	acceptHandler systemge.AcceptHandlerWithError[T],
+) (*Accepter[T], error) {
 
 	if listener == nil {
 		return nil, errors.New("listener is nil")
@@ -44,12 +44,12 @@ func New[D any](
 		return nil, errors.New("acceptHandler is nil")
 	}
 
-	server := &Accepter[D]{
+	server := &Accepter[T]{
 		listener:      listener,
 		AcceptHandler: acceptHandler,
 	}
 
-	handleAccept := func(connection systemge.Connection[D]) {
+	handleAccept := func(connection systemge.Connection[T]) {
 		if err := server.AcceptHandler(connection); err != nil {
 			connection.Close()
 			// do smthg with the error
@@ -74,7 +74,7 @@ func New[D any](
 				server.FailedAccepts.Add(1)
 				return
 
-			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[D], error) { return listener.Accept(accepterConfig.AcceptTimeoutNs) }):
+			case connection, ok := <-helpers.ChannelCall(func() (systemge.Connection[T], error) { return listener.Accept(accepterConfig.AcceptTimeoutNs) }):
 				if !ok {
 					// do smthg with the error
 					server.FailedAccepts.Add(1)
@@ -107,11 +107,11 @@ func New[D any](
 	return server, nil
 }
 
-func (server *Accepter[D]) GetRoutine() *tools.Routine {
+func (server *Accepter[T]) GetRoutine() *tools.Routine {
 	return server.acceptRoutine
 }
 
-func (server *Accepter[D]) CheckMetrics() tools.MetricsTypes {
+func (server *Accepter[T]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
@@ -122,7 +122,7 @@ func (server *Accepter[D]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.listener.CheckMetrics())
 	return metricsTypes
 }
-func (server *Accepter[D]) GetMetrics() tools.MetricsTypes {
+func (server *Accepter[T]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("accepter_server", tools.NewMetrics(
 		map[string]uint64{
@@ -134,7 +134,7 @@ func (server *Accepter[D]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *Accepter[D]) GetDefaultCommands() tools.CommandHandlers {
+func (server *Accepter[T]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.GetRoutine().Start()

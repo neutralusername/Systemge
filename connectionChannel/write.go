@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (connection *ChannelConnection[D]) Write(data D, timeoutNs int64) error {
+func (connection *ChannelConnection[T]) Write(data T, timeoutNs int64) error {
 	connection.writeMutex.Lock()
 	defer connection.writeMutex.Unlock()
 
@@ -31,7 +31,7 @@ func (connection *ChannelConnection[D]) Write(data D, timeoutNs int64) error {
 	}
 }
 
-func (connection *ChannelConnection[D]) SetWriteDeadline(timeoutNs int64) {
+func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutNs int64) {
 	if writeTimeout := connection.writeTimeout; writeTimeout != nil {
 		writeTimeout.Refresh(timeoutNs)
 	}
