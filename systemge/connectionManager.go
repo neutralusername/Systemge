@@ -25,6 +25,7 @@ func NewConnectionManager[D any](sessionIdLength uint32, sessionIdAlphabet strin
 	if len(sessionIdAlphabet) < 2 {
 		return nil, errors.New("sessionIdAlphabet must contain at least 2 characters")
 	}
+
 	return &ConnectionManager[D]{
 		sessionIdLength:   sessionIdLength,
 		sessionIdAlphabet: sessionIdAlphabet,
