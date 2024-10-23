@@ -209,6 +209,10 @@ func AcceptConnectionHandler[T any](
 ) systemge.AcceptHandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		_, err := connectionManager.Add(connection)
+		go func() {
+			<-connection.GetCloseChannel()
+			connectionManager.Remove(connection)
+		}()
 		return err
 	}
 }
