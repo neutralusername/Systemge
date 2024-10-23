@@ -85,7 +85,7 @@ type ReadHandlerQueueWrapper[T any] struct {
 func NewQueueObjectHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
 	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
-	dequeueHandler func(T, systemge.Connection[T]) error, // ?
+	dequeueHandler systemge.ReadHandlerWithError[T], // ?
 	queueConfig *configs.Routine,
 ) (systemge.ReadHandlerWithError[T], *tools.Routine) {
 	routine, err := tools.NewRoutine(
