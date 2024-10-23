@@ -89,7 +89,6 @@ func NewQueueObjectHandler[T any](
 	queueConfig *configs.Routine,
 ) (systemge.ReadHandlerWithError[T], *tools.Routine) {
 	routine, err := tools.NewRoutine(
-
 		func(stopChannel <-chan struct{}) {
 			for {
 				select {
