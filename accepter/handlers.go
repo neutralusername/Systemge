@@ -130,16 +130,22 @@ func NewAccessControlHandler[T any](
 	}
 }
 
-func NewPasswordHandler[T any](
+func NewAuthHandler[T any](
 	getCurrentPassword func(connection systemge.Connection[T]) string,
 	unmarshalPassword func(password T) (string, error),
+	requestMessage T,
 	timeoutNs int64,
 ) systemge.AcceptHandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		currentPassword := getCurrentPassword(connection)
 		if currentPassword == "" {
-			return errors.New("no password set")
+			return nil
 		}
+
+		if err := connection.Write(requestMessage, timeoutNs); err != nil {
+			return err
+		}
+
 		data, err := connection.Read(timeoutNs)
 		if err != nil {
 			return err
