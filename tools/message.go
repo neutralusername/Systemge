@@ -11,7 +11,6 @@ type IMessage interface {
 	GetSyncToken() string
 	GetPayload() string
 	IsResponse() bool
-	Serialize() []byte
 }
 
 type Message struct {

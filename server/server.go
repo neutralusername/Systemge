@@ -20,6 +20,8 @@ type Server[D any] struct {
 	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
 
 	accepter *serviceAccepter.Accepter[D]
+
+	connections map[string]systemge.Connection[D] // id -> connection
 }
 
 func New[D any](
