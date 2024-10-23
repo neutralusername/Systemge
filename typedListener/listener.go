@@ -45,22 +45,22 @@ func (typedListener *typedListener[T, O]) Accept(timeoutNs int64) (systemge.Conn
 
 	return typedConnection.New(
 		connection,
-		typedListener.deserializer,
 		typedListener.serializer,
+		typedListener.deserializer,
 	)
 }
 
 type connector[T any, O any] struct {
 	systemge.Connector[T]
-	deserializer func(T) (O, error)
 	serializer   func(O) (T, error)
+	deserializer func(T) (O, error)
 }
 
 func (typedListener *typedListener[T, O]) GetConnector() systemge.Connector[O] {
 	return &connector[T, O]{
 		typedListener.Listener.GetConnector(),
-		typedListener.deserializer,
 		typedListener.serializer,
+		typedListener.deserializer,
 	}
 }
 
@@ -72,7 +72,7 @@ func (connector *connector[T, O]) Connect(timeout int64) (systemge.Connection[O]
 
 	return typedConnection.New(
 		connection,
-		connector.deserializer,
 		connector.serializer,
+		connector.deserializer,
 	)
 }

@@ -8,14 +8,14 @@ import (
 
 type typedConnection[T any, O any] struct {
 	systemge.Connection[T]
-	deserializer func(T) (O, error)
 	serializer   func(O) (T, error)
+	deserializer func(T) (O, error)
 }
 
 func New[T any, O any](
 	connection systemge.Connection[T],
-	deserializer func(T) (O, error),
 	serializer func(O) (T, error),
+	deserializer func(T) (O, error),
 ) (systemge.Connection[O], error) {
 
 	if connection == nil {
@@ -30,8 +30,8 @@ func New[T any, O any](
 
 	typedConnection := &typedConnection[T, O]{
 		Connection:   connection,
-		deserializer: deserializer,
 		serializer:   serializer,
+		deserializer: deserializer,
 	}
 	return typedConnection, nil
 }
