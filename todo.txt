@@ -94,6 +94,8 @@ read messageHandlers (retrieve topic, switch topic and handle some data and resp
 writer
 
 heartbeat
+    
+accepter connection handler
 
 (accept) singleRequest
 (accept) resolver (on top of single request probably)
