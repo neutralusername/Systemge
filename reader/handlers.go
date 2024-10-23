@@ -6,6 +6,18 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// executes all handlers in order, return error if any handler returns an error
+func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+	return func(data T, caller systemge.Connection[T]) error {
+		for _, handler := range handlers {
+			if err := handler(data, caller); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 func NewByteRateLimitHandler(
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 ) systemge.ReadHandlerWithError[[]byte] {
@@ -54,17 +66,6 @@ func NewResponseHandler[T any](
 }
 
 /*
-// executes all handlers in order, return error if any handler returns an error
-func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
-	return func(data T, caller systemge.Connection[T]) error {
-		for _, handler := range handlers {
-			if err := handler(data, caller); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
 
 type ObtainReadHandlerEnqueueConfigs[T any] func(T, systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 

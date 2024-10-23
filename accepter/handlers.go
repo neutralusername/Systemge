@@ -10,6 +10,18 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// executes all handlers in order, return error if any handler returns an error
+func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+	return func(caller systemge.Connection[T]) error {
+		for _, handler := range handlers {
+			if err := handler(caller); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 func NewAccessControllHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
 	blockList *tools.AccessControlList,
@@ -252,16 +264,7 @@ func AcceptConnectionManagerIdHandler[T any](
 }
 
 /*
-// executes all handlers in order, return error if any handler returns an error
-func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
-	return func(caller systemge.Connection[T]) {
-		for _, handler := range handlers {
-			if err := handler(caller); err != nil {
-				return
-			}
-		}
-	}
-}
+
 
 type ObtainAcceptHandlerEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
