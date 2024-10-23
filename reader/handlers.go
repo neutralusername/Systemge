@@ -1,9 +1,6 @@
 package reader
 
 import (
-	"errors"
-	"sync"
-
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -43,24 +40,17 @@ func NewCustomRateLimitHandler[T any](
 	}
 }
 
-func NewResolverHandler[T any](
+func NewResponseHandler[T any](
 	deserializeTopic func(T, systemge.Connection[T]) (string, error),
-	topicData map[string]T,
+	getResponse func(T, systemge.Connection[T]) (T, error),
 	writeTimeoutNs int64,
 ) systemge.ReadHandlerWithError[T] {
-	mutex := sync.RWMutex{}
 	return func(incomingData T, connection systemge.Connection[T]) error {
-		topic, err := deserializeTopic(incomingData, connection)
+		response, err := getResponse(incomingData, connection)
 		if err != nil {
 			return err
 		}
-		mutex.RLock()
-		outgoingData, ok := topicData[topic]
-		mutex.RUnlock()
-		if !ok {
-			return errors.New("topic not found")
-		}
-		return connection.Write(outgoingData, writeTimeoutNs)
+		return connection.Write(response, writeTimeoutNs)
 	}
 }
 
