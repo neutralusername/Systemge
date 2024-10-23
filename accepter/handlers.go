@@ -11,7 +11,7 @@ import (
 )
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+func NewChainedHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
 	return func(caller systemge.Connection[T]) error {
 		for _, handler := range handlers {
 			if err := handler(caller); err != nil {
