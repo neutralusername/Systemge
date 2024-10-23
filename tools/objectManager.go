@@ -16,8 +16,6 @@ type ObjectManager[O comparable] struct {
 	mutex   sync.RWMutex
 }
 
-// assigns unique id to object.
-// id / object can be resolved by the other.
 func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*ObjectManager[O], error) {
 	if idLength < 1 {
 		return nil, errors.New("idLength must be greater than 0")
@@ -36,6 +34,9 @@ func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*Object
 	}, nil
 }
 
+// assigns unique id to object and stores it in the manager.
+// id / object can be resolved by the other.
+// returns id and error
 func (manager *ObjectManager[D]) Add(object D) (string, error) {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
