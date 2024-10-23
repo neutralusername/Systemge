@@ -34,5 +34,4 @@ func MultiSyncRequestBlocking[D any](data D, responseLimit uint64, timeoutNs int
 	}
 	request.Wait()
 	return request, nil
-
 }
