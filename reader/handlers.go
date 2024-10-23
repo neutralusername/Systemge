@@ -41,7 +41,6 @@ func NewCustomRateLimitHandler[T any](
 }
 
 func NewResponseHandler[T any](
-	deserializeTopic func(T, systemge.Connection[T]) (string, error),
 	getResponse func(T, systemge.Connection[T]) (T, error),
 	writeTimeoutNs int64,
 ) systemge.ReadHandlerWithError[T] {
