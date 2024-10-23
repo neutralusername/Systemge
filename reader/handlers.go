@@ -70,32 +70,54 @@ type ObjectValidator[T any] func(T, systemge.Connection[T]) error
 func NewValidationObjectHandler[T any](
 	validator ObjectValidator[T],
 ) systemge.ReadHandlerWithError[T] {
-	return func(object T, caller systemge.Connection[T]) error {
-		return validator(object, caller)
+	return func(object T, connection systemge.Connection[T]) error {
+		return validator(object, connection)
 	}
 }
-
-/*
 
 type ObtainReadHandlerEnqueueConfigs[T any] func(T, systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
 type ReadHandlerQueueWrapper[T any] struct {
-	Object T
-	Caller systemge.Connection[T]
+	Object     T
+	Connection systemge.Connection[T]
 }
 
 func NewQueueObjectHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
 	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
-) systemge.ReadHandlerWithError[T] {
-	return func(object T, caller systemge.Connection[T]) error {
-		token, priority, timeoutNs := obtainEnqueueConfigs(object, caller)
+	dequeueHandler func(T, systemge.Connection[T]) error, // ?
+	queueConfig *configs.Routine,
+) (systemge.ReadHandlerWithError[T], *tools.Routine) {
+	routine, err := tools.NewRoutine(
+
+		func(stopChannel <-chan struct{}) {
+			for {
+				select {
+				case <-stopChannel:
+					return
+				case queueWrapper, ok := <-priorityTokenQueue.PopChannel():
+					if !ok {
+						return
+					}
+					err := dequeueHandler(queueWrapper.Object, queueWrapper.Connection)
+					if err != nil {
+
+					}
+				}
+			}
+		},
+		queueConfig,
+	)
+	if err != nil {
+		return nil, nil
+	}
+
+	return func(object T, connection systemge.Connection[T]) error {
+		token, priority, timeoutNs := obtainEnqueueConfigs(object, connection)
 		queueWrapper := &ReadHandlerQueueWrapper[T]{
 			object,
-			caller,
+			connection,
 		}
 		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutNs)
-	}
+	}, routine
 }
-
-*/

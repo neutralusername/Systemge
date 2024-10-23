@@ -283,8 +283,6 @@ func OnCloseHandler[T any](
 }
 
 /*
-
-
 type ObtainAcceptHandlerEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
 func NewQueueAcceptHandler[T any](
@@ -296,6 +294,4 @@ func NewQueueAcceptHandler[T any](
 		return priorityTokenQueue.Push(token, caller, priority, timeoutNs)
 	}
 }
-
-type ObtainIp[T any] func(systemge.Connection[T]) string
 */
