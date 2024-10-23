@@ -28,6 +28,18 @@ func NewMessageRateLimitHandler[T any](
 	}
 }
 
+func NewCustomRateLimitHandler[T any](
+	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
+	consumeFunc func(T, systemge.Connection[T]) uint64,
+) systemge.ReadHandlerWithError[T] {
+
+	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
+	return func(data T, connection systemge.Connection[T]) error {
+		tokenBucketRateLimiter.Consume(consumeFunc(data, connection))
+		return nil
+	}
+}
+
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
