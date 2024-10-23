@@ -133,6 +133,7 @@ func NewAccessControlHandler[T any](
 func NewAuthenticationHandler[T any](
 	getCurrentPassword func(connection systemge.Connection[T]) string,
 	unmarshalPassword func(password T) (string, error),
+	sendRequestMessage func(connection systemge.Connection[T]) bool,
 	requestMessage T,
 	timeoutNs int64,
 ) systemge.AcceptHandlerWithError[T] {
@@ -142,8 +143,10 @@ func NewAuthenticationHandler[T any](
 			return nil
 		}
 
-		if err := connection.Write(requestMessage, timeoutNs); err != nil {
-			return err
+		if sendRequestMessage(connection) {
+			if err := connection.Write(requestMessage, timeoutNs); err != nil {
+				return err
+			}
 		}
 
 		data, err := connection.Read(timeoutNs)
