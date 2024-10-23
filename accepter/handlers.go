@@ -230,7 +230,7 @@ func AcceptConnectionHandler[T any](
 func AcceptConnectionIdentityHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
-	getIdentity func(connection systemge.Connection[T]) string,
+	getId func(connection systemge.Connection[T]) string,
 ) systemge.AcceptHandlerWithError[T] {
 	if removeOnClose {
 		return func(connection systemge.Connection[T]) error {
@@ -243,7 +243,7 @@ func AcceptConnectionIdentityHandler[T any](
 		}
 	} else {
 		return func(connection systemge.Connection[T]) error {
-			return connectionManager.AddId(getIdentity(connection), connection)
+			return connectionManager.AddId(getId(connection), connection)
 		}
 	}
 }
