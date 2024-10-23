@@ -81,7 +81,7 @@ add a "multiConnection" or something along those lines, that allows for more eff
 
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
 
-"server modules":
+"server modules" (handler funcs that can be chained):
 
 (accept)control
 accept session
