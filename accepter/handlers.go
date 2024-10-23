@@ -234,12 +234,11 @@ func AcceptConnectionIdentityHandler[T any](
 ) systemge.AcceptHandlerWithError[T] {
 	if removeOnClose {
 		return func(connection systemge.Connection[T]) error {
-			_, err := connectionManager.Add(connection)
 			go func() {
 				<-connection.GetCloseChannel()
 				connectionManager.Remove(connection)
 			}()
-			return err
+			return connectionManager.AddId(getId(connection), connection)
 		}
 	} else {
 		return func(connection systemge.Connection[T]) error {
