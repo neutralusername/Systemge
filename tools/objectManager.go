@@ -51,10 +51,24 @@ func (manager *ObjectManager[D]) Add(object D) (string, error) {
 	return id, nil
 }
 
-func (manager *ObjectManager[D]) Remove(id string) error {
+func (manager *ObjectManager[D]) RemoveId(id string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
+
 	object, ok := manager.ids[id]
+	if !ok {
+		return errors.New("entry not found")
+	}
+	delete(manager.ids, id)
+	delete(manager.objects, object)
+	return nil
+}
+
+func (manager *ObjectManager[D]) Remove(object D) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+
+	id, ok := manager.objects[object]
 	if !ok {
 		return errors.New("entry not found")
 	}
