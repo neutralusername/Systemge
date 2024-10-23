@@ -1,6 +1,9 @@
 package reader
 
 import (
+	"errors"
+	"sync"
+
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -37,6 +40,27 @@ func NewCustomRateLimitHandler[T any](
 	return func(data T, connection systemge.Connection[T]) error {
 		tokenBucketRateLimiter.Consume(consumeFunc(data, connection))
 		return nil
+	}
+}
+
+func NewResolverHandler[T any](
+	deserializeTopic func(T, systemge.Connection[T]) (string, error),
+	topicData map[string]T,
+	writeTimeoutNs int64,
+) systemge.ReadHandlerWithError[T] {
+	mutex := sync.RWMutex{}
+	return func(incomingData T, connection systemge.Connection[T]) error {
+		topic, err := deserializeTopic(incomingData, connection)
+		if err != nil {
+			return err
+		}
+		mutex.RLock()
+		outgoingData, ok := topicData[topic]
+		mutex.RUnlock()
+		if !ok {
+			return errors.New("topic not found")
+		}
+		return connection.Write(outgoingData, writeTimeoutNs)
 	}
 }
 
