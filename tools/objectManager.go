@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// todo: think of an effective way to layer these like (session -> idendity -> groups)
+// todo: think of an effective way to layer these like (session -> identity -> groups)
 
 type ObjectManager[O comparable] struct {
 	idLength   uint32
