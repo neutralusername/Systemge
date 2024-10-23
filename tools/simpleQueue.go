@@ -7,21 +7,21 @@ import (
 	"github.com/neutralusername/systemge/configs"
 )
 
-type SimpleQueue[T any] struct {
+type SimpleFifoQueue[T any] struct {
 	config  *configs.Queue
 	queue   []T
 	waiting []chan T
 	mutex   sync.Mutex
 }
 
-func NewSimpleQueue[T any](config *configs.Queue) *SimpleQueue[T] {
-	return &SimpleQueue[T]{
+func NewSimpleQueue[T any](config *configs.Queue) *SimpleFifoQueue[T] {
+	return &SimpleFifoQueue[T]{
 		config: config,
 		queue:  make([]T, 0),
 	}
 }
 
-func (queue *SimpleQueue[T]) Push(value T) error {
+func (queue *SimpleFifoQueue[T]) Push(value T) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -44,7 +44,7 @@ func (queue *SimpleQueue[T]) Push(value T) error {
 	return nil
 }
 
-func (queue *SimpleQueue[T]) Pop() (T, error) {
+func (queue *SimpleFifoQueue[T]) Pop() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -57,11 +57,11 @@ func (queue *SimpleQueue[T]) Pop() (T, error) {
 	return item, nil
 }
 
-func (queue *SimpleQueue[T]) PopBlocking() T {
+func (queue *SimpleFifoQueue[T]) PopBlocking() T {
 	return <-queue.PopChannel()
 }
 
-func (queue *SimpleQueue[T]) PopChannel() <-chan T {
+func (queue *SimpleFifoQueue[T]) PopChannel() <-chan T {
 	c := make(chan T)
 	go func() {
 
@@ -82,7 +82,7 @@ func (queue *SimpleQueue[T]) PopChannel() <-chan T {
 	return c
 }
 
-func (queue *SimpleQueue[T]) Len() int {
+func (queue *SimpleFifoQueue[T]) Len() int {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	return len(queue.queue)

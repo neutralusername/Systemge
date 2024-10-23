@@ -263,6 +263,18 @@ func AcceptConnectionManagerIdHandler[T any](
 	}
 }
 
+func OnCloseHandler[T any](
+	onClose func(connection systemge.Connection[T]),
+) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		go func() {
+			<-connection.GetCloseChannel()
+			onClose(connection)
+		}()
+		return nil
+	}
+}
+
 /*
 
 
