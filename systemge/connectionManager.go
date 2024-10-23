@@ -7,6 +7,9 @@ type ConnectionManager[D any] struct {
 }
 
 func (connectionManager *ConnectionManager[D]) Write(data D, timeoutNs int64, connections ...Connection[D]) {
+	if len(connections) == 0 {
+		connections = connectionManager.GetBulk()
+	}
 	MultiWrite(data, timeoutNs, connections...)
 }
 
