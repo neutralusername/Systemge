@@ -134,7 +134,8 @@ func NewAuthenticationHandler[T any](
 	getCurrentPassword func(connection systemge.Connection[T]) string,
 	unmarshalPassword func(password T) (string, error),
 	requestMessage func(connection systemge.Connection[T]) (T, bool),
-	timeoutNs int64,
+	writeTimeoutNs int64,
+	readTimeoutNs int64,
 ) systemge.AcceptHandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		currentPassword := getCurrentPassword(connection)
@@ -143,12 +144,12 @@ func NewAuthenticationHandler[T any](
 		}
 
 		if requestMessage, ok := requestMessage(connection); ok {
-			if err := connection.Write(requestMessage, timeoutNs); err != nil {
+			if err := connection.Write(requestMessage, writeTimeoutNs); err != nil {
 				return err
 			}
 		}
 
-		data, err := connection.Read(timeoutNs)
+		data, err := connection.Read(readTimeoutNs)
 		if err != nil {
 			return err
 		}
