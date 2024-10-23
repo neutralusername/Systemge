@@ -41,11 +41,7 @@ func (manager *ObjectManager[D]) Add(object D) (string, error) {
 	}
 
 	id := GenerateRandomString(manager.idLength, manager.idAlphabet)
-	for {
-		if _, ok := manager.ids[id]; !ok {
-			break
-		}
-		id = GenerateRandomString(manager.idLength, manager.idAlphabet)
+	for _, ok := manager.ids[id]; ok; id = GenerateRandomString(manager.idLength, manager.idAlphabet) {
 	}
 
 	manager.ids[id] = object
