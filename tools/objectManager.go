@@ -120,3 +120,23 @@ func (manager *ObjectManager[D]) GetId(object D) string {
 
 	return ""
 }
+
+func (manager *ObjectManager[D]) GetBulk(ids ...string) []D {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	objects := make([]D, 0, len(ids))
+	if len(ids) == 0 {
+		for _, object := range manager.ids {
+			objects = append(objects, object)
+		}
+	} else {
+		for _, id := range ids {
+			if object, ok := manager.ids[id]; ok {
+				objects = append(objects, object)
+			}
+		}
+	}
+
+	return objects
+}
