@@ -55,6 +55,20 @@ func (manager *ObjectManager[D]) Add(object D) (string, error) {
 	return id, nil
 }
 
+func (manager *ObjectManager[D]) AddId(id string, object D) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+
+	if _, ok := manager.ids[id]; ok {
+		return errors.New("id already exists")
+	}
+
+	manager.ids[id] = object
+	manager.objects[object] = id
+
+	return nil
+}
+
 func (manager *ObjectManager[D]) RemoveId(id string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
