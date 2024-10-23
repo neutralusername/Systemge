@@ -84,6 +84,7 @@ add mechanism to build boolean conditions using these (and custom) handler funcs
 :
 
 (accept)control
+accept "password" check
 accept "session" (add something similar to session manager that works for connections exclusively and can be used to typed multi message efficiently)
 accept queue
 
