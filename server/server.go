@@ -20,8 +20,6 @@ type Server[D any] struct {
 	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
 
 	accepter *serviceAccepter.Accepter[D]
-
-	// connections map[string]systemge.Connection[D] // id -> connection (this is neccessary for writing (and unique ids) but i don't really want to add this (or sessionManager) overhead to this struct by default)
 }
 
 func New[D any](
