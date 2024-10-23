@@ -18,8 +18,13 @@ type ConnectionManager[D any] struct {
 	connections  map[Connection[D]]string
 }
 
-func NewSessionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) *ConnectionManager[D] {
-
+func NewSessionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) (*ConnectionManager[D], error) {
+	if sessionIdLength < 1 {
+		return nil, errors.New("sessionIdLength must be greater than 0")
+	}
+	if len(sessionIdAlphabet) < 2 {
+		return nil, errors.New("sessionIdAlphabet must contain at least 2 characters")
+	}
 	return &ConnectionManager[D]{
 		sessionIdLength:   sessionIdLength,
 		sessionIdAlphabet: sessionIdAlphabet,
@@ -27,7 +32,7 @@ func NewSessionManager[D any](sessionIdLength uint32, sessionIdAlphabet string) 
 
 		sessions:    make(map[string]Connection[D]),
 		connections: make(map[Connection[D]]string),
-	}
+	}, nil
 }
 
 func (manager *ConnectionManager[D]) CreateSession(connection Connection[D]) (string, error) {
