@@ -142,7 +142,7 @@ func NewAuthenticationHandler[T any](
 			return nil
 		}
 
-		if requestMessage, send := requestMessage(connection); send {
+		if requestMessage, ok := requestMessage(connection); ok {
 			if err := connection.Write(requestMessage, timeoutNs); err != nil {
 				return err
 			}
