@@ -6,15 +6,11 @@ import (
 	"sync"
 
 	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/constants"
 	"github.com/neutralusername/systemge/status"
 )
 
 type SessionManager struct {
 	config *configs.SessionManager
-
-	instanceId string
-	sessionId  string
 
 	maxTotalSessions int
 
@@ -59,8 +55,6 @@ func NewSessionManager(config *configs.SessionManager, onCreateSession func(*Ses
 	return &SessionManager{
 		config: config,
 
-		instanceId: GenerateRandomString(constants.InstanceIdLength, ALPHA_NUMERIC),
-
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
 
@@ -83,7 +77,6 @@ func (manager *SessionManager) Start() error {
 		return errors.New("session manager already accepting sessions")
 	}
 
-	manager.sessionId = GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	manager.isStarted = true
 	manager.sessionMutex.Unlock()
 
