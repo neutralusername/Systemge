@@ -77,8 +77,6 @@ build integrate onClose handlers for connections
 
 add more abstraction in general after gathering some experience implementing samples
 
-add a "multiConnection" or something along those lines, that allows for more efficient typed messaging (right now, writing the same message to typed Connections would require serialize for every operation )
-
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
 
 "server modules" (handler funcs that can be chained)
