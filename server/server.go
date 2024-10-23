@@ -21,7 +21,7 @@ type Server[D any] struct {
 
 	accepter *serviceAccepter.Accepter[D]
 
-	connections map[string]systemge.Connection[D] // id -> connection
+	connections map[string]systemge.Connection[D] // id -> connection (this is neccessary for writing (and unique ids) but i don't really want to add this (or sessionManager) overhead to this struct by default)
 }
 
 func New[D any](
