@@ -65,6 +65,16 @@ func NewResponseHandler[T any](
 	}
 }
 
+type ObjectValidator[T any] func(T, systemge.Connection[T]) error
+
+func NewValidationObjectHandler[T any](
+	validator ObjectValidator[T],
+) systemge.ReadHandlerWithError[T] {
+	return func(object T, caller systemge.Connection[T]) error {
+		return validator(object, caller)
+	}
+}
+
 /*
 
 type ObtainReadHandlerEnqueueConfigs[T any] func(T, systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
@@ -88,13 +98,7 @@ func NewQueueObjectHandler[T any](
 	}
 }
 
-type ObjectValidator[T any] func(T, systemge.Connection[T]) error
 
-func NewValidationObjectHandler[T any](validator ObjectValidator[T]) systemge.ReadHandlerWithError[T] {
-	return func(object T, caller systemge.Connection[T]) error {
-		return validator(object, caller)
-	}
-}
 
 type ObtainTokensFromBytes[T any] func(T) uint64
 */
