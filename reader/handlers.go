@@ -17,7 +17,7 @@ func NewByteRateLimitHandler(
 	}
 }
 
-func NewMessageRateLimiterHandler[T any](
+func NewMessageRateLimitHandler[T any](
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 ) systemge.ReadHandlerWithError[T] {
 
