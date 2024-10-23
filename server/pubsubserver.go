@@ -1,16 +1,6 @@
-package servicePublishSubscribe
+package server
 
-import (
-	"errors"
-	"sync"
-
-	"github.com/neutralusername/systemge/accepter"
-	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/reader"
-	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
-)
-
+/*
 type PublishSubscribeServer[T any] struct {
 	config   *configs.PublishSubscribeServer
 	listener systemge.Listener[T]
@@ -50,7 +40,7 @@ type HandleMessage[T any] func(
 	err error,
 )
 
-func New[T any](
+func NewPublishSubscribeServer[T any](
 	listener systemge.Listener[T],
 	requestResponseManager *tools.RequestResponseManager[T],
 	publishSubscribeServerConfig *configs.PublishSubscribeServer,
@@ -261,3 +251,4 @@ func (publishSubscribeServer *PublishSubscribeServer[T]) Respond(
 		return
 	}
 }
+*/
