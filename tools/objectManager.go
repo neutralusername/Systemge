@@ -179,6 +179,38 @@ func (manager *ObjectManager[D]) ObjectExists(object D) bool {
 	return ok
 }
 
+func (manager *ObjectManager[D]) ReplaceObject(oldObject, newObject D) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+
+	id, ok := manager.objects[oldObject]
+	if !ok {
+		return errors.New("entry not found")
+	}
+
+	manager.ids[id] = newObject
+	manager.objects[newObject] = id
+	delete(manager.objects, oldObject)
+
+	return nil
+}
+
+func (manager *ObjectManager[D]) ReplaceId(oldId, newId string) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+
+	object, ok := manager.ids[oldId]
+	if !ok {
+		return errors.New("entry not found")
+	}
+
+	manager.ids[newId] = object
+	manager.objects[object] = newId
+	delete(manager.ids, oldId)
+
+	return nil
+}
+
 func (manager *ObjectManager[D]) GetSize() int {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
