@@ -82,7 +82,7 @@ add a "multiConnection" or something along those lines, that allows for more eff
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
 
 "server modules" (handler funcs that can be chained)
-(add mechanism to build boolean conditions using these (and custom) handler funcs and not just simply chain them sequentially - such as (x and y) or z (z only executed if x and y fails)
+add mechanism to build boolean conditions using these (and custom) handler funcs and not just simply chain them sequentially - such as (x and y) or z (z only executed if x and y fails)
 :
 
 (accept)control
