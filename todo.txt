@@ -86,14 +86,9 @@ add mechanism to build boolean conditions using these (and custom) handler funcs
 accept "session" (add something similar to session manager that works for connections exclusively and can be used to typed multi message efficiently)
 accept queue
 
-
 read queue
 read messageHandlers (retrieve topic, switch topic and handle some data and response for sync-handlers)
 
-writer
-
 heartbeat
     
-accept connection handler
-
 publishSubscribe

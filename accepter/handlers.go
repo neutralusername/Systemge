@@ -204,6 +204,15 @@ func NewSingleReadSyncHandler[T any](
 	}
 }
 
+func AcceptConnectionHandler[T any](
+	connectionManager *systemge.ConnectionManager[T],
+) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		_, err := connectionManager.Add(connection)
+		return err
+	}
+}
+
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
