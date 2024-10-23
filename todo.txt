@@ -95,7 +95,7 @@ writer
 
 heartbeat
     
-accepter connection handler
+accept connection handler
 
 (accept) singleRequest
 (accept) resolver (on top of single request probably)
