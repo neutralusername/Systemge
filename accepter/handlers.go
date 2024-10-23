@@ -22,7 +22,7 @@ func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[
 	}
 }
 
-func NewAccessControllHandler[T any](
+func NewAccessControlHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
 	blockList *tools.AccessControlList,
 	accessList *tools.AccessControlList,
