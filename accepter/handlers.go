@@ -205,7 +205,7 @@ func NewSingleReadSyncHandler[T any](
 }
 
 // adds connection to connection manager and removes it when connection is closed
-func AcceptConnectionHandler[T any](
+func AcceptConnectionManagerHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
 ) systemge.AcceptHandlerWithError[T] {
@@ -228,7 +228,7 @@ func AcceptConnectionHandler[T any](
 
 // adds connection to connection manager and removes it when connection is closed.
 // could be used multiple times with different managers and getId functions (userId, groupId, etc.)
-func AcceptConnectionIdHandler[T any](
+func AcceptConnectionManagerIdHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
 	getId func(connection systemge.Connection[T]) string,
