@@ -11,9 +11,9 @@ type ObjectManager[O comparable] struct {
 	idAlphabet string
 	cap        int
 
-	mutex   sync.RWMutex
 	ids     map[string]O
 	objects map[O]string
+	mutex   sync.RWMutex
 }
 
 func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*ObjectManager[O], error) {
