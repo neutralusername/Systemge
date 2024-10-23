@@ -116,6 +116,31 @@ func NewAccessControllHandler[T any](
 	}
 }
 
+/* func NewPasswordHandler[T any](
+	getCurrentPassword func(connection systemge.Connection[T]) string,
+	unmarshalPassword func(password T) (string, error),
+	timeoutNs int64,
+) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		currentPassword := getCurrentPassword(connection)
+		if currentPassword == "" {
+			return errors.New("no password set")
+		}
+		password, err := connection.Read(timeoutNs)
+		if err != nil {
+			return err
+		}
+		unmarshaledPassword, err := unmarshalPassword(password)
+		if err != nil {
+			return err
+		}
+		if unmarshaledPassword != currentPassword {
+			return errors.New("wrong password")
+		}
+		return nil
+	}
+} */
+
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedAcceptHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandler[T] {
