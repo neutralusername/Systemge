@@ -60,8 +60,10 @@ func (manager *ObjectManager[D]) RemoveId(id string) error {
 	if !ok {
 		return errors.New("entry not found")
 	}
+
 	delete(manager.ids, id)
 	delete(manager.objects, object)
+
 	return nil
 }
 
@@ -75,6 +77,7 @@ func (manager *ObjectManager[D]) Remove(object D) error {
 	}
 	delete(manager.ids, id)
 	delete(manager.objects, object)
+
 	return nil
 }
 
