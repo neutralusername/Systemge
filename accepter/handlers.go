@@ -10,8 +10,8 @@ import (
 
 func NewAccessControllHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
-	blacklist *tools.AccessControlList,
-	whitelist *tools.AccessControlList,
+	blockList *tools.AccessControlList,
+	accessList *tools.AccessControlList,
 ) systemge.AcceptHandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		ip, _, err := net.SplitHostPort(connection.GetAddress())
@@ -21,11 +21,11 @@ func NewAccessControllHandler[T any](
 		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
 			return errors.New("rate limited")
 		}
-		if blacklist != nil && blacklist.Contains(ip) {
-			return errors.New("blacklisted")
+		if blockList != nil && blockList.Contains(ip) {
+			return errors.New("blocked")
 		}
-		if whitelist != nil && whitelist.ElementCount() > 0 && !whitelist.Contains(ip) {
-			return errors.New("not whitelisted")
+		if accessList != nil && accessList.ElementCount() > 0 && !accessList.Contains(ip) {
+			return errors.New("not in access list")
 		}
 		return nil
 	}
