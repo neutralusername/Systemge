@@ -5,7 +5,6 @@ import (
 	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/serviceReader"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
 type Server[D any] struct {
@@ -16,8 +15,8 @@ type Server[D any] struct {
 	readerServerAsyncConfig *configs.ReaderAsync
 	readerRoutineConfig     *configs.Routine
 
-	ReadHandler   tools.ReadHandler[D, systemge.Connection[D]]
-	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
+	ReadHandler   systemge.ReadHandler[D]
+	AcceptHandler systemge.AcceptHandlerWithError[D]
 
 	accepter *serviceAccepter.Accepter[D]
 }
@@ -28,8 +27,8 @@ func New[D any](
 	accepterRoutineConfig *configs.Routine,
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-	readHandler tools.ReadHandler[D, systemge.Connection[D]],
+	acceptHandler systemge.AcceptHandlerWithError[D],
+	readHandler systemge.ReadHandler[D],
 ) (*Server[D], error) {
 	server := &Server[D]{
 		listener:              listener,

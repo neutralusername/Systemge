@@ -17,7 +17,7 @@ type ReaderSync[D any] struct {
 
 	readRoutine *tools.Routine
 
-	ReadHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]]
+	ReadHandler systemge.ReadHandlerWithResult[D]
 
 	// metrics
 
@@ -32,7 +32,7 @@ func NewSync[D any](
 	connection systemge.Connection[D],
 	readerServerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
+	readHandler systemge.ReadHandlerWithResult[D],
 ) (*ReaderSync[D], error) {
 
 	if connection == nil {

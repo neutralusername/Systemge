@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/serviceSingleRequest"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
 type Resolver[D any] struct {
@@ -24,7 +23,7 @@ func New[D any](
 	accepterConfig *configs.Accepter,
 	readerSyncConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	acceptHandler systemge.AcceptHandlerWithError[D],
 	deserializeTopic func(D, systemge.Connection[D]) (string, error), // responsible for retrieving the topic
 ) (*Resolver[D], error) {
 

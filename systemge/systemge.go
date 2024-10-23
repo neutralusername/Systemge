@@ -4,6 +4,15 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type AcceptHandler[D any] func(Connection[D])
+type AcceptHandlerWithError[D any] func(Connection[D]) error
+
+type ReadHandler[D any] func(D, Connection[D])
+
+type ReadHandlerWithResult[D any] func(D, Connection[D]) (D, error)
+
+type ReadHandlerWithError[D any] func(D, Connection[D]) error
+
 type Connector[D any] interface {
 	Connect(int64) (Connection[D], error)
 }

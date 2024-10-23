@@ -58,7 +58,7 @@ func New[D any](
 	readerRoutineConfig *configs.Routine,
 	accepterServerConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
+	acceptHandler systemge.AcceptHandlerWithError[D],
 	handleMessage HandleMessage[D],
 ) (*PublishSubscribeServer[D], error) {
 

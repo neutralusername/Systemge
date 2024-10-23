@@ -3,15 +3,6 @@ package tools
 type Serializer[D any, O any] func(object O) (D, error)
 type Deserializer[D any, O any] func(data D) (O, error)
 
-type AcceptHandler[C any] func(C)
-type AcceptHandlerWithError[C any] func(C) error
-
-type ReadHandler[D any, C any] func(D, C)
-
-type ReadHandlerWithResult[D any, C any] func(D, C) (D, error)
-
-type ReadHandlerWithError[D any, C any] func(D, C) error
-
 /*
 // executes all handlers in order, return error if any handler returns an error
 func NewChainedReadHandler[D any, C any](handlers ...ReadHandlerWithError[D, C]) ReadHandlerWithError[D, C] {

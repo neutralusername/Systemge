@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
 func NewSync[D any](
@@ -15,8 +14,8 @@ func NewSync[D any](
 	accepterConfig *configs.Accepter,
 	readerConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-	readHandler tools.ReadHandlerWithResult[D, systemge.Connection[D]],
+	acceptHandler systemge.AcceptHandlerWithError[D],
+	readHandler systemge.ReadHandlerWithResult[D],
 ) (*SingleRequestServer[D], error) {
 
 	if readHandler == nil {

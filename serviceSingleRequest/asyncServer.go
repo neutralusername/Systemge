@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/systemge"
-	"github.com/neutralusername/systemge/tools"
 )
 
 type SingleRequestServer[D any] struct {
@@ -23,8 +22,8 @@ func NewAsync[D any](
 	accepterConfig *configs.Accepter,
 	readerConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],
-	readHandler tools.ReadHandler[D, systemge.Connection[D]],
+	acceptHandler systemge.AcceptHandlerWithError[D],
+	readHandler systemge.ReadHandler[D],
 ) (*serviceAccepter.Accepter[D], error) {
 
 	if readHandler == nil {
