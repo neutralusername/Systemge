@@ -3,17 +3,17 @@ package serviceSingleRequest
 import (
 	"errors"
 
+	"github.com/neutralusername/systemge/accepter"
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
-	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/systemge"
 )
 
 type SingleRequestServer[T any] struct {
-	accepter *serviceAccepter.Accepter[T]
+	accepter *accepter.Accepter[T]
 }
 
-func (s *SingleRequestServer[T]) GetAccepter() *serviceAccepter.Accepter[T] {
+func (s *SingleRequestServer[T]) GetAccepter() *accepter.Accepter[T] {
 	return s.accepter
 }
 
@@ -24,7 +24,7 @@ func NewAsync[T any](
 	routineConfig *configs.Routine,
 	acceptHandler systemge.AcceptHandlerWithError[T],
 	readHandler systemge.ReadHandler[T],
-) (*serviceAccepter.Accepter[T], error) {
+) (*accepter.Accepter[T], error) {
 
 	if readHandler == nil {
 		return nil, errors.New("readerHandler is nil")
@@ -38,7 +38,7 @@ func NewAsync[T any](
 
 	singleReuqestAsync := &SingleRequestServer[T]{}
 
-	accepter, err := serviceAccepter.New(
+	accepter, err := accepter.New(
 		listener,
 		accepterConfig,
 		routineConfig,

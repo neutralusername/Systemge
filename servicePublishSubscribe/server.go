@@ -4,9 +4,9 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/neutralusername/systemge/accepter"
 	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/serviceAccepter"
-	"github.com/neutralusername/systemge/serviceReader"
+	"github.com/neutralusername/systemge/reader"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -18,14 +18,14 @@ type PublishSubscribeServer[T any] struct {
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[T]]struct{} // topic -> connection -> struct{}
 	subscribers            map[systemge.Connection[T]]*subscriber[T]
-	accepter               *serviceAccepter.Accepter[T]
+	accepter               *accepter.Accepter[T]
 	requestResponseManager *tools.RequestResponseManager[T]
 	handleMessage          HandleMessage[T]
 }
 
 type subscriber[T any] struct {
 	connection    systemge.Connection[T]
-	readerAsync   *serviceReader.ReaderAsync[T]
+	readerAsync   *reader.ReaderAsync[T]
 	subscriptions map[string]struct{}
 }
 
@@ -93,7 +93,7 @@ func New[T any](
 		publishSubscribeServer.topics[topic] = make(map[*subscriber[T]]struct{})
 	}
 
-	accepter, err := serviceAccepter.New(
+	accepter, err := accepter.New(
 		listener,
 		accepterServerConfig,
 		accepterRoutineConfig,
@@ -103,7 +103,7 @@ func New[T any](
 				return nil
 			}
 
-			reader, err := serviceReader.NewAsync(
+			reader, err := reader.NewAsync(
 				connection,
 				readerAsyncConfig,
 				readerRoutineConfig,

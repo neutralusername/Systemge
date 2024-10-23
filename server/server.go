@@ -1,9 +1,9 @@
 package server
 
 import (
+	"github.com/neutralusername/systemge/accepter"
 	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/serviceAccepter"
-	"github.com/neutralusername/systemge/serviceReader"
+	"github.com/neutralusername/systemge/reader"
 	"github.com/neutralusername/systemge/systemge"
 )
 
@@ -18,7 +18,7 @@ type Server[T any] struct {
 	ReadHandler   systemge.ReadHandler[T]
 	AcceptHandler systemge.AcceptHandlerWithError[T]
 
-	accepter *serviceAccepter.Accepter[T]
+	accepter *accepter.Accepter[T]
 }
 
 func New[T any](
@@ -42,7 +42,7 @@ func New[T any](
 		ReadHandler:   readHandler,
 	}
 
-	accepter, err := serviceAccepter.New(
+	accepter, err := accepter.New(
 		listener,
 		accepterConfig,
 		accepterRoutineConfig,
@@ -51,7 +51,7 @@ func New[T any](
 				return err
 			}
 
-			reader, err := serviceReader.NewAsync[T](
+			reader, err := reader.NewAsync[T](
 				connection,
 				readerServerAsyncConfig,
 				readerRoutineConfig,
@@ -78,6 +78,6 @@ func New[T any](
 	return server, nil
 }
 
-func (server *Server[T]) GetAccepter() *serviceAccepter.Accepter[T] {
+func (server *Server[T]) GetAccepter() *accepter.Accepter[T] {
 	return server.accepter
 }

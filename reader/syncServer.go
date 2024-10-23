@@ -1,4 +1,4 @@
-package serviceReader
+package reader
 
 import (
 	"encoding/json"

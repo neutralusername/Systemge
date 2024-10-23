@@ -1,4 +1,4 @@
-package serviceAccepter
+package accepter
 
 import (
 	"encoding/json"

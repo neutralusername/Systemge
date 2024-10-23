@@ -3,9 +3,9 @@ package serviceSingleRequest
 import (
 	"errors"
 
+	"github.com/neutralusername/systemge/accepter"
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
-	"github.com/neutralusername/systemge/serviceAccepter"
 	"github.com/neutralusername/systemge/systemge"
 )
 
@@ -30,7 +30,7 @@ func NewSync[T any](
 
 	singleReuqestSync := &SingleRequestServer[T]{}
 
-	accepter, err := serviceAccepter.New(
+	accepter, err := accepter.New(
 		listener,
 		accepterConfig,
 		routineConfig,
