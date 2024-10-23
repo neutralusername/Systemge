@@ -211,7 +211,7 @@ func (manager *ObjectManager[D]) ReplaceId(oldId, newId string) error {
 	return nil
 }
 
-func (manager *ObjectManager[D]) GetSize() int {
+func (manager *ObjectManager[D]) GetLength() int {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
