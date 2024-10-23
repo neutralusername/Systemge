@@ -13,20 +13,105 @@ func NewAccessControllHandler[T any](
 	blockList *tools.AccessControlList,
 	accessList *tools.AccessControlList,
 ) systemge.AcceptHandlerWithError[T] {
-	return func(connection systemge.Connection[T]) error {
-		ip, _, err := net.SplitHostPort(connection.GetAddress())
-		if err != nil {
-			return err
+	switch {
+	case ipRateLimiter == nil && blockList == nil && accessList == nil:
+		return func(connection systemge.Connection[T]) error {
+			return nil
 		}
-		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
-			return errors.New("rate limited")
+	case ipRateLimiter == nil && blockList == nil && accessList != nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if accessList.ElementCount() != 0 && !accessList.Contains(ip) {
+				return errors.New("not in access list")
+			}
+			return nil
 		}
-		if blockList != nil && blockList.Contains(ip) {
-			return errors.New("blocked")
+	case ipRateLimiter == nil && blockList != nil && accessList == nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if blockList.Contains(ip) {
+				return errors.New("blocked")
+			}
+			return nil
 		}
-		if accessList != nil && accessList.ElementCount() > 0 && !accessList.Contains(ip) {
-			return errors.New("not in access list")
+	case ipRateLimiter == nil && blockList != nil && accessList != nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if blockList.Contains(ip) {
+				return errors.New("blocked")
+			}
+			if accessList.ElementCount() != 0 && !accessList.Contains(ip) {
+				return errors.New("not in access list")
+			}
+			return nil
 		}
+
+	case ipRateLimiter != nil && blockList == nil && accessList == nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+				return errors.New("rate limited")
+			}
+			return nil
+		}
+	case ipRateLimiter != nil && blockList == nil && accessList != nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+				return errors.New("rate limited")
+			}
+			if accessList.ElementCount() != 0 && !accessList.Contains(ip) {
+				return errors.New("rate limited or not in access list")
+			}
+			return nil
+		}
+	case ipRateLimiter != nil && blockList != nil && accessList == nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+				return errors.New("rate limited")
+			}
+			if blockList.Contains(ip) {
+				return errors.New("rate limited or blocked")
+			}
+			return nil
+		}
+	case ipRateLimiter != nil && blockList != nil && accessList != nil:
+		return func(connection systemge.Connection[T]) error {
+			ip, _, err := net.SplitHostPort(connection.GetAddress())
+			if err != nil {
+				return err
+			}
+			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+				return errors.New("rate limited")
+			}
+			if blockList.Contains(ip) {
+				return errors.New("rate limited or blocked")
+			}
+			if accessList.ElementCount() != 0 && !accessList.Contains(ip) {
+				return nil
+			}
+			return errors.New("rate limited or blocked or not in access list")
+		}
+	default:
 		return nil
 	}
 }
