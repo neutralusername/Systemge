@@ -11,7 +11,7 @@ func NewByteRateLimitHandler(
 ) systemge.ReadHandlerWithError[[]byte] {
 
 	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
-	return func(data []byte, caller systemge.Connection[[]byte]) error {
+	return func(data []byte, connection systemge.Connection[[]byte]) error {
 		tokenBucketRateLimiter.Consume(uint64(len(data)))
 		return nil
 	}
@@ -22,7 +22,7 @@ func NewMessageRateLimitHandler[T any](
 ) systemge.ReadHandlerWithError[T] {
 
 	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
-	return func(data T, caller systemge.Connection[T]) error {
+	return func(data T, connection systemge.Connection[T]) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
 	}
