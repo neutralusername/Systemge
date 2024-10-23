@@ -49,14 +49,14 @@ type Connection[D any] interface {
 	CheckMetrics() tools.MetricsTypes
 }
 
-type ConnectionManager[D any, C Connection[D]] struct {
-	*tools.ObjectManager[C]
+type ConnectionManager[D any] struct {
+	*tools.ObjectManager[Connection[D]]
 }
 
-func (connectionManager *ConnectionManager[D, C]) Write(data D, timeoutNs int64, connections ...C) {
+func (connectionManager *ConnectionManager[D]) Write(data D, timeoutNs int64, connections ...Connection[D]) {
 	MultiWrite(data, timeoutNs, connections...)
 }
 
-func (connectionManager *ConnectionManager[D, C]) WriteId(data D, timeoutNs int64, ids ...string) {
+func (connectionManager *ConnectionManager[D]) WriteId(data D, timeoutNs int64, ids ...string) {
 	MultiWrite(data, timeoutNs, connectionManager.GetBulk()...)
 }
