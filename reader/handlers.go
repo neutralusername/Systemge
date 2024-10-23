@@ -98,7 +98,4 @@ func NewQueueObjectHandler[T any](
 	}
 }
 
-
-
-type ObtainTokensFromBytes[T any] func(T) uint64
 */
