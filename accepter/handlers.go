@@ -207,14 +207,22 @@ func NewSingleReadSyncHandler[T any](
 // adds connection to connection manager and removes it when connection is closed
 func AcceptConnectionHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
+	removeOnClose bool,
 ) systemge.AcceptHandlerWithError[T] {
-	return func(connection systemge.Connection[T]) error {
-		_, err := connectionManager.Add(connection)
-		go func() {
-			<-connection.GetCloseChannel()
-			connectionManager.Remove(connection)
-		}()
-		return err
+	if removeOnClose {
+		return func(connection systemge.Connection[T]) error {
+			_, err := connectionManager.Add(connection)
+			go func() {
+				<-connection.GetCloseChannel()
+				connectionManager.Remove(connection)
+			}()
+			return err
+		}
+	} else {
+		return func(connection systemge.Connection[T]) error {
+			_, err := connectionManager.Add(connection)
+			return err
+		}
 	}
 }
 
