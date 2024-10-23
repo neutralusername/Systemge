@@ -92,7 +92,7 @@ accept queue
 
 (read)control
 read queue
-read messageHandlers
+read messageHandlers (retrieve topic, switch topic and handle some data and response for sync-handlers)
 
 writer
 
