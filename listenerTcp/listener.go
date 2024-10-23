@@ -36,7 +36,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs.TcpBufferedReader) (systemge.Listener[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -50,7 +50,7 @@ func New(name string, config *configs.TcpListener, bufferedReaderConfig *configs
 	return server, nil
 }
 
-func (listener *TcpListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+func (listener *TcpListener) GetConnector() systemge.Connector[[]byte] {
 	connector := &connector{
 		tcpBufferedReaderConfig: listener.tcpBufferedReaderConfig,
 		tcpClientConfig: &configs.TcpClient{

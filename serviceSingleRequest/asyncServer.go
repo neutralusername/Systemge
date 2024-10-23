@@ -19,7 +19,7 @@ func (s *SingleRequestServer[D]) GetAccepter() *serviceAccepter.Accepter[D] {
 }
 
 func NewAsync[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	accepterConfig *configs.Accepter,
 	readerConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,

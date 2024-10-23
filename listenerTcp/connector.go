@@ -13,7 +13,7 @@ type connector struct {
 func NewConnector(
 	tcpBufferedReaderConfig *configs.TcpBufferedReader,
 	tcpClientConfig *configs.TcpClient,
-) systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+) systemge.Connector[[]byte] {
 	return &connector{
 		tcpBufferedReaderConfig: tcpBufferedReaderConfig,
 		tcpClientConfig:         tcpClientConfig,

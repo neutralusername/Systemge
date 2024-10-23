@@ -8,16 +8,16 @@ import (
 )
 
 type typedListener[O any, D any] struct {
-	systemge.Listener[D, systemge.Connection[D]]
+	systemge.Listener[D]
 	serializer   func(O) (D, error)
 	deserializer func(D) (O, error)
 }
 
 func New[O any, D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	serializer func(O) (D, error),
 	deserializer func(D) (O, error),
-) (systemge.Listener[O, systemge.Connection[O]], error) {
+) (systemge.Listener[O], error) {
 
 	if listener == nil {
 		return nil, errors.New("connection is nil")
@@ -51,12 +51,12 @@ func (typedListener *typedListener[O, D]) Accept(timeoutNs int64) (systemge.Conn
 }
 
 type connector[O any, D any] struct {
-	systemge.Connector[D, systemge.Connection[D]]
+	systemge.Connector[D]
 	deserializer func(D) (O, error)
 	serializer   func(O) (D, error)
 }
 
-func (typedListener *typedListener[O, D]) GetConnector() systemge.Connector[O, systemge.Connection[O]] {
+func (typedListener *typedListener[O, D]) GetConnector() systemge.Connector[O] {
 	return &connector[O, D]{
 		typedListener.Listener.GetConnector(),
 		typedListener.deserializer,

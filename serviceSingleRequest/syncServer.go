@@ -11,7 +11,7 @@ import (
 )
 
 func NewSync[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	accepterConfig *configs.Accepter,
 	readerConfig *configs.ReaderSync,
 	routineConfig *configs.Routine,

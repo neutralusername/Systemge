@@ -19,7 +19,7 @@ type Resolver[D any] struct {
 }
 
 func New[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	topicData map[string]D,
 	accepterConfig *configs.Accepter,
 	readerSyncConfig *configs.ReaderSync,

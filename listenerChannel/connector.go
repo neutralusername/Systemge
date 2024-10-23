@@ -11,7 +11,7 @@ type connector[D any] struct {
 
 func NewConnector[D any](
 	connChann chan *connectionChannel.ConnectionRequest[D],
-) systemge.Connector[D, systemge.Connection[D]] {
+) systemge.Connector[D] {
 	return &connector[D]{
 		connChann: connChann,
 	}

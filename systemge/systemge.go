@@ -4,15 +4,15 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Connector[D any, C Connection[D]] interface {
-	Connect(int64) (C, error)
+type Connector[D any] interface {
+	Connect(int64) (Connection[D], error)
 }
 
-type Listener[D any, C Connection[D]] interface {
+type Listener[D any] interface {
 	Start() error
 	Stop() error
 
-	GetConnector() Connector[D, C]
+	GetConnector() Connector[D]
 
 	GetInstanceId() string
 	GetSessionId() string
@@ -20,7 +20,7 @@ type Listener[D any, C Connection[D]] interface {
 	GetStatus() int
 	GetStopChannel() <-chan struct{}
 
-	Accept(int64) (C, error)
+	Accept(int64) (Connection[D], error)
 	SetAcceptDeadline(int64)
 
 	GetDefaultCommands() tools.CommandHandlers

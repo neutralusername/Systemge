@@ -13,7 +13,7 @@ import (
 )
 
 type Accepter[D any] struct {
-	listener      systemge.Listener[D, systemge.Connection[D]]
+	listener      systemge.Listener[D]
 	acceptRoutine *tools.Routine
 
 	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]]
@@ -25,7 +25,7 @@ type Accepter[D any] struct {
 }
 
 func New[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[D]],

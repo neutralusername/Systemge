@@ -31,7 +31,7 @@ type ChannelListener[D any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], error) {
+func New[D any](name string) (systemge.Listener[D], error) {
 	listener := &ChannelListener[D]{
 		name:       name,
 		status:     status.Stopped,
@@ -41,7 +41,7 @@ func New[D any](name string) (systemge.Listener[D, systemge.Connection[D]], erro
 	return listener, nil
 }
 
-func (listener *ChannelListener[D]) GetConnector() systemge.Connector[D, systemge.Connection[D]] {
+func (listener *ChannelListener[D]) GetConnector() systemge.Connector[D] {
 	return &connector[D]{
 		connChann: listener.connectionChannel,
 	}

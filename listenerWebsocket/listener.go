@@ -47,7 +47,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener, incomingMessageByteLimit uint64, connectionLifetimeNs int64) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *configs.WebsocketListener, incomingMessageByteLimit uint64, connectionLifetimeNs int64) (systemge.Listener[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -89,7 +89,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	return listener, nil
 }
 
-func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte] {
 	return &connector{
 		tcpClientConfig: &configs.TcpClient{
 			Port:    listener.config.TcpListenerConfig.Port,

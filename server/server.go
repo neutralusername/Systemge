@@ -9,7 +9,7 @@ import (
 )
 
 type Server[D any] struct {
-	listener              systemge.Listener[D, systemge.Connection[D]]
+	listener              systemge.Listener[D]
 	accepterConfig        *configs.Accepter
 	accepterRoutineConfig *configs.Routine
 
@@ -23,7 +23,7 @@ type Server[D any] struct {
 }
 
 func New[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	accepterConfig *configs.Accepter,
 	accepterRoutineConfig *configs.Routine,
 	readerServerAsyncConfig *configs.ReaderAsync,

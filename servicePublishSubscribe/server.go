@@ -13,7 +13,7 @@ import (
 
 type PublishSubscribeServer[D any] struct {
 	config   *configs.PublishSubscribeServer
-	listener systemge.Listener[D, systemge.Connection[D]]
+	listener systemge.Listener[D]
 
 	mutex                  sync.RWMutex
 	topics                 map[string]map[*subscriber[D]]struct{} // topic -> connection -> struct{}
@@ -51,7 +51,7 @@ type HandleMessage[D any] func(
 )
 
 func New[D any](
-	listener systemge.Listener[D, systemge.Connection[D]],
+	listener systemge.Listener[D],
 	requestResponseManager *tools.RequestResponseManager[D],
 	publishSubscribeServerConfig *configs.PublishSubscribeServer,
 	readerAsyncConfig *configs.ReaderAsync,

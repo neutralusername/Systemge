@@ -13,7 +13,7 @@ type connector struct {
 func NewConnector(
 	tcpClientConfig *configs.TcpClient,
 	incomingDataByteLimit uint64,
-) systemge.Connector[[]byte, systemge.Connection[[]byte]] {
+) systemge.Connector[[]byte] {
 	return &connector{
 		tcpClientConfig:       tcpClientConfig,
 		incomingDataByteLimit: incomingDataByteLimit,
