@@ -35,8 +35,10 @@ func NewObjectManager[O comparable](idLength uint32, idAlphabet string) (*Object
 }
 
 func (manager *ObjectManager[D]) Add(object D) (string, error) {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+
 	if len(manager.objects) >= manager.cap {
-		manager.mutex.Unlock()
 		return "", errors.New("maximum number of entries reached")
 	}
 
@@ -46,7 +48,6 @@ func (manager *ObjectManager[D]) Add(object D) (string, error) {
 
 	manager.ids[id] = object
 	manager.objects[object] = id
-	manager.mutex.Unlock()
 
 	return id, nil
 }
@@ -80,9 +81,11 @@ func (manager *ObjectManager[D]) Remove(object D) error {
 func (manager *ObjectManager[D]) Get(id string) D {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
+
 	if object, ok := manager.ids[id]; ok {
 		return object
 	}
+
 	var nilValue D
 	return nilValue
 }
@@ -90,8 +93,10 @@ func (manager *ObjectManager[D]) Get(id string) D {
 func (manager *ObjectManager[D]) GetId(object D) string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
+
 	if id, ok := manager.objects[object]; ok {
 		return id
 	}
+
 	return ""
 }
