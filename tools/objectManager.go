@@ -142,7 +142,7 @@ func (manager *ObjectManager[D]) GetBulk(ids ...string) []D {
 	}
 }
 
-func (manager *ObjectManager[D]) GetIdBulk(objects ...D) []string {
+func (manager *ObjectManager[D]) GetBulkId(objects ...D) []string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
@@ -161,4 +161,41 @@ func (manager *ObjectManager[D]) GetIdBulk(objects ...D) []string {
 		}
 		return ids
 	}
+}
+
+func (manager *ObjectManager[D]) IdExists(id string) bool {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	_, ok := manager.ids[id]
+	return ok
+}
+
+func (manager *ObjectManager[D]) ObjectExists(object D) bool {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	_, ok := manager.objects[object]
+	return ok
+}
+
+func (manager *ObjectManager[D]) GetSize() int {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	return len(manager.ids)
+}
+
+func (manager *ObjectManager[D]) GetCapacity() int {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	return manager.cap
+}
+
+func (manager *ObjectManager[D]) GetRemainingCapacity() int {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	return manager.cap - len(manager.ids)
 }
