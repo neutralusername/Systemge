@@ -13,9 +13,9 @@ func New[D any](
 	accepterRoutineConfig *configs.Routine,
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
+	acceptHandler tools.AcceptHandlerWithError[D],
 	asyncMessageHandlers systemge.AsyncMessageHandlers[D],
 	syncMessageHandlers systemge.SyncMessageHandlers[D],
-	acceptHandler tools.AcceptHandlerWithError[D],
 ) *server.Server[D] {
 
 }
