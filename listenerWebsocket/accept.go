@@ -33,7 +33,6 @@ func (listener *WebsocketListener) Accept(timeoutNs int64) (systemge.Connection[
 			return nil, errors.New("accept canceled")
 
 		case upgraderResponse := <-upgraderResponseChannel:
-
 			if upgraderResponse.err != nil {
 				listener.ClientsFailed.Add(1)
 				return nil, upgraderResponse.err

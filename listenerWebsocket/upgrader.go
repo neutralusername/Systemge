@@ -13,7 +13,6 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 		if listener.config.UpgradeRequestTimeoutMs > 0 {
 			requestDeadline = time.After(time.Duration(listener.config.UpgradeRequestTimeoutMs) * time.Millisecond)
 		}
-
 		select {
 		case <-listener.stopChannel:
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -27,14 +26,16 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 
 		case listener.upgradeRequests <- upgradeResponseChannel:
 			websocketConn, err := listener.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
-
 			select {
 			case upgradeResponseChannel <- &upgraderResponse{
 				err:           err,
 				websocketConn: websocketConn,
 			}:
-
-			default:
+			case <-listener.stopChannel:
+				if websocketConn != nil {
+					websocketConn.Close()
+				}
+			case <-requestDeadline:
 				if websocketConn != nil {
 					websocketConn.Close()
 				}
