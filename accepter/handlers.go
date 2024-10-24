@@ -278,7 +278,7 @@ func AcceptConnectionManagerIdHandler[T any](
 	}
 }
 
-// executes provided function once connection is closed.
+// executes provided function once connection closes.
 func OnCloseHandler[T any](
 	onClose func(connection systemge.Connection[T]),
 ) systemge.AcceptHandlerWithError[T] {
