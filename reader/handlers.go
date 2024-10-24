@@ -38,11 +38,11 @@ func NewAndHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 func NewOrHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
-			if err := handler(data, connection); err == nil {
-				return nil
+			if err := handler(data, connection); err != nil {
+				return errors.New("no handler succeeded")
 			}
 		}
-		return errors.New("no handler succeeded")
+		return nil
 	}
 }
 
