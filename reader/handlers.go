@@ -132,14 +132,13 @@ type messageHandlerWrapper[T any] struct {
 	connection systemge.Connection[T]
 }
 
-/* func NewMessageHandler[T any](
+func NewMessageTopicManager[T any](
 	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
 	syncMessageHandlers systemge.SyncMessageHandlers[T],
 	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
 	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
 	topicManagerConfig *configs.TopicManager,
-) systemge.ReadHandlerWithError[T] {
-
+) *tools.TopicManager[messageHandlerWrapper[T]] {
 	topicHandlers := tools.TopicHandlers[messageHandlerWrapper[T]]{}
 	for topic, handler := range asyncMessageHandlers {
 		topicHandlers[topic] = func(mhw messageHandlerWrapper[T]) {
@@ -185,6 +184,13 @@ type messageHandlerWrapper[T any] struct {
 		topicHandlers,
 		unknownTopicHandler,
 	)
+
+	return topicManager
+}
+
+/* func NewTopicMessageHandler[T any](
+	topicManager *tools.TopicManager[messageHandlerWrapper[T]],
+) systemge.ReadHandlerWithError[T] {
 
 	return func(message T, connection systemge.Connection[T]) error {
 
