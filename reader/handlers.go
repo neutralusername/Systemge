@@ -134,42 +134,42 @@ type messageHandlerWrapper[T any] struct {
 
 /* func NewMessageHandler[T any](
 	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
-	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
 	syncMessageHandlers systemge.SyncMessageHandlers[T],
-	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
-	asyncTopicManagerConfig *configs.TopicManager,
-	syncTopicManagerConfig *configs.TopicManager,
+	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
+	topicManagerConfig *configs.TopicManager,
 ) systemge.ReadHandlerWithError[T] {
-	asyncTopicHandlers := tools.TopicHandlers[messageHandlerWrapper[T], T]{}
 
+	topicHandlers := tools.TopicHandlers[messageHandlerWrapper[T]]{}
 	for topic, handler := range asyncMessageHandlers {
-		asyncTopicHandlers[topic] = func(mhw messageHandlerWrapper[T]) (T, error) {
+		topicHandlers[topic] = func(mhw messageHandlerWrapper[T]) {
 			handler(mhw.connection, mhw.message)
-			var nilValue T
-			return nilValue, nil
 		}
 	}
-
 	for topic, handler := range syncMessageHandlers {
-		asyncTopicHandlers[topic] = func(mhw messageHandlerWrapper[T]) (T, error) {
+		topicHandlers[topic] = func(mhw messageHandlerWrapper[T]) {
 			response, err := handler(mhw.connection, mhw.message)
 			if err != nil {
-				var nilValue T
-				return nilValue, err
+				// do smthg w the err
+				return
 			}
-
+			err = mhw.connection.Write(response, 0)
+			if err != nil {
+				// do smthg w the err
+			}
 		}
 	}
 
-	topicManagerAsync := tools.NewTopicManager[messageHandlerWrapper[T], T](
-		asyncTopicManagerConfig,
-		asyncTopicHandlers,
-		nil,
-	)
-	topicManagerSync := tools.NewTopicManager[T, T](
-		syncTopicManagerConfig,
-		tools.TopicHandlers[T, T]{},
-		nil,
+	var unknownTopicHandler tools.TopicHandler[messageHandlerWrapper[T]]
+	if unknownAsyncMessageHandler != nil {
+		unknownTopicHandler = func(mhw messageHandlerWrapper[T]) {
+			unknownAsyncMessageHandler(mhw.connection, mhw.message)
+		}
+	}
+
+	topicManager := tools.NewTopicManager[messageHandlerWrapper[T]](
+		topicManagerConfig,
+		topicHandlers,
+		unknownTopicHandler,
 	)
 
 	return func(message T, connection systemge.Connection[T]) error {

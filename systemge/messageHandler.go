@@ -5,7 +5,7 @@ import "github.com/neutralusername/systemge/tools"
 type AsyncMessageHandler[T any] func(Connection[T], tools.IMessage)
 type AsyncMessageHandlers[T any] map[string]AsyncMessageHandler[T]
 
-type SyncMessageHandler[T any] func(Connection[T], tools.IMessage) (string, error)
+type SyncMessageHandler[T any] func(Connection[T], tools.IMessage) (T, error)
 type SyncMessageHandlers[T any] map[string]SyncMessageHandler[T]
 
 func NewAsyncMessageHandlers[T any]() AsyncMessageHandlers[T] {
