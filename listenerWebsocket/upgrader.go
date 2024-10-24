@@ -10,10 +10,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		upgradeResponseChannel := make(chan *upgraderResponse)
 
-		var timeout *tools.Timeout
-		if listener.config.UpgradeRequestTimeoutNs > 0 {
-			timeout = tools.NewTimeout(listener.config.UpgradeRequestTimeoutNs, nil, false)
-		}
+		timeout := tools.NewTimeout(listener.config.UpgradeRequestTimeoutNs, nil, false)
 		select {
 		case <-listener.stopChannel:
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
