@@ -199,9 +199,12 @@ func NewTopicHandler[T any, P any](
 		if err != nil {
 			return errors.New("could not retrieve message")
 		}
-		return topicManager.Handle(topic, messageHandlerWrapper[T, P]{
-			payload,
-			connection,
-		})
+		return topicManager.Handle(
+			topic,
+			messageHandlerWrapper[T, P]{
+				payload,
+				connection,
+			},
+		)
 	}
 }
