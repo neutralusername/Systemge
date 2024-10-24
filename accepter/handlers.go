@@ -305,7 +305,7 @@ func NewQueueHandler[T any](
 	}
 }
 
-// repeatdedly dequeues connections from queue and executes provided handler.
+// repeatdedly dequeues connections and executes provided handler.
 func NewDequeueRoutine[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
 	acceptHandler systemge.AcceptHandlerWithError[T],
