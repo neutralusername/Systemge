@@ -62,9 +62,9 @@ func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler,
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.mux.AddRoute(pattern, server.httpRequestWrapper(pattern, handlerFunc))
+	server.mux.AddRoute(pattern, server.httpRequestWrapper(handlerFunc))
 }
-func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+func (server *HTTPServer) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		server.statusMutex.RLock()
 		defer server.statusMutex.RUnlock()
