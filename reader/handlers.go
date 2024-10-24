@@ -191,7 +191,7 @@ func NewObjectTopicManager[T any, O any](
 
 func NewTopicHandler[T any, P any](
 	topicManager *tools.TopicManager[objectHandlerWrapper[T, P]],
-	retrieveTopicAndObject func(T, systemge.Connection[T]) (string, P, error), // returns topic and O since returning topic and T would be inefficient/redundant in most scenarios (repeated de/serialization)
+	retrieveTopicAndObject func(T, systemge.Connection[T]) (string, P, error), // returns topic and O since returning topic and T would be inefficient/redundant in most scenarios (repeated de/serialization) (O may == T anyway)
 ) systemge.ReadHandlerWithError[T] {
 
 	return func(data T, connection systemge.Connection[T]) error {
