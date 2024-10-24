@@ -129,28 +129,28 @@ func NewDequeueRoutine[T any](
 	return routine, nil
 }
 
-type messageHandlerWrapper[T any] struct {
-	message    tools.IMessage
+type messageHandlerWrapper[T any, P any] struct {
+	payload    P
 	connection systemge.Connection[T]
 }
 
-func NewMessageTopicManager[T any](
-	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
-	syncMessageHandlers systemge.SyncMessageHandlers[T],
-	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
-	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
+func NewMessageTopicManager[T any, P any](
+	asyncMessageHandlers systemge.AsyncMessageHandlers[T, P],
+	syncMessageHandlers systemge.SyncMessageHandlers[T, P],
+	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T, P],
+	unknownSyncMessageHandler systemge.SyncMessageHandler[T, P],
 	topicManagerConfig *configs.TopicManager,
-) (*tools.TopicManager[messageHandlerWrapper[T]], error) {
+) (*tools.TopicManager[messageHandlerWrapper[T, P]], error) {
 
-	topicHandlers := tools.TopicHandlers[messageHandlerWrapper[T]]{}
+	topicHandlers := tools.TopicHandlers[messageHandlerWrapper[T, P]]{}
 	for topic, handler := range asyncMessageHandlers {
-		topicHandlers[topic] = func(mhw messageHandlerWrapper[T]) {
-			handler(mhw.connection, mhw.message)
+		topicHandlers[topic] = func(mhw messageHandlerWrapper[T, P]) {
+			handler(mhw.connection, mhw.payload)
 		}
 	}
 	for topic, handler := range syncMessageHandlers {
-		topicHandlers[topic] = func(mhw messageHandlerWrapper[T]) {
-			response, err := handler(mhw.connection, mhw.message)
+		topicHandlers[topic] = func(mhw messageHandlerWrapper[T, P]) {
+			response, err := handler(mhw.connection, mhw.payload)
 			if err != nil {
 				// do smthg w the err
 				return
@@ -162,14 +162,14 @@ func NewMessageTopicManager[T any](
 		}
 	}
 
-	var unknownTopicHandler tools.TopicHandler[messageHandlerWrapper[T]]
+	var unknownTopicHandler tools.TopicHandler[messageHandlerWrapper[T, P]]
 	if unknownAsyncMessageHandler != nil || unknownSyncMessageHandler != nil {
-		unknownTopicHandler = func(mhw messageHandlerWrapper[T]) {
+		unknownTopicHandler = func(mhw messageHandlerWrapper[T, P]) {
 			if unknownAsyncMessageHandler != nil {
-				unknownAsyncMessageHandler(mhw.connection, mhw.message)
+				unknownAsyncMessageHandler(mhw.connection, mhw.payload)
 			}
 			if unknownSyncMessageHandler != nil {
-				response, err := unknownSyncMessageHandler(mhw.connection, mhw.message)
+				response, err := unknownSyncMessageHandler(mhw.connection, mhw.payload)
 				if err != nil {
 					// do smthg w the err
 					return
@@ -189,18 +189,18 @@ func NewMessageTopicManager[T any](
 	)
 }
 
-func NewTopicMessageHandler[T any](
-	topicManager *tools.TopicManager[messageHandlerWrapper[T]],
-	retrieveMessage func(T, systemge.Connection[T]) tools.IMessage,
+func NewTopicMessageHandler[T any, P any](
+	topicManager *tools.TopicManager[messageHandlerWrapper[T, P]],
+	retrieveTopicPayload func(T, systemge.Connection[T]) (string, P, error),
 ) systemge.ReadHandlerWithError[T] {
 
 	return func(data T, connection systemge.Connection[T]) error {
-		message := retrieveMessage(data, connection)
-		if message == nil {
+		topic, payload, err := retrieveTopicPayload(data, connection)
+		if err != nil {
 			return errors.New("could not retrieve message")
 		}
-		return topicManager.Handle(message.GetTopic(), messageHandlerWrapper[T]{
-			message,
+		return topicManager.Handle(topic, messageHandlerWrapper[T, P]{
+			payload,
 			connection,
 		})
 	}
