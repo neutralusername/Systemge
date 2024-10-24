@@ -8,15 +8,34 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-// executes all handlers in order, return error if any handler returns an error
-func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
-	return func(data T, caller systemge.Connection[T]) error {
+func NewAndHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
-			if err := handler(data, caller); err != nil {
+			if err := handler(data, connection); err != nil {
 				return err
 			}
 		}
 		return nil
+	}
+}
+
+func NewOrHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+	return func(data T, connection systemge.Connection[T]) error {
+		for _, handler := range handlers {
+			if err := handler(data, connection); err == nil {
+				return nil
+			}
+		}
+		return errors.New("no handler succeeded")
+	}
+}
+
+func NewNotHandler[T any](handler systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+	return func(data T, connection systemge.Connection[T]) error {
+		if err := handler(data, connection); err != nil {
+			return nil
+		}
+		return errors.New("handler succeeded")
 	}
 }
 
