@@ -78,7 +78,7 @@ add more abstraction in general after gathering some experience implementing sam
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
 
 "server modules" (handler funcs that can be chained):
-heartbeat
+heartbeat / conditional disconnect options
 publishSubscribe
 add (proper) mechanism to use all kinds of queues with handlers
 
