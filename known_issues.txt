@@ -1,2 +1,4 @@
 occasionally some issue accessing the http server in the sample (when using channel communication ?)
 fix: restart the server 
+
+(accessing localhost:8443/ws on the sample seems to cause some issue with ws)
