@@ -82,7 +82,7 @@ type ReadHandlerQueueWrapper[T any] struct {
 	Connection systemge.Connection[T]
 }
 
-func NewQueueObjectHandler[T any](
+func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
 	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
 ) systemge.ReadHandlerWithError[T] {
