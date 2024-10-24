@@ -13,28 +13,27 @@ type AsyncObjectHandler[O any, C any] func(object O, caller C) error
 type SyncObjectHandler[O any, C any] func(object O, caller C, syncToken string) (O, error)
 */
 
-type TopicHandler[P any, R any] func(P) (R, error)
-type TopicHandlers[P any, R any] map[string]TopicHandler[P, R]
+type TopicHandler[P any] func(P)
+type TopicHandlers[P any] map[string]TopicHandler[P]
 
-type TopicManager[P any, R any] struct {
+type TopicManager[P any] struct {
 	config *configs.TopicManager
 
-	topicHandlers       TopicHandlers[P, R]
-	unknownTopicHandler TopicHandler[P, R]
+	topicHandlers       TopicHandlers[P]
+	unknownTopicHandler TopicHandler[P]
 
 	isClosed bool
 	mutex    sync.Mutex
 
-	queue             chan *queueStruct[P, R]
-	topicQueues       map[string]chan *queueStruct[P, R]
-	unknownTopicQueue chan *queueStruct[P, R]
+	queue             chan *queueStruct[P]
+	topicQueues       map[string]chan *queueStruct[P]
+	unknownTopicQueue chan *queueStruct[P]
 }
 
-type queueStruct[P any, R any] struct {
-	topic              string
-	parameter          P
-	resultChannel      chan R
-	resultErrorChannel chan error
+type queueStruct[P any] struct {
+	topic        string
+	parameter    P
+	errorChannel chan error
 }
 
 // modes: (l == large enough to never be full (depends on how many calls are made/how long they take to process))
@@ -42,38 +41,37 @@ type queueStruct[P any, R any] struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager[P any, R any](config *configs.TopicManager, topicHandlers TopicHandlers[P, R], unknownTopicHandler TopicHandler[P, R]) *TopicManager[P, R] {
+func NewTopicManager[P any](config *configs.TopicManager, topicHandlers TopicHandlers[P], unknownTopicHandler TopicHandler[P]) *TopicManager[P] {
 	if topicHandlers == nil {
-		topicHandlers = make(TopicHandlers[P, R])
+		topicHandlers = make(TopicHandlers[P])
 	}
-	topicManager := &TopicManager[P, R]{
+	topicManager := &TopicManager[P]{
 		config:              config,
 		topicHandlers:       topicHandlers,
 		unknownTopicHandler: unknownTopicHandler,
-		queue:               make(chan *queueStruct[P, R], config.QueueSize),
-		topicQueues:         make(map[string]chan *queueStruct[P, R]),
+		queue:               make(chan *queueStruct[P], config.QueueSize),
+		topicQueues:         make(map[string]chan *queueStruct[P]),
 	}
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
-		queue := make(chan *queueStruct[P, R], config.TopicQueueSize)
+		queue := make(chan *queueStruct[P], config.TopicQueueSize)
 		topicManager.topicQueues[topic] = queue
 		topicManager.topicHandlers[topic] = handler
 		go topicManager.handleTopic(queue, handler)
 	}
 	if unknownTopicHandler != nil {
-		topicManager.unknownTopicQueue = make(chan *queueStruct[P, R], config.TopicQueueSize)
+		topicManager.unknownTopicQueue = make(chan *queueStruct[P], config.TopicQueueSize)
 		go topicManager.handleTopic(topicManager.unknownTopicQueue, unknownTopicHandler)
 	}
 	return topicManager
 }
 
 // can not be called after Close or will cause panic.
-func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (R, error) {
-	queueStruct := &queueStruct[P, R]{
-		topic:              topic,
-		parameter:          parameter,
-		resultChannel:      make(chan R),
-		resultErrorChannel: make(chan error),
+func (topicManager *TopicManager[P]) Handle(topic string, parameter P) error {
+	queueStruct := &queueStruct[P]{
+		topic:        topic,
+		parameter:    parameter,
+		errorChannel: make(chan error, 1),
 	}
 
 	if topicManager.config.QueueBlocking {
@@ -82,22 +80,21 @@ func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (R, er
 		select {
 		case topicManager.queue <- queueStruct:
 		default:
-			close(queueStruct.resultChannel)
-			return <-queueStruct.resultChannel, errors.New("queue full")
+			return errors.New("queue full")
 		}
 	}
-	return <-queueStruct.resultChannel, <-queueStruct.resultErrorChannel
+	return <-queueStruct.errorChannel
 }
 
-func (topicManager *TopicManager[P, R]) handleCalls() {
+func (topicManager *TopicManager[P]) handleCalls() {
 	for queueStruct := range topicManager.queue {
 		queue := topicManager.topicQueues[queueStruct.topic]
 		if queue == nil {
 			if topicManager.unknownTopicQueue != nil {
 				queue = topicManager.unknownTopicQueue
 			} else {
-				close(queueStruct.resultChannel)
-				queueStruct.resultErrorChannel <- errors.New("no handler for topic")
+				queueStruct.errorChannel <- errors.New("no handler for topic")
+				close(queueStruct.errorChannel)
 				continue
 			}
 		}
@@ -107,14 +104,14 @@ func (topicManager *TopicManager[P, R]) handleCalls() {
 			select {
 			case queue <- queueStruct:
 			default:
-				close(queueStruct.resultChannel)
-				queueStruct.resultErrorChannel <- errors.New("topic queue full")
+				queueStruct.errorChannel <- errors.New("topic queue full")
+				close(queueStruct.errorChannel)
 			}
 		}
 	}
 }
 
-func (topicManager *TopicManager[P, R]) handleTopic(queue chan *queueStruct[P, R], handler TopicHandler[P, R]) {
+func (topicManager *TopicManager[P]) handleTopic(queue chan *queueStruct[P], handler TopicHandler[P]) {
 	for queueStruct := range queue {
 		if topicManager.config.ConcurrentCalls {
 			go topicManager.handleCall(queueStruct, handler)
@@ -123,29 +120,27 @@ func (topicManager *TopicManager[P, R]) handleTopic(queue chan *queueStruct[P, R
 		}
 	}
 }
-func (topicManager *TopicManager[P, R]) handleCall(queueStruct *queueStruct[P, R], handler TopicHandler[P, R]) {
-	if topicManager.config.TimeoutNs > 0 {
-		var callback chan struct{} = make(chan struct{})
-		go func() {
-			result, err := handler(queueStruct.parameter)
-			queueStruct.resultChannel <- result
-			queueStruct.resultErrorChannel <- err
-			close(callback)
-		}()
-		select {
-		case <-time.After(time.Duration(topicManager.config.TimeoutNs) * time.Nanosecond):
-			close(queueStruct.resultChannel)
-			queueStruct.resultErrorChannel <- errors.New("deadline exceeded")
-		case <-callback:
-		}
-	} else {
-		result, err := handler(queueStruct.parameter)
-		queueStruct.resultChannel <- result
-		queueStruct.resultErrorChannel <- err
+func (topicManager *TopicManager[P]) handleCall(queueStruct *queueStruct[P], handler TopicHandler[P]) {
+	defer close(queueStruct.errorChannel)
+
+	if topicManager.config.TimeoutNs == 0 {
+		handler(queueStruct.parameter)
+	}
+
+	var callback chan struct{} = make(chan struct{})
+	go func() {
+		handler(queueStruct.parameter)
+		close(callback)
+	}()
+
+	select {
+	case <-time.After(time.Duration(topicManager.config.TimeoutNs) * time.Nanosecond):
+		queueStruct.errorChannel <- errors.New("timeout")
+	case <-callback:
 	}
 }
 
-func (topicManager *TopicManager[P, R]) Close() error {
+func (topicManager *TopicManager[P]) Close() error {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 
@@ -163,8 +158,9 @@ func (topicManager *TopicManager[P, R]) Close() error {
 	return nil
 }
 
-func (topicManager *TopicManager[P, R]) IsClosed() bool {
+func (topicManager *TopicManager[P]) IsClosed() bool {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
+
 	return topicManager.isClosed
 }

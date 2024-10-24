@@ -127,12 +127,12 @@ func NewDequeueRoutine[T any](
 	return routine, nil
 }
 
-/* type messageHandlerWrapper[T any] struct {
+type messageHandlerWrapper[T any] struct {
 	message    tools.IMessage
 	connection systemge.Connection[T]
 }
 
-func NewMessageHandler[T any](
+/* func NewMessageHandler[T any](
 	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
 	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
 	syncMessageHandlers systemge.SyncMessageHandlers[T],
@@ -150,9 +150,20 @@ func NewMessageHandler[T any](
 		}
 	}
 
-	topicManagerAsync := tools.NewTopicManager[T, *T](
+	for topic, handler := range syncMessageHandlers {
+		asyncTopicHandlers[topic] = func(mhw messageHandlerWrapper[T]) (T, error) {
+			response, err := handler(mhw.connection, mhw.message)
+			if err != nil {
+				var nilValue T
+				return nilValue, err
+			}
+
+		}
+	}
+
+	topicManagerAsync := tools.NewTopicManager[messageHandlerWrapper[T], T](
 		asyncTopicManagerConfig,
-		tools.TopicHandlers[T, *T]{},
+		asyncTopicHandlers,
 		nil,
 	)
 	topicManagerSync := tools.NewTopicManager[T, T](
