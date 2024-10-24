@@ -84,3 +84,5 @@ add mechanism to build boolean conditions using these (and custom) handler funcs
 heartbeat
     
 publishSubscribe
+
+add (proper) mechanism to use all kinds of queues with handlers
