@@ -42,14 +42,16 @@ func NewOrHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	}
 }
 
-// executes the provided handler.
-// returns an error if the handler returns nil.
-func NewNotHandler[T any](handler HandlerWithError[T]) HandlerWithError[T] {
+func NewConditionalHandler[T any](
+	condition HandlerWithError[T],
+	FailureHandler HandlerWithError[T],
+	SuccessHandler HandlerWithError[T],
+) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
-		if err := handler(connection); err != nil {
-			return nil
+		if err := condition(connection); err != nil {
+			return FailureHandler(connection)
 		}
-		return errors.New("handler succeeded")
+		return SuccessHandler(connection)
 	}
 }
 
