@@ -86,7 +86,7 @@ func NewQueueObjectHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
 	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
 	readHandler systemge.ReadHandlerWithError[T], // ?
-	queueConfig *configs.Routine,
+	dequeueRoutineConfig *configs.Routine,
 ) (systemge.ReadHandlerWithError[T], *tools.Routine) {
 	routine, err := tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
@@ -105,7 +105,7 @@ func NewQueueObjectHandler[T any](
 				}
 			}
 		},
-		queueConfig,
+		dequeueRoutineConfig,
 	)
 	if err != nil {
 		return nil, nil
