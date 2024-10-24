@@ -1,0 +1,2 @@
+occasionally some issue accessing the http server in the sample (when using channel communication ?)
+fix: restart the server 
