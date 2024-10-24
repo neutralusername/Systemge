@@ -83,9 +83,6 @@ add more abstraction in general after gathering some experience implementing sam
 add mechanism to build boolean conditions using these (and custom) handler funcs and not just simply chain them sequentially - such as (x and y) or z (z only executed if x and y fails)
 :
 
-accept queue
-
-read queue
 read messageHandlers (retrieve topic, switch topic and handle some data and response for sync-handlers)
 
 heartbeat
