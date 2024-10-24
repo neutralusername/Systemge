@@ -1,1 +1,1 @@
-openssl req -x509 -nodes -newkey rsa:2048 -keyout MyKey.key -out MyCertificate.crt -days 365 -subj "/CN=example.com" -addext "subjectAltName=DNS:example.com,DNS:www.example.com"
+openssl req -x509 -nodes -newkey rsa:2048 -keyout MyKey.key -out MyCertificate.crt -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost"
