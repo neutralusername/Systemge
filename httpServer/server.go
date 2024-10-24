@@ -44,6 +44,7 @@ func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler,
 	if config.TcpListenerConfig == nil {
 		return nil, errors.New("config.TcpServerConfig is nil")
 	}
+
 	server := &HTTPServer{
 		name:           name,
 		mux:            NewCustomMux(config.DelayNs),
@@ -54,6 +55,7 @@ func New(name string, config *configs.HTTPServer, wrapperHandler WrapperHandler,
 	for pattern, handler := range requestHandlers {
 		server.AddRoute(pattern, handler)
 	}
+
 	if config.HttpErrorLogPath != "" {
 		file := helpers.OpenFileAppend(config.HttpErrorLogPath)
 		server.httpServer.ErrorLog = log.New(file, "[Error: \""+server.GetName()+"\"] ", log.Ldate|log.Ltime|log.Lmicroseconds)
