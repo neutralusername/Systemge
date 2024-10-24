@@ -56,6 +56,7 @@ func (listener *TcpListener) GetConnector() systemge.Connector[[]byte] {
 		tcpBufferedReaderConfig: listener.tcpBufferedReaderConfig,
 		tcpClientConfig: &configs.TcpClient{
 			Port:   listener.config.Port,
+			Ip:     listener.config.Ip,
 			Domain: listener.config.Domain,
 		},
 	}

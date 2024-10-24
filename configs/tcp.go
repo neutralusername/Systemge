@@ -28,8 +28,8 @@ func UnmarshalHTTPServer(data string) *HTTPServer {
 }
 
 type WebsocketListener struct {
-	TcpListenerConfig *TcpListener `json:"tcpServerConfig"` // *required*
-	Pattern           string       `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+	HttpTcpListenerConfig *TcpListener `json:"tcpServerConfig"` // *required*
+	Pattern               string       `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 
@@ -47,6 +47,7 @@ func UnmarshalWebsocketListener(data string) *WebsocketListener {
 
 type TcpListener struct {
 	Port        uint16 `json:"port"`        // *required*
+	Ip          string `json:"ip"`          // *optional* (e.g. 127.0.0.1")
 	Domain      string `json:"domain"`      // *optional* (e.g. "example.com")
 	TlsCertPath string `json:"tlsCertPath"` // *optional* cert path!
 	TlsKeyPath  string `json:"tlsKeyPath"`  // *optional*
@@ -63,6 +64,7 @@ func UnmarshalTcpListener(data string) *TcpListener {
 
 type TcpClient struct {
 	Port    uint16 `json:"port"`    // *required*
+	Ip      string `json:"ip"`      // *optional* (e.g.
 	Domain  string `json:"domain"`  // *optional* (e.g. "example.com")
 	TlsCert string `json:"tlsCert"` // *optional* cert, NOT path!
 }

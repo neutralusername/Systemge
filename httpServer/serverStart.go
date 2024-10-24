@@ -2,6 +2,7 @@ package httpServer
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"time"
 
@@ -22,12 +23,20 @@ func (server *HTTPServer) Start() error {
 	}
 	server.status = status.Pending
 
+	if server.config.TcpListenerConfig.Ip == "" {
+		ip, err := net.LookupIP(server.config.TcpListenerConfig.Domain)
+		if err != nil {
+			return err
+		}
+		server.config.TcpListenerConfig.Ip = ip[0].String()
+	}
+
 	server.httpServer = &http.Server{
 		MaxHeaderBytes:    int(server.config.MaxHeaderBytes),
 		ReadHeaderTimeout: time.Duration(server.config.ReadHeaderTimeoutMs) * time.Millisecond,
 		WriteTimeout:      time.Duration(server.config.WriteTimeoutMs) * time.Millisecond,
 
-		Addr:    ":" + helpers.IntToString(int(server.config.TcpListenerConfig.Port)),
+		Addr:    server.config.TcpListenerConfig.Ip + ":" + helpers.Uint16ToString(server.config.TcpListenerConfig.Port),
 		Handler: server.mux,
 	}
 

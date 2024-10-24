@@ -51,7 +51,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
-	if config.TcpListenerConfig == nil {
+	if config.HttpTcpListenerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	if config.Upgrader == nil {
@@ -74,7 +74,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 	}
 	httpServer, err := httpServer.New(listener.name+"_httpServer",
 		&configs.HTTPServer{
-			TcpListenerConfig: listener.config.TcpListenerConfig,
+			TcpListenerConfig: listener.config.HttpTcpListenerConfig,
 		},
 		httpWrapperHandler,
 		map[string]http.HandlerFunc{
@@ -92,9 +92,10 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte] {
 	return &connector{
 		tcpClientConfig: &configs.TcpClient{
-			Port:    listener.config.TcpListenerConfig.Port,
-			TlsCert: helpers.GetFileContent(listener.config.TcpListenerConfig.TlsCertPath),
-			Domain:  listener.config.TcpListenerConfig.Domain,
+			Port:    listener.config.HttpTcpListenerConfig.Port,
+			Ip:      listener.config.HttpTcpListenerConfig.Ip,
+			TlsCert: helpers.GetFileContent(listener.config.HttpTcpListenerConfig.TlsCertPath),
+			Domain:  listener.config.HttpTcpListenerConfig.Domain,
 		},
 		incomingDataByteLimit: listener.incomingMessageByteLimit,
 	}
