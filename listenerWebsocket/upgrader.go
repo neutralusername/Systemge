@@ -2,24 +2,22 @@ package listenerWebsocket
 
 import (
 	"net/http"
-	"time"
+
+	"github.com/neutralusername/systemge/tools"
 )
 
 func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		upgradeResponseChannel := make(chan *upgraderResponse)
 
-		var requestDeadline <-chan time.Time
-		if listener.config.UpgradeRequestTimeoutMs > 0 {
-			requestDeadline = time.After(time.Duration(listener.config.UpgradeRequestTimeoutMs) * time.Millisecond)
-		}
+		timeout := tools.NewTimeout(listener.config.UpgradeRequestTimeoutNs, nil, false)
 		select {
 		case <-listener.stopChannel:
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			listener.ClientsRejected.Add(1)
 			return
 
-		case <-requestDeadline:
+		case <-timeout.GetIsExpiredChannel():
 			http.Error(responseWriter, "Request timeout", http.StatusRequestTimeout)
 			listener.ClientsRejected.Add(1)
 			return
@@ -35,7 +33,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 				if websocketConn != nil {
 					websocketConn.Close()
 				}
-			case <-requestDeadline:
+			case <-timeout.GetIsExpiredChannel():
 				if websocketConn != nil {
 					websocketConn.Close()
 				}

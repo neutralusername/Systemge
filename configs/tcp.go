@@ -33,7 +33,7 @@ type WebsocketListener struct {
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 
-	UpgradeRequestTimeoutMs uint32 `json:"upgradeRequestTimeoutMs"` // default: 0 (no timeout)
+	UpgradeRequestTimeoutNs int64 `json:"upgradeRequestTimeoutNs"` // default: 0 (no timeout)
 }
 
 func UnmarshalWebsocketListener(data string) *WebsocketListener {
