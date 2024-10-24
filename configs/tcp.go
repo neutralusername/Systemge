@@ -64,7 +64,7 @@ func UnmarshalTcpListener(data string) *TcpListener {
 
 type TcpClient struct {
 	Port    uint16 `json:"port"`    // *required*
-	Ip      string `json:"ip"`      // *optional* (e.g.
+	Ip      string `json:"ip"`      // *optional* (e.g. 127.0.0.1")
 	Domain  string `json:"domain"`  // *optional* (e.g. "example.com")
 	TlsCert string `json:"tlsCert"` // *optional* cert, NOT path!
 }

@@ -20,6 +20,7 @@ func (listener *TcpListener) Start() error {
 	}
 
 	listener.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
+
 	if listener.config.Ip == "" {
 		ip, err := net.LookupIP(listener.config.Domain)
 		if err != nil {
@@ -27,6 +28,7 @@ func (listener *TcpListener) Start() error {
 		}
 		listener.config.Ip = ip[0].String()
 	}
+
 	tcpListener, err := NewTcpListener(listener.config.Ip + ":" + helpers.Uint16ToString(listener.config.Port))
 	if err != nil {
 		return err

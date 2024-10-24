@@ -29,6 +29,8 @@ func Connect(
 	}
 	dialer.NetDialContext = netDialer.DialContext
 
+	scheme := "ws"
+
 	if tcpClientConfig.TlsCert != "" {
 		roots := x509.NewCertPool()
 		ok := roots.AppendCertsFromPEM([]byte(tcpClientConfig.TlsCert))
@@ -40,17 +42,19 @@ func Connect(
 			RootCAs: roots,
 		}
 
-		if tcpClientConfig.Domain != "" {
-			dialer.TLSClientConfig.ServerName = tcpClientConfig.Domain
-		}
-	}
-
-	scheme := "ws"
-	if tcpClientConfig.TlsCert != "" {
+		dialer.TLSClientConfig.ServerName = tcpClientConfig.Domain
 		scheme = "wss"
 	}
 
-	url := fmt.Sprintf("%s://%s", scheme, tcpClientConfig.Domain+":"+helpers.Uint16ToString(tcpClientConfig.Port))
+	if tcpClientConfig.Ip == "" {
+		ip, err := net.LookupIP(tcpClientConfig.Domain)
+		if err != nil {
+			return nil, err
+		}
+		tcpClientConfig.Ip = ip[0].String()
+	}
+
+	url := fmt.Sprintf("%s://%s", scheme, tcpClientConfig.Ip+":"+helpers.Uint16ToString(tcpClientConfig.Port))
 
 	headers := http.Header{}
 

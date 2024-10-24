@@ -39,8 +39,16 @@ func Connect(
 }
 
 func NewTcpClient(config *configs.TcpClient, timeoutNs int64) (net.Conn, error) {
+	if config.Ip != "" {
+		ip, err := net.LookupIP(config.Domain)
+		if err != nil {
+			return nil, err
+		}
+		config.Ip = ip[0].String()
+	}
+
 	if config.TlsCert == "" {
-		return net.Dial("tcp", config.Domain+":"+helpers.Uint16ToString(config.Port))
+		return net.Dial("tcp", config.Ip+":"+helpers.Uint16ToString(config.Port))
 	}
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(config.TlsCert)) {
@@ -55,5 +63,5 @@ func NewTcpClient(config *configs.TcpClient, timeoutNs int64) (net.Conn, error) 
 			ServerName: config.Domain,
 		},
 	}
-	return dialer.Dial("tcp", config.Domain+":"+helpers.Uint16ToString(config.Port))
+	return dialer.Dial("tcp", config.Ip+":"+helpers.Uint16ToString(config.Port))
 }
