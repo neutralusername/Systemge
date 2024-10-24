@@ -41,7 +41,14 @@ type queueStruct[P any] struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager[P any](config *configs.TopicManager, topicHandlers TopicHandlers[P], unknownTopicHandler TopicHandler[P]) *TopicManager[P] {
+func NewTopicManager[P any](config *configs.TopicManager, topicHandlers TopicHandlers[P], unknownTopicHandler TopicHandler[P]) (*TopicManager[P], error) {
+	if config == nil {
+		return nil, errors.New("config is nil")
+	}
+	if topicHandlers == nil && unknownTopicHandler == nil {
+		return nil, errors.New("no handlers provided")
+	}
+
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers[P])
 	}
@@ -63,7 +70,7 @@ func NewTopicManager[P any](config *configs.TopicManager, topicHandlers TopicHan
 		topicManager.unknownTopicQueue = make(chan *queueStruct[P], config.TopicQueueSize)
 		go topicManager.handleTopic(topicManager.unknownTopicQueue, unknownTopicHandler)
 	}
-	return topicManager
+	return topicManager, nil
 }
 
 // can not be called after Close or will cause panic.

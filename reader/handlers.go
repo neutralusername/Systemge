@@ -140,7 +140,7 @@ func NewMessageTopicManager[T any](
 	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
 	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
 	topicManagerConfig *configs.TopicManager,
-) *tools.TopicManager[messageHandlerWrapper[T]] {
+) (*tools.TopicManager[messageHandlerWrapper[T]], error) {
 
 	topicHandlers := tools.TopicHandlers[messageHandlerWrapper[T]]{}
 	for topic, handler := range asyncMessageHandlers {
