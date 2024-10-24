@@ -31,11 +31,11 @@ func (metrics *Metrics) GetTime() time.Time {
 	return metrics.Time
 }
 
-func (metrics *Metrics) Marshal() string {
+func (metrics *Metrics) JsonMarshal() string {
 	return helpers.JsonMarshal(metrics)
 }
 
-func UnmarshalMetrics(data string) (*Metrics, error) {
+func JsonUnmarshalMetrics(data string) (*Metrics, error) {
 	metrics := &Metrics{}
 	err := json.Unmarshal([]byte(data), metrics)
 	return metrics, err
@@ -73,11 +73,11 @@ func (typeMetricsA MetricsTypes) Merge(typeMetricsB MetricsTypes) {
 	}
 }
 
-func (typeMetrics MetricsTypes) Marshal() string {
+func (typeMetrics MetricsTypes) JsonMarshal() string {
 	return helpers.JsonMarshal(typeMetrics)
 }
 
-func UnmarshalMetricsTypes(data string) (MetricsTypes, error) {
+func JsonUnmarshalMetricsTypes(data string) (MetricsTypes, error) {
 	metricsTypes := MetricsTypes{}
 	err := json.Unmarshal([]byte(data), &metricsTypes)
 	return metricsTypes, err
