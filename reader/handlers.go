@@ -59,6 +59,30 @@ func NewConditionalHandler[T any](
 	}
 }
 
+func NewSuccessHandler[T any](
+	condition HandlerWithError[T],
+	SuccessHandler HandlerWithError[T],
+) HandlerWithError[T] {
+	return func(data T, connection systemge.Connection[T]) error {
+		if err := condition(data, connection); err != nil {
+			return err
+		}
+		return SuccessHandler(data, connection)
+	}
+}
+
+func NewFailureHandler[T any](
+	condition HandlerWithError[T],
+	FailureHandler HandlerWithError[T],
+) HandlerWithError[T] {
+	return func(data T, connection systemge.Connection[T]) error {
+		if err := condition(data, connection); err == nil {
+			return errors.New("condition succeeded")
+		}
+		return FailureHandler(data, connection)
+	}
+}
+
 // attempts to consume the provided amount of bytes from the token bucket rate limiter.
 // returns an error if the rate limiter does not have enough tokens.
 func NewByteRateLimitHandler(

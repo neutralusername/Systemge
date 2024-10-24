@@ -55,6 +55,30 @@ func NewConditionalHandler[T any](
 	}
 }
 
+func NewSuccessHandler[T any](
+	condition HandlerWithError[T],
+	SuccessHandler HandlerWithError[T],
+) HandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		if err := condition(connection); err != nil {
+			return err
+		}
+		return SuccessHandler(connection)
+	}
+}
+
+func NewFailureHandler[T any](
+	condition HandlerWithError[T],
+	FailureHandler HandlerWithError[T],
+) HandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		if err := condition(connection); err == nil {
+			return errors.New("condition succeeded")
+		}
+		return FailureHandler(connection)
+	}
+}
+
 // rejects incoming connections based on ipRateLimiter, blockList and accessList.
 // arguments may be nil if not needed.
 func NewAccessControlHandler[T any](
