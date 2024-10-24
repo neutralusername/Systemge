@@ -81,3 +81,5 @@ add more abstraction in general after gathering some experience implementing sam
 heartbeat
 publishSubscribe
 add (proper) mechanism to use all kinds of queues with handlers
+
+commands
