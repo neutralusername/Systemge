@@ -20,6 +20,8 @@ func NewChainedReadHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) 
 	}
 }
 
+// attempts to consume the provided amount of bytes from the token bucket rate limiter.
+// returns an error if the rate limiter does not have enough tokens.
 func NewByteRateLimitHandler(
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 ) systemge.ReadHandlerWithError[[]byte] {
@@ -31,6 +33,8 @@ func NewByteRateLimitHandler(
 	}
 }
 
+// attempts to consume 1 token from the token bucket rate limiter.
+// returns an error if the rate limiter does not have enough tokens.
 func NewMessageRateLimitHandler[T any](
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 ) systemge.ReadHandlerWithError[T] {
@@ -42,6 +46,8 @@ func NewMessageRateLimitHandler[T any](
 	}
 }
 
+// attempts to consume the provided amount of tokens from the token bucket rate limiter.
+// returns an error if the rate limiter does not have enough tokens.
 func NewCustomRateLimitHandler[T any](
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 	consumeFunc func(T, systemge.Connection[T]) uint64,
@@ -54,6 +60,8 @@ func NewCustomRateLimitHandler[T any](
 	}
 }
 
+// executes the provided handler.
+// if no error is returned, the provided response is written to the connection.
 func NewResponseHandler[T any](
 	getResponse func(T, systemge.Connection[T]) (T, error),
 	writeTimeoutNs int64,
@@ -69,6 +77,7 @@ func NewResponseHandler[T any](
 
 type ObjectValidator[T any] func(T, systemge.Connection[T]) error
 
+// executes the provided validator.
 func NewValidationObjectHandler[T any](
 	validator ObjectValidator[T],
 ) systemge.ReadHandlerWithError[T] {
@@ -84,6 +93,8 @@ type queueWrapper[T any] struct {
 	Connection systemge.Connection[T]
 }
 
+// obtains the token, priority and timeoutNs for the object and connection.
+// enqueues the object and connection in the priority token queue.
 func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
@@ -99,6 +110,7 @@ func NewQueueHandler[T any](
 	}
 }
 
+// repeatedly dequeues objects from the priority token queue and executes the provided handler.
 func NewDequeueRoutine[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
 	readHandler systemge.ReadHandlerWithError[T],
@@ -134,6 +146,7 @@ type objectHandlerWrapper[T any, O any] struct {
 	connection systemge.Connection[T]
 }
 
+// creates a new topic manager with the provided handlers.
 func NewObjectTopicManager[T any, O any](
 	asyncObjectHandlers systemge.AsyncObjecthandlers[T, O],
 	syncObjectHandlers systemge.SyncObjectHandlers[T, O],
@@ -189,6 +202,7 @@ func NewObjectTopicManager[T any, O any](
 	)
 }
 
+// retrieves the topic and object from the provided data and connection and executes the handler.
 func NewTopicHandler[T any, O any](
 	topicManager *tools.TopicManager[objectHandlerWrapper[T, O]],
 	retrieveTopicAndObject func(T, systemge.Connection[T]) (string, O, error), // returns topic and O since returning topic and T would be inefficient/redundant in most scenarios (repeated de/serialization) (O may == T anyway)
