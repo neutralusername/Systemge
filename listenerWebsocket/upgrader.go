@@ -25,6 +25,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 		case listener.upgradeRequests <- upgradeResponseChannel:
 
 			websocketConn, err := listener.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+
 			upgradeResponseChannel <- &upgraderResponse{
 				err:           err,
 				websocketConn: websocketConn,
