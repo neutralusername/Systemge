@@ -73,7 +73,7 @@ func NewFailureHandler[T any](
 ) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		if err := condition(connection); err == nil {
-			return errors.New("condition succeeded")
+			return nil
 		}
 		return FailureHandler(connection)
 	}
