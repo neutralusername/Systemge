@@ -87,7 +87,23 @@ func NewQueueObjectHandler[T any](
 	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
 	readHandler systemge.ReadHandlerWithError[T], // ?
 	dequeueRoutineConfig *configs.Routine,
-) (systemge.ReadHandlerWithError[T], *tools.Routine) {
+) systemge.ReadHandlerWithError[T] {
+
+	return func(object T, connection systemge.Connection[T]) error {
+		token, priority, timeoutNs := obtainEnqueueConfigs(object, connection)
+		queueWrapper := &ReadHandlerQueueWrapper[T]{
+			object,
+			connection,
+		}
+		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutNs)
+	}
+}
+
+func NewDequeueRoutine[T any](
+	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
+	readHandler systemge.ReadHandlerWithError[T],
+	dequeueRoutineConfig *configs.Routine,
+) (*tools.Routine, error) {
 	routine, err := tools.NewRoutine(
 		func(stopChannel <-chan struct{}) {
 			for {
@@ -108,15 +124,7 @@ func NewQueueObjectHandler[T any](
 		dequeueRoutineConfig,
 	)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
-
-	return func(object T, connection systemge.Connection[T]) error {
-		token, priority, timeoutNs := obtainEnqueueConfigs(object, connection)
-		queueWrapper := &ReadHandlerQueueWrapper[T]{
-			object,
-			connection,
-		}
-		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutNs)
-	}, routine
+	return routine, nil
 }
