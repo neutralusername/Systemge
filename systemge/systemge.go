@@ -11,6 +11,12 @@ type ReadHandler[T any] func(T, Connection[T])
 type ReadHandlerWithResult[T any] func(T, Connection[T]) (T, error)
 type ReadHandlerWithError[T any] func(T, Connection[T]) error
 
+type AsyncMessageHandler[T any, P any] func(Connection[T], P)
+type AsyncMessageHandlers[T any, P any] map[string]AsyncMessageHandler[T, P]
+
+type SyncMessageHandler[T any, P any] func(Connection[T], P) (T, error)
+type SyncMessageHandlers[T any, P any] map[string]SyncMessageHandler[T, P]
+
 type Connector[T any] interface {
 	Connect(int64) (Connection[T], error)
 }
