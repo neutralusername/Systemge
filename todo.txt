@@ -1,4 +1,4 @@
-hi offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
+offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
 
 give option to use custom marshallers (idk about implementation details yet)
 
@@ -42,8 +42,6 @@ hide password input on dashboard (will create a custom password-mask and remove 
 display error responses somehow on dashboard
 
 add authentication/key mechanism for listeners
-
-add sample how systemge can be used as a proxy
 
 -oauth2ServerDashboard
 -httpServerDashboard
