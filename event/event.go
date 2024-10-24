@@ -1,6 +1,7 @@
 package event
 
 import (
+	"encoding/json"
 	"errors"
 	"path"
 	"runtime"
@@ -134,6 +135,31 @@ func GetCallerFuncName(depth int) string {
 	return runtime.FuncForPC(pc).Name()
 }
 
-func (event *Event) GetFormattedEvent() string {
-	return ""
+func (e *Event) JsonMarshal() ([]byte, error) {
+	if e == nil {
+		return nil, errors.New("event is nil")
+	}
+	return json.Marshal(event{
+		Event:   e.event,
+		Context: e.context,
+		Action:  e.action,
+		Options: e.options,
+	})
+}
+
+func JsonUnmarshalEvent(data []byte) (*Event, error) {
+	if data == nil {
+		return nil, errors.New("data is nil")
+	}
+	var e event
+	err := json.Unmarshal(data, &e)
+	if err != nil {
+		return nil, err
+	}
+	return &Event{
+		event:   e.Event,
+		context: e.Context,
+		action:  e.Action,
+		options: e.Options,
+	}, nil
 }

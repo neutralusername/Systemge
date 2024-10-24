@@ -99,12 +99,12 @@ func (message *Message) NewFailureResponse(payload string) *Message {
 	}
 }
 
-func (message *Message) Serialize() []byte {
-	data, _ := SerializeMessage(message)
+func (message *Message) JsonMarshal() []byte {
+	data, _ := JsonMarshalMessage(message)
 	return data
 }
 
-func SerializeMessage(message *Message) ([]byte, error) {
+func JsonMarshalMessage(message *Message) ([]byte, error) {
 	messageData := messageData{
 		Topic:      message.topic,
 		SyncToken:  message.syncToken,
@@ -114,7 +114,7 @@ func SerializeMessage(message *Message) ([]byte, error) {
 	return json.Marshal(messageData)
 }
 
-func DeserializeMessage(bytes []byte) (*Message, error) {
+func JsonUnmarshalMessage(bytes []byte) (*Message, error) {
 	var messageData messageData
 	err := json.Unmarshal(bytes, &messageData)
 	if err != nil {
@@ -128,7 +128,7 @@ func DeserializeMessage(bytes []byte) (*Message, error) {
 	}, nil
 }
 
-func DeserializeMessages(bytes []byte) ([]*Message, error) {
+func JsonUnmarshalMessages(bytes []byte) ([]*Message, error) {
 	var messageData []struct {
 		Topic     string `json:"topic"`
 		SyncToken string `json:"syncToken"`
@@ -151,10 +151,10 @@ func DeserializeMessages(bytes []byte) ([]*Message, error) {
 	return messages, nil
 }
 
-func SerializeMessages(messages []*Message) string {
+func JsonMarshalMessages(messages []*Message) string {
 	messagesSerialized := make([]string, 0)
 	for _, message := range messages {
-		messagesSerialized = append(messagesSerialized, string(message.Serialize()))
+		messagesSerialized = append(messagesSerialized, string(message.JsonMarshal()))
 	}
 	return helpers.StringsToJsonObjectArray(messagesSerialized)
 }
