@@ -293,7 +293,7 @@ func OnCloseHandler[T any](
 
 type ObtainEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
-// queues incoming connections.
+// enqueues incoming connections.
 func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
