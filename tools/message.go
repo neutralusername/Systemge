@@ -6,13 +6,6 @@ import (
 	"github.com/neutralusername/systemge/helpers"
 )
 
-type IMessage interface {
-	GetTopic() string
-	GetSyncToken() string
-	GetPayload() string
-	IsResponse() bool
-}
-
 type Message struct {
 	topic      string
 	syncToken  string
