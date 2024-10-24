@@ -182,13 +182,11 @@ func NewMessageTopicManager[T any](
 		}
 	}
 
-	topicManager := tools.NewTopicManager[messageHandlerWrapper[T]](
+	return tools.NewTopicManager(
 		topicManagerConfig,
 		topicHandlers,
 		unknownTopicHandler,
 	)
-
-	return topicManager
 }
 
 func NewTopicMessageHandler[T any](
