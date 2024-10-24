@@ -3,8 +3,6 @@ package tools
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/neutralusername/systemge/helpers"
 )
 
 type Metrics struct {
@@ -31,8 +29,8 @@ func (metrics *Metrics) GetTime() time.Time {
 	return metrics.Time
 }
 
-func (metrics *Metrics) JsonMarshal() string {
-	return helpers.JsonMarshal(metrics)
+func (metrics *Metrics) JsonMarshal() ([]byte, error) {
+	return json.Marshal(metrics)
 }
 
 func JsonUnmarshalMetrics(data string) (*Metrics, error) {
@@ -73,8 +71,8 @@ func (typeMetricsA MetricsTypes) Merge(typeMetricsB MetricsTypes) {
 	}
 }
 
-func (typeMetrics MetricsTypes) JsonMarshal() string {
-	return helpers.JsonMarshal(typeMetrics)
+func (typeMetrics MetricsTypes) JsonMarshal() ([]byte, error) {
+	return json.Marshal(typeMetrics)
 }
 
 func JsonUnmarshalMetricsTypes(data string) (MetricsTypes, error) {
