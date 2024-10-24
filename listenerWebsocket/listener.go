@@ -90,13 +90,17 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *conf
 }
 
 func (listener *WebsocketListener) GetConnector() systemge.Connector[[]byte] {
+	config := &configs.TcpClient{
+		Port:   listener.config.HttpTcpListenerConfig.Port,
+		Ip:     listener.config.HttpTcpListenerConfig.Ip,
+		Domain: listener.config.HttpTcpListenerConfig.Domain,
+	}
+
+	if listener.config.HttpTcpListenerConfig.TlsCertPath != "" && listener.config.HttpTcpListenerConfig.TlsKeyPath != "" {
+		config.TlsCert = helpers.GetFileContent(listener.config.HttpTcpListenerConfig.TlsCertPath)
+	}
 	return &connector{
-		tcpClientConfig: &configs.TcpClient{
-			Port:    listener.config.HttpTcpListenerConfig.Port,
-			Ip:      listener.config.HttpTcpListenerConfig.Ip,
-			TlsCert: helpers.GetFileContent(listener.config.HttpTcpListenerConfig.TlsCertPath),
-			Domain:  listener.config.HttpTcpListenerConfig.Domain,
-		},
+		tcpClientConfig:       config,
 		incomingDataByteLimit: listener.incomingMessageByteLimit,
 	}
 }
