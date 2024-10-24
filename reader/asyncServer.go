@@ -17,7 +17,7 @@ type ReaderAsync[T any] struct {
 
 	readRoutine *tools.Routine
 
-	ReadHandler systemge.ReadHandler[T]
+	ReadHandler Handler[T]
 
 	// metrics
 
@@ -29,7 +29,7 @@ func NewAsync[T any](
 	connection systemge.Connection[T],
 	readerServerAsyncConfig *configs.ReaderAsync,
 	routineConfig *configs.Routine,
-	readHandler systemge.ReadHandler[T],
+	readHandler Handler[T],
 ) (*ReaderAsync[T], error) {
 
 	if connection == nil {

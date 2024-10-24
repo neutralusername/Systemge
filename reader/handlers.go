@@ -8,10 +8,20 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+type Handler[T any] func(T, systemge.Connection[T])
+type HandlerWithResult[T any] func(T, systemge.Connection[T]) (T, error)
+type HandlerWithError[T any] func(T, systemge.Connection[T]) error
+
+type SyncObjectHandler[T any, O any] func(systemge.Connection[T], O) (T, error)
+type SyncObjectHandlers[T any, O any] map[string]SyncObjectHandler[T, O]
+
+type AsyncObjectHandler[T any, O any] func(systemge.Connection[T], O)
+type AsyncObjecthandlers[T any, O any] map[string]AsyncObjectHandler[T, O]
+
 // executes the provided handlers in sequence.
 // stops and returns an error if any handler returns an error.
 // returns nil if all handlers succeed.
-func NewAndHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+func NewAndHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
 			if err := handler(data, connection); err != nil {
@@ -25,7 +35,7 @@ func NewAndHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge
 // executes the provided handlers in sequence.
 // stops and returns nil if any handler returns nil.
 // returns an error if all handlers return an error.
-func NewOrHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+func NewOrHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
 			if err := handler(data, connection); err == nil {
@@ -38,7 +48,7 @@ func NewOrHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.
 
 // executes the provided handler.
 // returns an error if the handler returns nil.
-func NewNotHandler[T any](handler systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
+func NewNotHandler[T any](handler HandlerWithError[T]) HandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		if err := handler(data, connection); err != nil {
 			return nil
@@ -51,7 +61,7 @@ func NewNotHandler[T any](handler systemge.ReadHandlerWithError[T]) systemge.Rea
 // returns an error if the rate limiter does not have enough tokens.
 func NewByteRateLimitHandler(
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
-) systemge.ReadHandlerWithError[[]byte] {
+) HandlerWithError[[]byte] {
 
 	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
 	return func(data []byte, connection systemge.Connection[[]byte]) error {
@@ -64,7 +74,7 @@ func NewByteRateLimitHandler(
 // returns an error if the rate limiter does not have enough tokens.
 func NewMessageRateLimitHandler[T any](
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 
 	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
 	return func(data T, connection systemge.Connection[T]) error {
@@ -78,7 +88,7 @@ func NewMessageRateLimitHandler[T any](
 func NewCustomRateLimitHandler[T any](
 	tokenBucketRateLimiterConfig *configs.TokenBucketRateLimiter,
 	consumeFunc func(T, systemge.Connection[T]) uint64,
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 
 	tokenBucketRateLimiter := tools.NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
 	return func(data T, connection systemge.Connection[T]) error {
@@ -92,7 +102,7 @@ func NewCustomRateLimitHandler[T any](
 func NewResponseHandler[T any](
 	getResponse func(T, systemge.Connection[T]) (T, error),
 	writeTimeoutNs int64,
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(incomingData T, connection systemge.Connection[T]) error {
 		response, err := getResponse(incomingData, connection)
 		if err != nil {
@@ -107,7 +117,7 @@ type ObjectValidator[T any] func(T, systemge.Connection[T]) error
 // executes the provided validator.
 func NewValidationObjectHandler[T any](
 	validator ObjectValidator[T],
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(object T, connection systemge.Connection[T]) error {
 		return validator(object, connection)
 	}
@@ -125,7 +135,7 @@ type queueWrapper[T any] struct {
 func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 
 	return func(object T, connection systemge.Connection[T]) error {
 		token, priority, timeoutNs := obtainEnqueueConfigs(object, connection)
@@ -140,7 +150,7 @@ func NewQueueHandler[T any](
 // repeatedly dequeues objects from the priority token queue and executes the provided handler.
 func NewDequeueRoutine[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
-	readHandler systemge.ReadHandlerWithError[T],
+	readHandler HandlerWithError[T],
 	dequeueRoutineConfig *configs.Routine,
 ) (*tools.Routine, error) {
 	routine, err := tools.NewRoutine(
@@ -175,10 +185,10 @@ type objectHandlerWrapper[T any, O any] struct {
 
 // creates a new topic manager with the provided handlers.
 func NewObjectTopicManager[T any, O any](
-	asyncObjectHandlers systemge.AsyncObjecthandlers[T, O],
-	syncObjectHandlers systemge.SyncObjectHandlers[T, O],
-	unknownAsyncObjectHandler systemge.AsyncObjectHandler[T, O],
-	unknownSyncObjectHandler systemge.SyncObjectHandler[T, O],
+	asyncObjectHandlers AsyncObjecthandlers[T, O],
+	syncObjectHandlers SyncObjectHandlers[T, O],
+	unknownAsyncObjectHandler AsyncObjectHandler[T, O],
+	unknownSyncObjectHandler SyncObjectHandler[T, O],
 	topicManagerConfig *configs.TopicManager,
 ) (*tools.TopicManager[objectHandlerWrapper[T, O]], error) {
 
@@ -233,7 +243,7 @@ func NewObjectTopicManager[T any, O any](
 func NewTopicHandler[T any, O any](
 	topicManager *tools.TopicManager[objectHandlerWrapper[T, O]],
 	retrieveTopicAndObject func(T, systemge.Connection[T]) (string, O, error), // returns topic and O since returning topic and T would be inefficient/redundant in most scenarios (repeated de/serialization) (O may == T anyway)
-) systemge.ReadHandlerWithError[T] {
+) HandlerWithError[T] {
 
 	return func(data T, connection systemge.Connection[T]) error {
 		topic, object, err := retrieveTopicAndObject(data, connection)

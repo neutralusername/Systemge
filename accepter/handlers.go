@@ -6,14 +6,18 @@ import (
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/reader"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
 
+type Handler[T any] func(systemge.Connection[T])
+type HandlerWithError[T any] func(systemge.Connection[T]) error
+
 // executes the provided handlers in sequence.
 // stops and returns an error if any handler returns an error.
 // returns nil if all handlers succeed.
-func NewAndHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+func NewAndHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
 			if err := handler(connection); err != nil {
@@ -27,7 +31,7 @@ func NewAndHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) system
 // executes the provided handlers in sequence.
 // stops and returns nil if any handler returns nil.
 // returns an error if all handlers return an error.
-func NewOrHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+func NewOrHandler[T any](handlers ...HandlerWithError[T]) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
 			if err := handler(connection); err == nil {
@@ -40,7 +44,7 @@ func NewOrHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemg
 
 // executes the provided handler.
 // returns an error if the handler returns nil.
-func NewNotHandler[T any](handler systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+func NewNotHandler[T any](handler HandlerWithError[T]) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		if err := handler(connection); err != nil {
 			return nil
@@ -55,7 +59,7 @@ func NewAccessControlHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
 	blockList *tools.AccessControlList,
 	accessList *tools.AccessControlList,
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	switch {
 	case ipRateLimiter == nil && blockList == nil && accessList == nil:
 		return func(connection systemge.Connection[T]) error {
@@ -169,7 +173,7 @@ func NewAuthenticationHandler[T any](
 	requestMessage func(connection systemge.Connection[T]) (T, bool),
 	writeTimeoutNs int64,
 	readTimeoutNs int64,
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		currentPassword := getCurrentPassword(connection)
 		if currentPassword == "" {
@@ -198,9 +202,9 @@ func NewAuthenticationHandler[T any](
 // reads data from connection, executes readHandler and writes result back to connection and closes connection afterwards.
 func NewSingleReadAsyncHandler[T any](
 	readerConfig *configs.ReaderAsync,
-	readHandler systemge.ReadHandler[T],
+	readHandler reader.Handler[T],
 	stopChannel <-chan struct{},
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		select {
 		case <-stopChannel:
@@ -227,9 +231,9 @@ func NewSingleReadAsyncHandler[T any](
 // reads data from connection, executes readHandler and writes result back to connection and closes connection afterwards.
 func NewSingleReadSyncHandler[T any](
 	readerConfig *configs.ReaderSync,
-	readHandler systemge.ReadHandlerWithResult[T],
+	readHandler reader.HandlerWithResult[T],
 	stopChannel <-chan struct{},
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		select {
 		case <-stopChannel:
@@ -262,7 +266,7 @@ func NewSingleReadSyncHandler[T any](
 func AcceptConnectionManagerHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	if removeOnClose {
 		return func(connection systemge.Connection[T]) error {
 			_, err := connectionManager.Add(connection)
@@ -286,7 +290,7 @@ func AcceptConnectionManagerIdHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
 	getId func(connection systemge.Connection[T]) string,
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	if removeOnClose {
 		return func(connection systemge.Connection[T]) error {
 			if err := connectionManager.AddId(getId(connection), connection); err != nil {
@@ -308,7 +312,7 @@ func AcceptConnectionManagerIdHandler[T any](
 // executes provided function once connection closes.
 func OnCloseHandler[T any](
 	onClose func(connection systemge.Connection[T]),
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 	return func(connection systemge.Connection[T]) error {
 		go func() {
 			<-connection.GetCloseChannel()
@@ -324,7 +328,7 @@ type ObtainEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, pri
 func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
-) systemge.AcceptHandlerWithError[T] {
+) HandlerWithError[T] {
 
 	return func(connection systemge.Connection[T]) error {
 		token, priority, timeoutNs := obtainEnqueueConfigs(connection)
@@ -335,7 +339,7 @@ func NewQueueHandler[T any](
 // repeatdedly dequeues connections and executes provided handler.
 func NewDequeueRoutine[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
-	acceptHandler systemge.AcceptHandlerWithError[T],
+	acceptHandler HandlerWithError[T],
 	dequeueRoutineConfig *configs.Routine,
 ) (*tools.Routine, error) {
 	routine, err := tools.NewRoutine(

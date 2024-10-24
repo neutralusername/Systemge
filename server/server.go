@@ -15,8 +15,8 @@ type Server[T any] struct {
 	readerServerAsyncConfig *configs.ReaderAsync
 	readerRoutineConfig     *configs.Routine
 
-	ReadHandler   systemge.ReadHandler[T]
-	AcceptHandler systemge.AcceptHandlerWithError[T]
+	ReadHandler   reader.Handler[T]
+	AcceptHandler accepter.HandlerWithError[T]
 
 	accepter *accepter.Accepter[T]
 }
@@ -27,8 +27,8 @@ func New[T any](
 	accepterRoutineConfig *configs.Routine,
 	readerServerAsyncConfig *configs.ReaderAsync,
 	readerRoutineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[T],
-	readHandler systemge.ReadHandler[T],
+	acceptHandler accepter.HandlerWithError[T],
+	readHandler reader.Handler[T],
 ) (*Server[T], error) {
 	server := &Server[T]{
 		listener:              listener,

@@ -16,7 +16,7 @@ type Accepter[T any] struct {
 	listener      systemge.Listener[T]
 	acceptRoutine *tools.Routine
 
-	AcceptHandler systemge.AcceptHandlerWithError[T]
+	AcceptHandler HandlerWithError[T]
 
 	// metrics
 
@@ -28,7 +28,7 @@ func New[T any](
 	listener systemge.Listener[T],
 	accepterConfig *configs.Accepter,
 	routineConfig *configs.Routine,
-	acceptHandler systemge.AcceptHandlerWithError[T],
+	acceptHandler HandlerWithError[T],
 ) (*Accepter[T], error) {
 
 	if listener == nil {
