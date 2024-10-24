@@ -136,6 +136,7 @@ type messageHandlerWrapper[T any] struct {
 	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
 	syncMessageHandlers systemge.SyncMessageHandlers[T],
 	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
+	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
 	topicManagerConfig *configs.TopicManager,
 ) systemge.ReadHandlerWithError[T] {
 
@@ -160,9 +161,22 @@ type messageHandlerWrapper[T any] struct {
 	}
 
 	var unknownTopicHandler tools.TopicHandler[messageHandlerWrapper[T]]
-	if unknownAsyncMessageHandler != nil {
+	if unknownAsyncMessageHandler != nil || unknownSyncMessageHandler != nil {
 		unknownTopicHandler = func(mhw messageHandlerWrapper[T]) {
-			unknownAsyncMessageHandler(mhw.connection, mhw.message)
+			if unknownAsyncMessageHandler != nil {
+				unknownAsyncMessageHandler(mhw.connection, mhw.message)
+			}
+			if unknownSyncMessageHandler != nil {
+				response, err := unknownSyncMessageHandler(mhw.connection, mhw.message)
+				if err != nil {
+					// do smthg w the err
+					return
+				}
+				err = mhw.connection.Write(response, 0)
+				if err != nil {
+					// do smthg w the err
+				}
+			}
 		}
 	}
 
