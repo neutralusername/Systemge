@@ -22,7 +22,7 @@ func NewChainedHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) sy
 	}
 }
 
-// rejects incoming connections pased on ipRateLimiter, blockList and accessList.
+// rejects incoming connections based on ipRateLimiter, blockList and accessList.
 // arguments may be nil.
 func NewAccessControlHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
