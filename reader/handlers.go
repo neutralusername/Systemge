@@ -75,21 +75,21 @@ func NewValidationObjectHandler[T any](
 	}
 }
 
-type ObtainReadHandlerEnqueueConfigs[T any] func(T, systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
+type ObtainEnqueueConfigs[T any] func(T, systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
-type ReadHandlerQueueWrapper[T any] struct {
+type queueWrapper[T any] struct {
 	Object     T
 	Connection systemge.Connection[T]
 }
 
 func NewQueueHandler[T any](
-	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
-	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[T],
+	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) systemge.ReadHandlerWithError[T] {
 
 	return func(object T, connection systemge.Connection[T]) error {
 		token, priority, timeoutNs := obtainEnqueueConfigs(object, connection)
-		queueWrapper := &ReadHandlerQueueWrapper[T]{
+		queueWrapper := &queueWrapper[T]{
 			object,
 			connection,
 		}
@@ -98,7 +98,7 @@ func NewQueueHandler[T any](
 }
 
 func NewDequeueRoutine[T any](
-	priorityTokenQueue *tools.PriorityTokenQueue[*ReadHandlerQueueWrapper[T]],
+	priorityTokenQueue *tools.PriorityTokenQueue[*queueWrapper[T]],
 	readHandler systemge.ReadHandlerWithError[T],
 	dequeueRoutineConfig *configs.Routine,
 ) (*tools.Routine, error) {

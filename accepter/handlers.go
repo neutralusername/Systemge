@@ -282,16 +282,45 @@ func OnCloseHandler[T any](
 	}
 }
 
-/*
-type ObtainAcceptHandlerEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
+type ObtainEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
-func NewQueueAcceptHandler[T any](
+func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
-	obtainEnqueueConfigs ObtainAcceptHandlerEnqueueConfigs[T],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) systemge.AcceptHandlerWithError[T] {
-	return func(caller systemge.Connection[T]) error {
-		token, priority, timeoutNs := obtainEnqueueConfigs(caller)
-		return priorityTokenQueue.Push(token, caller, priority, timeoutNs)
+
+	return func(connection systemge.Connection[T]) error {
+		token, priority, timeoutNs := obtainEnqueueConfigs(connection)
+		return priorityTokenQueue.Push(token, connection, priority, timeoutNs)
 	}
 }
-*/
+
+func NewDequeueRoutine[T any](
+	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
+	acceptHandler systemge.AcceptHandlerWithError[T],
+	dequeueRoutineConfig *configs.Routine,
+) (*tools.Routine, error) {
+	routine, err := tools.NewRoutine(
+		func(stopChannel <-chan struct{}) {
+			for {
+				select {
+				case <-stopChannel:
+					return
+				case connection, ok := <-priorityTokenQueue.PopChannel():
+					if !ok {
+						return
+					}
+					err := acceptHandler(connection)
+					if err != nil {
+
+					}
+				}
+			}
+		},
+		dequeueRoutineConfig,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return routine, nil
+}
