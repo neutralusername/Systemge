@@ -10,15 +10,42 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-// executes all handlers in order, return error if any handler returns an error
-func NewChainedHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
-	return func(caller systemge.Connection[T]) error {
+// executes the provided handlers in sequence.
+// stops and returns an error if any handler returns an error.
+// returns nil if all handlers succeed.
+func NewAndHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
-			if err := handler(caller); err != nil {
+			if err := handler(connection); err != nil {
 				return err
 			}
 		}
 		return nil
+	}
+}
+
+// executes the provided handlers in sequence.
+// stops and returns nil if any handler returns nil.
+// returns an error if all handlers return an error.
+func NewOrHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		for _, handler := range handlers {
+			if err := handler(connection); err == nil {
+				return nil
+			}
+		}
+		return errors.New("no handler succeeded")
+	}
+}
+
+// executes the provided handler.
+// returns an error if the handler returns nil.
+func NewNotHandler[T any](handler systemge.AcceptHandlerWithError[T]) systemge.AcceptHandlerWithError[T] {
+	return func(connection systemge.Connection[T]) error {
+		if err := handler(connection); err != nil {
+			return nil
+		}
+		return errors.New("handler succeeded")
 	}
 }
 
