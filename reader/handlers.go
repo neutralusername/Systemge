@@ -8,6 +8,9 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
+// executes the provided handlers in sequence.
+// stops and returns an error if any handler returns an error.
+// returns nil if all handlers succeed.
 func NewAndHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
@@ -19,6 +22,9 @@ func NewAndHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge
 	}
 }
 
+// executes the provided handlers in sequence.
+// stops and returns nil if any handler returns nil.
+// returns an error if all handlers return an error.
 func NewOrHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		for _, handler := range handlers {
@@ -30,6 +36,8 @@ func NewOrHandler[T any](handlers ...systemge.ReadHandlerWithError[T]) systemge.
 	}
 }
 
+// executes the provided handler.
+// returns an error if the handler returns nil.
 func NewNotHandler[T any](handler systemge.ReadHandlerWithError[T]) systemge.ReadHandlerWithError[T] {
 	return func(data T, connection systemge.Connection[T]) error {
 		if err := handler(data, connection); err != nil {
