@@ -22,6 +22,8 @@ func NewChainedHandler[T any](handlers ...systemge.AcceptHandlerWithError[T]) sy
 	}
 }
 
+// rejects incoming connections pased on ipRateLimiter, blockList and accessList.
+// arguments may be nil.
 func NewAccessControlHandler[T any](
 	ipRateLimiter *tools.IpRateLimiter,
 	blockList *tools.AccessControlList,
@@ -130,6 +132,10 @@ func NewAccessControlHandler[T any](
 	}
 }
 
+// executes getCurrentPassword with connection as argument, reads message from connection, unmarshals it and compares with current password.
+// optionally writes requestMessage to connection before attempting to read password.
+// returns nil error if passwords match.
+// note: be wary of coordination between reads and writes on both ends.
 func NewAuthenticationHandler[T any](
 	getCurrentPassword func(connection systemge.Connection[T]) string,
 	unmarshalPassword func(password T) (string, error),
@@ -162,6 +168,7 @@ func NewAuthenticationHandler[T any](
 	}
 }
 
+// reads data from connection, executes readHandler and writes result back to connection and closes connection afterwards.
 func NewSingleReadAsyncHandler[T any](
 	readerConfig *configs.ReaderAsync,
 	readHandler systemge.ReadHandler[T],
@@ -190,6 +197,7 @@ func NewSingleReadAsyncHandler[T any](
 	}
 }
 
+// reads data from connection, executes readHandler and writes result back to connection and closes connection afterwards.
 func NewSingleReadSyncHandler[T any](
 	readerConfig *configs.ReaderSync,
 	readHandler systemge.ReadHandlerWithResult[T],
@@ -223,7 +231,7 @@ func NewSingleReadSyncHandler[T any](
 	}
 }
 
-// adds connection to connection manager and removes it when connection is closed
+// adds connection to connection manager and removes it when connection is closed.
 func AcceptConnectionManagerHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
@@ -246,7 +254,7 @@ func AcceptConnectionManagerHandler[T any](
 }
 
 // adds connection to connection manager and removes it when connection is closed.
-// could be used multiple times with different managers and getId functions (userId, groupId, etc.)
+// could be used multiple times with different managers and getId functions (userId, groupId, etc.).
 func AcceptConnectionManagerIdHandler[T any](
 	connectionManager *systemge.ConnectionManager[T],
 	removeOnClose bool,
@@ -270,6 +278,7 @@ func AcceptConnectionManagerIdHandler[T any](
 	}
 }
 
+// executes provided function once connection is closed.
 func OnCloseHandler[T any](
 	onClose func(connection systemge.Connection[T]),
 ) systemge.AcceptHandlerWithError[T] {
@@ -284,6 +293,7 @@ func OnCloseHandler[T any](
 
 type ObtainEnqueueConfigs[T any] func(systemge.Connection[T]) (token string, priority uint32, timeoutNs int64)
 
+// queues incoming connections.
 func NewQueueHandler[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
@@ -295,6 +305,7 @@ func NewQueueHandler[T any](
 	}
 }
 
+// repeatdedly dequeues connections from queue and executes provided handler.
 func NewDequeueRoutine[T any](
 	priorityTokenQueue *tools.PriorityTokenQueue[systemge.Connection[T]],
 	acceptHandler systemge.AcceptHandlerWithError[T],
