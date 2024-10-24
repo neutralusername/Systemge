@@ -25,27 +25,21 @@ func (listener *WebsocketListener) Accept(timeoutNs int64) (systemge.Connection[
 		return nil, errors.New("accept canceled")
 
 	case upgraderResponseChannel := <-listener.upgradeRequests:
-		select {
-		case <-listener.stopChannel:
-			return nil, errors.New("listener stopped")
+		upgraderResponse := <-upgraderResponseChannel
 
-		case <-listener.timeout.GetIsExpiredChannel():
-			return nil, errors.New("accept canceled")
-
-		case upgraderResponse := <-upgraderResponseChannel:
-			if upgraderResponse.err != nil {
-				listener.ClientsFailed.Add(1)
-				return nil, upgraderResponse.err
-			}
-			websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn, listener.incomingMessageByteLimit)
-			if err != nil {
-				listener.ClientsFailed.Add(1)
-				upgraderResponse.websocketConn.Close()
-				return nil, err
-			}
-			listener.ClientsAccepted.Add(1)
-			return websocketClient, nil
+		if upgraderResponse.err != nil {
+			listener.ClientsFailed.Add(1)
+			return nil, upgraderResponse.err
 		}
+		websocketClient, err := connectionWebsocket.New(upgraderResponse.websocketConn, listener.incomingMessageByteLimit)
+		if err != nil {
+			listener.ClientsFailed.Add(1)
+			upgraderResponse.websocketConn.Close()
+			return nil, err
+		}
+		listener.ClientsAccepted.Add(1)
+		return websocketClient, nil
+
 	}
 }
 

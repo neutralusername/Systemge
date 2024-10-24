@@ -23,20 +23,11 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 			return
 
 		case listener.upgradeRequests <- upgradeResponseChannel:
+
 			websocketConn, err := listener.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
-			select {
-			case upgradeResponseChannel <- &upgraderResponse{
+			upgradeResponseChannel <- &upgraderResponse{
 				err:           err,
 				websocketConn: websocketConn,
-			}:
-			case <-listener.stopChannel:
-				if websocketConn != nil {
-					websocketConn.Close()
-				}
-			case <-timeout.GetIsExpiredChannel():
-				if websocketConn != nil {
-					websocketConn.Close()
-				}
 			}
 		}
 	}
