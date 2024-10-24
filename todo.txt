@@ -73,8 +73,6 @@ right now this is not officially supported and works for some fields, but not fo
 
 add options for heartbeats to tcp and websocket.
 
-build integrate onClose handlers for connections 
-
 add more abstraction in general after gathering some experience implementing samples
 
 (add optional ip field. if empty resolve the domain and save ip. if no domain either error)
