@@ -189,7 +189,7 @@ func NewMessageTopicManager[T any, P any](
 	)
 }
 
-func NewTopicMessageHandler[T any, P any](
+func NewTopicHandler[T any, P any](
 	topicManager *tools.TopicManager[messageHandlerWrapper[T, P]],
 	retrieveTopicPayload func(T, systemge.Connection[T]) (string, P, error),
 ) systemge.ReadHandlerWithError[T] {
