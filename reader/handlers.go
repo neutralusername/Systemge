@@ -1,6 +1,8 @@
 package reader
 
 import (
+	"errors"
+
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -189,12 +191,19 @@ func NewMessageTopicManager[T any](
 	return topicManager
 }
 
-/* func NewTopicMessageHandler[T any](
+func NewTopicMessageHandler[T any](
 	topicManager *tools.TopicManager[messageHandlerWrapper[T]],
+	retrieveMessage func(T, systemge.Connection[T]) tools.IMessage,
 ) systemge.ReadHandlerWithError[T] {
 
-	return func(message T, connection systemge.Connection[T]) error {
-
+	return func(data T, connection systemge.Connection[T]) error {
+		message := retrieveMessage(data, connection)
+		if message == nil {
+			return errors.New("could not retrieve message")
+		}
+		return topicManager.Handle(message.GetTopic(), messageHandlerWrapper[T]{
+			message,
+			connection,
+		})
 	}
 }
-*/
