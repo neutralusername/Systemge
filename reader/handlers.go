@@ -126,3 +126,43 @@ func NewDequeueRoutine[T any](
 	}
 	return routine, nil
 }
+
+/* type messageHandlerWrapper[T any] struct {
+	message    tools.IMessage
+	connection systemge.Connection[T]
+}
+
+func NewMessageHandler[T any](
+	asyncMessageHandlers systemge.AsyncMessageHandlers[T],
+	unknownAsyncMessageHandler systemge.AsyncMessageHandler[T],
+	syncMessageHandlers systemge.SyncMessageHandlers[T],
+	unknownSyncMessageHandler systemge.SyncMessageHandler[T],
+	asyncTopicManagerConfig *configs.TopicManager,
+	syncTopicManagerConfig *configs.TopicManager,
+) systemge.ReadHandlerWithError[T] {
+	asyncTopicHandlers := tools.TopicHandlers[messageHandlerWrapper[T], T]{}
+
+	for topic, handler := range asyncMessageHandlers {
+		asyncTopicHandlers[topic] = func(mhw messageHandlerWrapper[T]) (T, error) {
+			handler(mhw.connection, mhw.message)
+			var nilValue T
+			return nilValue, nil
+		}
+	}
+
+	topicManagerAsync := tools.NewTopicManager[T, *T](
+		asyncTopicManagerConfig,
+		tools.TopicHandlers[T, *T]{},
+		nil,
+	)
+	topicManagerSync := tools.NewTopicManager[T, T](
+		syncTopicManagerConfig,
+		tools.TopicHandlers[T, T]{},
+		nil,
+	)
+
+	return func(message T, connection systemge.Connection[T]) error {
+
+	}
+}
+*/
