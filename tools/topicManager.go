@@ -8,10 +8,10 @@ import (
 	"github.com/neutralusername/systemge/configs"
 )
 
-/*
-type AsyncObjectHandler[O any, C any] func(object O, caller C) error
-type SyncObjectHandler[O any, C any] func(object O, caller C, syncToken string) (O, error)
-*/
+// modes: (l == large enough to never be full (depends on how many calls are made/how long they take to process))
+// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
+// topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
+// topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
 type TopicHandler[P any] func(P)
 type TopicHandlers[P any] map[string]TopicHandler[P]
@@ -35,11 +35,6 @@ type queueStruct[P any] struct {
 	parameter    P
 	errorChannel chan error
 }
-
-// modes: (l == large enough to never be full (depends on how many calls are made/how long they take to process))
-// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
-// topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
-// topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
 func NewTopicManager[P any](config *configs.TopicManager, topicHandlers TopicHandlers[P], unknownTopicHandler TopicHandler[P]) (*TopicManager[P], error) {
 	if config == nil {
